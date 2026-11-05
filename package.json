@@ -9,6 +9,7 @@
     "assets:search": "tsx scripts/assets/search.ts",
     "assets:fetch": "tsx scripts/assets/fetch.ts",
     "assets:use": "tsx scripts/assets/use.ts",
+    "assets:catalog": "tsx scripts/assets/catalog.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint .",
