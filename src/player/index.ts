@@ -5,4 +5,7 @@ export { PlayerInputSystem } from './PlayerInputSystem';
 export { CharacterMovementSystem } from './CharacterMovementSystem';
 export { movementVelocity } from './movementVelocity';
 export { PlayerMeshFactory } from './PlayerMeshFactory';
-export { PlayerSpawner } from './PlayerSpawner';
+export { PlayerSpawner, type PlayerVisualFactory } from './PlayerSpawner';
+export { PlayerModelFactory, type AnimatedModel } from './PlayerModelFactory';
+export { PlayerAnimationSystem } from './PlayerAnimationSystem';
+export type { CharacterAnimation, LocomotionClip } from './CharacterAnimation';

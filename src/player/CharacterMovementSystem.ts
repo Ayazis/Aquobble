@@ -27,6 +27,8 @@ export class CharacterMovementSystem implements System {
       const { player, playerInput: input } = entity;
       const yaw = entity.cameraTarget?.yaw ?? 0;
       const horizontal = movementVelocity(input, yaw, player.walkSpeed, player.runSpeed);
+      player.moveX = horizontal.x;
+      player.moveZ = horizontal.z;
 
       if (player.grounded && input.jump) player.verticalVelocity = player.jumpSpeed;
       else if (player.grounded) player.verticalVelocity = -GROUND_STICK;

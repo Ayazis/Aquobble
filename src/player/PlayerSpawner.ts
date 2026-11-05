@@ -1,20 +1,26 @@
 import { identityQuat, type GameWorld } from '@core';
+import type { Object3D } from 'three';
 import type { PhysicsEngine } from '@physics';
 import type {} from '@rendering';
 import { DEFAULT_PLAYER } from './Player';
 import { idleInput } from './PlayerInput';
-import type { PlayerMeshFactory } from './PlayerMeshFactory';
+import type { CharacterAnimation } from './CharacterAnimation';
 
 const HALF_HEIGHT = 0.5;
 const RADIUS = 0.4;
 const DROP_FROM = 500;
+
+/** Builds what the player looks like: the animated model, or the capsule placeholder. */
+export interface PlayerVisualFactory {
+  create(halfHeight: number, radius: number): { object: Object3D; animation?: CharacterAnimation };
+}
 
 /** Adds the player: character-controlled capsule standing on the ground at (x, z), followed by the camera. */
 export class PlayerSpawner {
   constructor(
     private readonly world: GameWorld,
     private readonly physics: PhysicsEngine,
-    private readonly meshes: PlayerMeshFactory,
+    private readonly visuals: PlayerVisualFactory,
   ) {}
 
   spawn(x: number, z: number): void {
@@ -29,6 +35,7 @@ export class PlayerSpawner {
       stepHeight: 0.4,
       snapToGround: 0.4,
     });
+    const visual = this.visuals.create(HALF_HEIGHT, RADIUS);
     this.world.add({
       player: { ...DEFAULT_PLAYER },
       playerInput: idleInput(),
@@ -36,7 +43,8 @@ export class PlayerSpawner {
       physicsBody: { handle: characterBody.body },
       cameraTarget: { height: 0.7, yaw: 0, ignoreBody: characterBody.body },
       transform: { position: { ...position }, rotation: identityQuat() },
-      renderObject: { object: this.meshes.create(HALF_HEIGHT, RADIUS) },
+      renderObject: { object: visual.object },
+      ...(visual.animation ? { characterAnimation: visual.animation } : {}),
     });
   }
 }

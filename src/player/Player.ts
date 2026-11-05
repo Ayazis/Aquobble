@@ -5,6 +5,9 @@ export interface Player {
   jumpSpeed: number;
   gravity: number;
   verticalVelocity: number;
+  /** Horizontal velocity of the last move (m/s), read by presentation to animate and face the model. */
+  moveX: number;
+  moveZ: number;
   grounded: boolean;
 }
 
@@ -14,6 +17,8 @@ export const DEFAULT_PLAYER: Player = {
   jumpSpeed: 7,
   gravity: 20,
   verticalVelocity: 0,
+  moveX: 0,
+  moveZ: 0,
   grounded: false,
 };
 

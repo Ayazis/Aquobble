@@ -1,9 +1,9 @@
 import type { PlacedTown } from './PlacedTown';
-import type { PlotBoxSpawner } from './render/PlotBoxSpawner';
+import type { PlotSpawner } from './render/PlotSpawner';
 
-/** Spawns a placeholder box + collider for every building plot. Swap for model loading later. */
+/** Spawns every building plot through a `PlotSpawner` (model, or grey box as fallback). */
 export class BuildingSpawner {
-  constructor(private readonly boxes: PlotBoxSpawner) {}
+  constructor(private readonly boxes: PlotSpawner) {}
 
   spawn(town: PlacedTown): void {
     for (const building of town.buildings) this.boxes.spawn(building);

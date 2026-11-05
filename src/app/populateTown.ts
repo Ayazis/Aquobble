@@ -1,9 +1,11 @@
 import type { GameWorld } from '@core';
+import type { Object3D } from 'three';
 import type { PhysicsEngine } from '@physics';
 import type { HeightField } from '@terrain';
 import {
   BuildingSpawner,
   DEFAULT_TOWN_LAYOUT,
+  ModelPlotSpawner,
   PlotBoxSpawner,
   PropSpawner,
   RoadMeshFactory,
@@ -16,13 +18,14 @@ import type { ExclusionZone } from '@vegetation';
 
 /**
  * Levels the terrain under the town (must run before the terrain mesh and collider are built),
- * then spawns roads, wall, buildings and props. Returns the area to keep free of trees.
+ * then spawns roads, wall, buildings and props (models, grey boxes where a model is missing). Returns the area to keep free of trees.
  */
 export function populateTown(
   world: GameWorld,
   physics: PhysicsEngine,
   terrain: HeightField,
   site: TownSite,
+  models: ReadonlyMap<string, Object3D>,
 ): ExclusionZone {
   const planner = new TownPlanner(DEFAULT_TOWN_LAYOUT);
   const region = planner.region(site);
@@ -30,7 +33,7 @@ export function populateTown(
 
   const town = planner.place(terrain, site);
   new TownSpawner(world, physics, new RoadMeshFactory(), new WallFactory()).spawn(town);
-  const boxes = new PlotBoxSpawner(world, physics);
+  const boxes = new ModelPlotSpawner(world, physics, models, new PlotBoxSpawner(world, physics));
   new BuildingSpawner(boxes).spawn(town);
   new PropSpawner(boxes).spawn(town);
 

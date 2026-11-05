@@ -11,4 +11,10 @@ export class GltfModelLoader {
     const gltf = await this.loader.loadAsync(import.meta.env.BASE_URL + path);
     return gltf.scene;
   }
+
+  /** Like `load`, plus the animation clips stored in the file. */
+  async loadAnimated(path: string): Promise<{ scene: THREE.Group; animations: THREE.AnimationClip[] }> {
+    const gltf = await this.loader.loadAsync(import.meta.env.BASE_URL + path);
+    return { scene: gltf.scene, animations: gltf.animations };
+  }
 }
