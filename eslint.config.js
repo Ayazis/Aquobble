@@ -3,7 +3,7 @@ import tseslint from 'typescript-eslint';
 import prettier from 'eslint-config-prettier';
 import globals from 'globals';
 
-const SLICES = 'app|core|physics|rendering|environment|terrain|water|vegetation|rocks';
+const SLICES = 'app|core|physics|rendering|environment|terrain|water|vegetation|rocks|diagnostics';
 
 export default tseslint.config(
   { ignores: ['dist', 'node_modules', 'assets/library', 'public', 'tools'] },

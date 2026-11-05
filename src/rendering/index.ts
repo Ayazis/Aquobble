@@ -6,3 +6,5 @@ export { TransformSyncSystem } from './TransformSyncSystem';
 export { SceneMembership } from './SceneMembership';
 export { ViewportResizer } from './ViewportResizer';
 export { OrbitCameraSystem } from './OrbitCameraSystem';
+export { SmoothZoom, DEFAULT_SMOOTH_ZOOM, type SmoothZoomOptions } from './camera/SmoothZoom';
+export { WheelZoomInput } from './camera/WheelZoomInput';

@@ -7,9 +7,12 @@ import {
   RenderContext,
   RenderSystem,
   SceneMembership,
+  SmoothZoom,
   TransformSyncSystem,
   ViewportResizer,
+  WheelZoomInput,
 } from '@rendering';
+import { FpsCounter, FpsOverlay, FpsSystem } from '@diagnostics';
 import { RockMeshFactory, RockRecycleSystem, RockSpawner } from '@rocks';
 import { Game } from './Game';
 import { DEFAULT_CONFIG, type GameConfig } from './GameConfig';
@@ -28,6 +31,10 @@ export async function bootstrap(container: HTMLElement, config: GameConfig = DEF
   populateWorld(world, physics, random, config);
   const rocks = new RockSpawner(world, physics, new RockMeshFactory(random));
 
+  const zoom = new SmoothZoom();
+  const wheel = new WheelZoomInput(render.canvas, zoom);
+  const fpsOverlay = new FpsOverlay(container);
+
   const loop = new GameLoop(new AnimationFrameScheduler(), {
     fixedSystems: [
       new RockRecycleSystem(world, rocks, random, config.rocks),
@@ -36,8 +43,9 @@ export async function bootstrap(container: HTMLElement, config: GameConfig = DEF
     ],
     frameSystems: [
       new TransformSyncSystem(world),
-      new OrbitCameraSystem(render.camera, render.canvas, vec3(90, 55, 90), vec3(0, 5, 0)),
+      new OrbitCameraSystem(render.camera, render.canvas, zoom, vec3(90, 55, 90), vec3(0, 5, 0)),
       new RenderSystem(post),
+      new FpsSystem(new FpsCounter(), fpsOverlay),
     ],
   });
 
@@ -45,5 +53,7 @@ export async function bootstrap(container: HTMLElement, config: GameConfig = DEF
     new SceneMembership(world, render.scene),
     new PhysicsBodyCleanup(world, physics),
     new ViewportResizer(render, post),
+    wheel,
+    fpsOverlay,
   ]);
 }
