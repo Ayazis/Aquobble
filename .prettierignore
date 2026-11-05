@@ -1,0 +1,6 @@
+dist
+node_modules
+assets/library
+public
+tools
+package-lock.json

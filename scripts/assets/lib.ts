@@ -40,8 +40,9 @@ export async function download(url: string, dest: string, headers: Record<string
 export function unzip(zip: string, dir = path.dirname(zip)) {
   fs.mkdirSync(dir, { recursive: true });
   // On Windows use the built-in bsdtar; Git Bash's GNU tar treats "E:" as a remote host.
-  const tar = process.platform === 'win32' ? path.join(process.env.SystemRoot ?? 'C:\\Windows', 'System32', 'tar.exe') : 'tar';
-  execFileSync(tar,['-xf', zip, '-C', dir], { stdio: 'inherit' });
+  const tar =
+    process.platform === 'win32' ? path.join(process.env.SystemRoot ?? 'C:\\Windows', 'System32', 'tar.exe') : 'tar';
+  execFileSync(tar, ['-xf', zip, '-C', dir], { stdio: 'inherit' });
   fs.rmSync(zip);
 }
 
@@ -75,7 +76,7 @@ export function parseArgs(argv = process.argv.slice(2)) {
 }
 
 export function walk(dir: string): string[] {
-  return fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) =>
-    e.isDirectory() ? walk(path.join(dir, e.name)) : [path.join(dir, e.name)],
-  );
+  return fs
+    .readdirSync(dir, { withFileTypes: true })
+    .flatMap((e) => (e.isDirectory() ? walk(path.join(dir, e.name)) : [path.join(dir, e.name)]));
 }

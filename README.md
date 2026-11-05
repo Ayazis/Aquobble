@@ -14,13 +14,13 @@ npm run build    # → dist/
 Raw downloads go to `assets/library/` (**gitignored**). Only assets that are actually used get optimised
 into `public/assets/` (committed) and credited in `public/assets/CREDITS.md`.
 
-| Source | What | License | Key |
-|---|---|---|---|
-| `polyhaven` | HDRI skies, textures, models | CC0 | none |
-| `ambientcg` | PBR textures, HDRIs | CC0 | none |
-| `sketchfab` | models (downloadable only) | mixed: check! | `SKETCHFAB_API_TOKEN` for download |
-| `polypizza` | low-poly models | CC0 / CC-BY | `POLYPIZZA_API_KEY` |
-| `url` | any direct zip/glb link (Kenney, Quaternius, KayKit) | pass `--license` | none |
+| Source      | What                                                 | License          | Key                                |
+| ----------- | ---------------------------------------------------- | ---------------- | ---------------------------------- |
+| `polyhaven` | HDRI skies, textures, models                         | CC0              | none                               |
+| `ambientcg` | PBR textures, HDRIs                                  | CC0              | none                               |
+| `sketchfab` | models (downloadable only)                           | mixed: check!    | `SKETCHFAB_API_TOKEN` for download |
+| `polypizza` | low-poly models                                      | CC0 / CC-BY      | `POLYPIZZA_API_KEY`                |
+| `url`       | any direct zip/glb link (Kenney, Quaternius, KayKit) | pass `--license` | none                               |
 
 Keys go in `.env` (copy `.env.example`).
 
@@ -49,6 +49,6 @@ Kenney, Quaternius and KayKit have no API: download their packs in the browser
 `.mcp.json` registers [blender-mcp](https://github.com/ahujasid/blender-mcp) (`uvx blender-mcp`) so Claude can
 drive Blender and pull Poly Haven / Sketchfab assets straight into a scene. One-time setup:
 
-1. Blender → Edit → Preferences → Add-ons → ⌄ → *Install from Disk…* → `tools/blender/blender_mcp_addon.py`, enable it.
-2. In the 3D view press `N` → **BlenderMCP** tab → *Connect to Claude*.
+1. Blender → Edit → Preferences → Add-ons → ⌄ → _Install from Disk…_ → `tools/blender/blender_mcp_addon.py`, enable it.
+2. In the 3D view press `N` → **BlenderMCP** tab → _Connect to Claude_.
 3. Restart Claude Code in this folder and approve the `blender` MCP server.

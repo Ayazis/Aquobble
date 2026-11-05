@@ -7,7 +7,27 @@
     "strict": true,
     "skipLibCheck": true,
     "noEmit": true,
-    "types": ["vite/client", "node"]
+    "types": ["vite/client", "node", "vitest/globals"],
+    "paths": {
+      "@app": ["./src/app/index.ts"],
+      "@app/*": ["./src/app/*"],
+      "@core": ["./src/core/index.ts"],
+      "@core/*": ["./src/core/*"],
+      "@physics": ["./src/physics/index.ts"],
+      "@physics/*": ["./src/physics/*"],
+      "@rendering": ["./src/rendering/index.ts"],
+      "@rendering/*": ["./src/rendering/*"],
+      "@environment": ["./src/environment/index.ts"],
+      "@environment/*": ["./src/environment/*"],
+      "@terrain": ["./src/terrain/index.ts"],
+      "@terrain/*": ["./src/terrain/*"],
+      "@water": ["./src/water/index.ts"],
+      "@water/*": ["./src/water/*"],
+      "@vegetation": ["./src/vegetation/index.ts"],
+      "@vegetation/*": ["./src/vegetation/*"],
+      "@rocks": ["./src/rocks/index.ts"],
+      "@rocks/*": ["./src/rocks/*"]
+    }
   },
-  "include": ["src", "scripts"]
+  "include": ["src", "scripts", "*.config.ts"]
 }
