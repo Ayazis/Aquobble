@@ -83,4 +83,29 @@ describe('RapierPhysicsEngine characters and rays', () => {
     expect(engine.castRay(vec3(0, 10, 0), vec3(0, -1, 0), 100)).toBeCloseTo(10, 3);
     expect(engine.castRay(vec3(0, 10, 0), vec3(0, -1, 0), 100, ground)).toBeNull();
   });
+
+  it('stops a character at a fixed trimesh wall', async () => {
+    const engine = await RapierPhysicsEngine.create();
+    flatGround(engine);
+    // Vertical quad in the plane x = 3 (two triangles, wound both ways is irrelevant for a fixed trimesh).
+    const vertices = new Float32Array([3, 0, -5, 3, 0, 5, 3, 3, 5, 3, 3, -5]);
+    const indices = new Uint32Array([0, 1, 2, 0, 2, 3]);
+    engine.createBody({ kind: 'fixed', position: vec3(), shape: { type: 'trimesh', vertices, indices } });
+    const character = engine.createCharacter({
+      position: vec3(0, 0.95, 0),
+      halfHeight: 0.5,
+      radius: 0.4,
+      maxSlopeClimb: Math.PI / 4,
+      stepHeight: 0.3,
+      snapToGround: 0.3,
+    });
+    for (let i = 0; i < 120; i++) {
+      engine.moveCharacter(character, vec3(0.1, -0.1, 0));
+      engine.step(1 / 60);
+    }
+    const pose: Transform = { position: vec3(), rotation: identityQuat() };
+    engine.readPose(character.body, pose);
+    expect(pose.position.x).toBeLessThan(2.7);
+    expect(pose.position.x).toBeGreaterThan(2.4);
+  });
 });

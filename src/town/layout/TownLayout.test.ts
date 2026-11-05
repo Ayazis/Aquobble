@@ -8,8 +8,8 @@ const label = (p: TownPlot) => `${p.assetId} at (${p.x}, ${p.z})`;
 const everything = [...town.buildings, ...town.props];
 
 describe('DEFAULT_TOWN_LAYOUT', () => {
-  it('is about 120 x 120 m with around a dozen buildings and a well in the middle', () => {
-    expect(town.size).toBe(120);
+  it('is a compact ~56 x 56 m village with over a dozen buildings and a well in the middle', () => {
+    expect(town.size).toBeLessThanOrEqual(60);
     expect(town.wall.halfSize * 2).toBeLessThanOrEqual(town.size);
     expect(town.buildings.length).toBeGreaterThanOrEqual(12);
     expect(town.buildings.some((b) => b.assetId === 'well' && b.x === 0 && b.z === 0)).toBe(true);

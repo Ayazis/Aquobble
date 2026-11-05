@@ -1,0 +1,58 @@
+import { SeededRandom } from '@core';
+import { RockScatterPlacer, type RockScatterOptions } from './RockScatterPlacer';
+
+const base: RockScatterOptions = {
+  clusters: 40,
+  clusterSize: 4,
+  extent: 30,
+  waterLevel: 0,
+  maxHeight: 100,
+  minScale: 0.3,
+  maxScale: 2,
+  variants: 3,
+};
+
+describe('RockScatterPlacer', () => {
+  // Flat at height 5 for x < 0, a steep ramp for x >= 0.
+  const ground = { heightAt: (x: number) => (x < 0 ? 5 : 5 + x * 2) };
+
+  it('places rocks with valid shapes, sunk into the ground', () => {
+    const rocks = new RockScatterPlacer(ground, new SeededRandom(1)).place(base);
+    expect(rocks.length).toBeGreaterThan(40);
+    for (const r of rocks) {
+      expect(r.y).toBeLessThan(ground.heightAt(r.x));
+      expect(r.scale).toBeGreaterThanOrEqual(0.3);
+      expect(r.scale).toBeLessThanOrEqual(2);
+      expect(r.squash).toBeLessThan(1);
+      expect(r.variant).toBeGreaterThanOrEqual(0);
+      expect(r.variant).toBeLessThan(3);
+    }
+  });
+
+  it('prefers slopes over flat ground', () => {
+    const rocks = new RockScatterPlacer(ground, new SeededRandom(2)).place({ ...base, clusters: 100 });
+    const onSlope = rocks.filter((r) => r.x >= 0).length;
+    expect(onSlope).toBeGreaterThan((rocks.length - onSlope) * 2);
+  });
+
+  it('favours the shoreline on flat ground', () => {
+    const placer = new RockScatterPlacer({ heightAt: () => 1 }, new SeededRandom(3));
+    expect(placer.weight(0, 0, 0)).toBeGreaterThan(placer.weight(0, 0, -10));
+  });
+
+  it('keeps out of exclusion zones and water', () => {
+    const exclude = [{ minX: -10, maxX: 10, minZ: -10, maxZ: 10 }];
+    const sea = { heightAt: (x: number) => x / 3 };
+    const rocks = new RockScatterPlacer(sea, new SeededRandom(4)).place({ ...base, exclude });
+    for (const r of rocks) {
+      expect(Math.abs(r.x) < 10 && Math.abs(r.z) < 10).toBe(false);
+      expect(sea.heightAt(r.x)).toBeGreaterThanOrEqual(0);
+    }
+  });
+
+  it('is reproducible for a seed', () => {
+    const a = new RockScatterPlacer(ground, new SeededRandom(7)).place(base);
+    const b = new RockScatterPlacer(ground, new SeededRandom(7)).place(base);
+    expect(a).toEqual(b);
+  });
+});

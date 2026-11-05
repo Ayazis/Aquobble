@@ -1,6 +1,6 @@
 export type { BodyDesc, BodyKind } from './BodyDesc';
 export type { BodyHandle } from './BodyHandle';
-export type { ColliderShape, HeightFieldShape } from './ColliderShape';
+export type { ColliderShape, HeightFieldShape, TriMeshShape } from './ColliderShape';
 export type { PhysicsBody } from './PhysicsBody';
 export type { CharacterBody } from './CharacterBody';
 export type { CharacterDesc } from './CharacterDesc';

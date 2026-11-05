@@ -57,7 +57,18 @@ into Blender unless the user wants to edit the model there.
 
 ## 4. Present options and stop
 
-Show a short table of the 3-5 best candidates, then **wait for the user's pick**:
+Show the 3-5 best candidates **with their thumbnails visible in chat**, then **wait for the user's pick**.
+Never present candidates as a text-only table.
+
+1. Get each candidate's thumbnail: the local `thumb` file (`assets/catalog/<thumb>`, from
+   `assets/catalog/catalog.json`) if cached, else its remote `thumbUrl` (or the preview image on the
+   source page). For in-game/downloaded assets without a thumbnail, render one (e.g. Blender MCP `look`
+   after import, only if Blender is already in use) or say "no preview".
+2. Show them as an inline gallery with `show_widget` (load it via `read_me` first): a grid of cards, one
+   per candidate, each with the image, `#`, name, source, license, poly count / style and a link. Local
+   thumbs can't be referenced by path in the widget; embed them as base64 `data:` URIs (they're small).
+3. If the widget isn't available, fall back to `SendUserFile` with the local thumbnail files
+   (`display: "render"`, caption = `#` + name), plus the table below.
 
 | # | Name | Source | License | Poly count / style | Link |
 

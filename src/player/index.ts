@@ -9,3 +9,5 @@ export { PlayerSpawner, type PlayerVisualFactory } from './PlayerSpawner';
 export { PlayerModelFactory, type AnimatedModel } from './PlayerModelFactory';
 export { PlayerAnimationSystem } from './PlayerAnimationSystem';
 export type { CharacterAnimation, LocomotionClip } from './CharacterAnimation';
+export { locomotionClip } from './locomotionClip';
+export { turnTowards } from './turnTowards';

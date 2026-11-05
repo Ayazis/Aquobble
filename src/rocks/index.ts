@@ -4,3 +4,7 @@ export { RockMeshFactory } from './RockMeshFactory';
 export { ModelRockFactory } from './ModelRockFactory';
 export { RockSpawner } from './RockSpawner';
 export { RockRecycleSystem, type RockRecycleOptions } from './RockRecycleSystem';
+export type { RockPlacement } from './RockPlacement';
+export { RockScatterPlacer, type RockScatterOptions } from './RockScatterPlacer';
+export { RockScatterFactory, type RockScatter } from './RockScatterFactory';
+export { RockScatterSpawner, type RockScatterSpawnOptions } from './RockScatterSpawner';

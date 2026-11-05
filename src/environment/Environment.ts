@@ -1,31 +1,33 @@
 import * as THREE from 'three';
 import type { RenderContext } from '@rendering';
+import { DayNightSystem } from './DayNightSystem';
+import type { DayKeyframe } from './DayKeyframe';
+import { DEFAULT_DAY_KEYFRAMES } from './dayKeyframes';
 import type { EnvironmentConfig } from './EnvironmentConfig';
+import type { Random } from '@core';
+import { NightSky } from './NightSky';
 import { SkyDome } from './SkyDome';
 import { SunLight } from './SunLight';
 
-/** Installs sky, sun, fog and image-based lighting into the scene. */
+/** Installs sky, sun, moon, stars, fog and image-based lighting into the scene. */
 export class Environment {
-  constructor(private readonly config: EnvironmentConfig) {}
+  constructor(
+    private readonly config: EnvironmentConfig,
+    private readonly keyframes: readonly DayKeyframe[] = DEFAULT_DAY_KEYFRAMES,
+  ) {}
 
-  install(context: RenderContext): void {
-    const { scene, renderer } = context;
-    const direction = this.sunDirection();
-    const sky = new SkyDome(direction);
-    const light = new SunLight(direction, this.config.sunColor, this.config.sunIntensity);
+  /** Adds the atmosphere to the scene and returns the frame system that animates it through the day. */
+  install(context: RenderContext, random: Random): DayNightSystem {
+    const { scene, renderer, camera } = context;
+    const night = new NightSky(random);
+    const sky = new SkyDome();
+    const light = new SunLight();
+    const fog = new THREE.FogExp2(0xffffff, 0);
 
-    scene.add(sky.sky, light.sun, light.fill);
-    scene.environment = sky.createEnvironmentMap(renderer);
-    scene.environmentIntensity = this.config.environmentIntensity;
-    scene.fog = new THREE.FogExp2(this.config.fogColor, this.config.fogDensity);
-  }
-
-  private sunDirection(): THREE.Vector3 {
-    const { degToRad } = THREE.MathUtils;
-    return new THREE.Vector3().setFromSphericalCoords(
-      1,
-      degToRad(this.config.sunElevationFromZenith),
-      degToRad(this.config.sunAzimuth),
-    );
+    scene.add(sky.sky, night.group, light.sun, light.fill);
+    scene.fog = fog;
+    const dayNight = new DayNightSystem(renderer, scene, fog, sky, light, this.keyframes, this.config, night, camera);
+    dayNight.update(0); // apply the start time before the first frame
+    return dayNight;
   }
 }
