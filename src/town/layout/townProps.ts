@@ -35,7 +35,7 @@ export const TOWN_PROPS: TownPlot[] = [
   sign(-4.5, -54, Math.PI),
   sign(54, -4.5, Math.PI / 2),
   sign(-54, 4.5, -Math.PI / 2),
-  prop('fence', -44, 18, 0, 8, 0.2, 1),
+  prop('fence', -44, 21, 0, 8, 0.2, 1),
   bush(32, 32),
   bush(-30, -30),
   bush(-50, 30),

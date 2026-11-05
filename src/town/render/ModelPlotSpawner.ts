@@ -18,6 +18,8 @@ export class ModelPlotSpawner implements PlotSpawner {
     private readonly physics: PhysicsEngine,
     private readonly models: ReadonlyMap<string, THREE.Object3D>,
     private readonly fallback: PlotSpawner,
+    /** Scale to the plot height (buildings) rather than keep real-world size (props); see `fitScale`. */
+    private readonly fill = false,
   ) {}
 
   spawn(placed: PlacedPlot): void {
@@ -26,7 +28,7 @@ export class ModelPlotSpawner implements PlotSpawner {
 
     const box = new THREE.Box3().setFromObject(source);
     const size = box.getSize(new THREE.Vector3());
-    const scale = fitScale({ width: size.x, depth: size.z, height: size.y }, placed.plot.footprint);
+    const scale = fitScale({ width: size.x, depth: size.z, height: size.y }, placed.plot.footprint, this.fill);
 
     const model = source.clone();
     model.scale.setScalar(scale);
