@@ -33,12 +33,14 @@ export async function bootstrap(container: HTMLElement, config: GameConfig = DEF
   new Environment(config.environment).install(render);
 
   populateWorld(world, physics, random, config);
-  const rockModels = config.rockModel
-    ? new ModelRockFactory(await new GltfModelLoader().load(config.rockModel))
-    : new RockMeshFactory(random);
+  // Only fetch the model when the rain is on; the spawner still exists so the flag can stay a pure toggle.
+  const rockModels =
+    config.fallingRocks && config.rockModel
+      ? new ModelRockFactory(await new GltfModelLoader().load(config.rockModel))
+      : new RockMeshFactory(random);
   const rocks = new RockSpawner(world, physics, rockModels);
 
-  new PlayerSpawner(world, physics, new PlayerMeshFactory()).spawn(0, 0);
+  new PlayerSpawner(world, physics, new PlayerMeshFactory()).spawn(config.town.x, config.town.z + 8);
   const keys = new KeyboardState();
   const look = new PointerLookInput(render.canvas);
 
@@ -50,7 +52,7 @@ export async function bootstrap(container: HTMLElement, config: GameConfig = DEF
     fixedSystems: [
       new PlayerInputSystem(world, keys),
       new CharacterMovementSystem(world, physics),
-      new RockRecycleSystem(world, rocks, random, config.rocks),
+      ...(config.fallingRocks ? [new RockRecycleSystem(world, rocks, random, config.rocks)] : []),
       new PhysicsStepSystem(physics),
       new PhysicsPoseSystem(world, physics),
     ],
