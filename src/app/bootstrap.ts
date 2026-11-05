@@ -1,17 +1,20 @@
-import { AnimationFrameScheduler, createGameWorld, GameLoop, SeededRandom, vec3 } from '@core';
+import { AnimationFrameScheduler, createGameWorld, GameLoop, SeededRandom } from '@core';
 import { Environment } from '@environment';
 import { PhysicsBodyCleanup, PhysicsPoseSystem, PhysicsStepSystem, RapierPhysicsEngine } from '@physics';
 import {
-  OrbitCameraSystem,
+  PointerLookInput,
   PostProcessing,
   RenderContext,
   RenderSystem,
   SceneMembership,
   SmoothZoom,
+  DEFAULT_SMOOTH_ZOOM,
+  ThirdPersonCameraSystem,
   TransformSyncSystem,
   ViewportResizer,
   WheelZoomInput,
 } from '@rendering';
+import { CharacterMovementSystem, KeyboardState, PlayerInputSystem, PlayerMeshFactory, PlayerSpawner } from '@player';
 import { FpsCounter, FpsOverlay, FpsSystem } from '@diagnostics';
 import { RockMeshFactory, RockRecycleSystem, RockSpawner } from '@rocks';
 import { Game } from './Game';
@@ -31,19 +34,25 @@ export async function bootstrap(container: HTMLElement, config: GameConfig = DEF
   populateWorld(world, physics, random, config);
   const rocks = new RockSpawner(world, physics, new RockMeshFactory(random));
 
-  const zoom = new SmoothZoom();
+  new PlayerSpawner(world, physics, new PlayerMeshFactory()).spawn(0, 0);
+  const keys = new KeyboardState();
+  const look = new PointerLookInput(render.canvas);
+
+  const zoom = new SmoothZoom({ ...DEFAULT_SMOOTH_ZOOM, minDistance: 2, maxDistance: 25 });
   const wheel = new WheelZoomInput(render.canvas, zoom);
   const fpsOverlay = new FpsOverlay(container);
 
   const loop = new GameLoop(new AnimationFrameScheduler(), {
     fixedSystems: [
+      new PlayerInputSystem(world, keys),
+      new CharacterMovementSystem(world, physics),
       new RockRecycleSystem(world, rocks, random, config.rocks),
       new PhysicsStepSystem(physics),
       new PhysicsPoseSystem(world, physics),
     ],
     frameSystems: [
       new TransformSyncSystem(world),
-      new OrbitCameraSystem(render.camera, render.canvas, zoom, vec3(90, 55, 90), vec3(0, 5, 0)),
+      new ThirdPersonCameraSystem(world, render.camera, physics, look, zoom),
       new RenderSystem(post),
       new FpsSystem(new FpsCounter(), fpsOverlay),
     ],
@@ -54,6 +63,8 @@ export async function bootstrap(container: HTMLElement, config: GameConfig = DEF
     new PhysicsBodyCleanup(world, physics),
     new ViewportResizer(render, post),
     wheel,
+    keys,
+    look,
     fpsOverlay,
   ]);
 }

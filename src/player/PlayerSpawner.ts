@@ -1,0 +1,42 @@
+import { identityQuat, type GameWorld } from '@core';
+import type { PhysicsEngine } from '@physics';
+import type {} from '@rendering';
+import { DEFAULT_PLAYER } from './Player';
+import { idleInput } from './PlayerInput';
+import type { PlayerMeshFactory } from './PlayerMeshFactory';
+
+const HALF_HEIGHT = 0.5;
+const RADIUS = 0.4;
+const DROP_FROM = 500;
+
+/** Adds the player: character-controlled capsule standing on the ground at (x, z), followed by the camera. */
+export class PlayerSpawner {
+  constructor(
+    private readonly world: GameWorld,
+    private readonly physics: PhysicsEngine,
+    private readonly meshes: PlayerMeshFactory,
+  ) {}
+
+  spawn(x: number, z: number): void {
+    const hit = this.physics.castRay({ x, y: DROP_FROM, z }, { x: 0, y: -1, z: 0 }, DROP_FROM * 2);
+    const groundY = hit === null ? 0 : DROP_FROM - hit;
+    const position = { x, y: groundY + HALF_HEIGHT + RADIUS + 0.05, z };
+    const characterBody = this.physics.createCharacter({
+      position,
+      halfHeight: HALF_HEIGHT,
+      radius: RADIUS,
+      maxSlopeClimb: (50 * Math.PI) / 180,
+      stepHeight: 0.4,
+      snapToGround: 0.4,
+    });
+    this.world.add({
+      player: { ...DEFAULT_PLAYER },
+      playerInput: idleInput(),
+      characterBody,
+      physicsBody: { handle: characterBody.body },
+      cameraTarget: { height: 0.7, yaw: 0, ignoreBody: characterBody.body },
+      transform: { position: { ...position }, rotation: identityQuat() },
+      renderObject: { object: this.meshes.create(HALF_HEIGHT, RADIUS) },
+    });
+  }
+}
