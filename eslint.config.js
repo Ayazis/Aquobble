@@ -2,8 +2,10 @@ import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import prettier from 'eslint-config-prettier';
 import globals from 'globals';
+// Node 24 strips TypeScript types natively, so the single slice list can be imported as-is.
+import { SLICES as SLICE_LIST } from './slices.config.ts';
 
-const SLICES = 'app|core|physics|rendering|environment|terrain|water|vegetation|rocks|diagnostics';
+const SLICES = SLICE_LIST.join('|');
 
 export default tseslint.config(
   { ignores: ['dist', 'node_modules', 'assets/library', 'public', 'tools'] },

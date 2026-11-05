@@ -46,6 +46,15 @@ interfaces, structurally compatible with three.js and Rapier.
 - New physics work goes through `PhysicsEngine`; extend the interface rather than importing Rapier elsewhere.
 - Randomness is always an injected `Random` (seeded), never `Math.random()`, so worlds are reproducible.
 
+## Adding a slice
+
+1. Create `src/<name>/` with an `index.ts` exporting its public API.
+2. Add `'<name>'` to `SLICES` in `slices.config.ts`. That single list drives the Vite/Vitest aliases and the
+   ESLint boundary rule; TypeScript resolves `@<name>` through the `@*` wildcard in `tsconfig.json`.
+
+`slices.config.test.ts` fails if a folder under `src/` is missing from the list (or the other way round), or a
+slice has no `index.ts`.
+
 ## Naming
 
 - PascalCase file = exported class/interface name (`WeatherSystem.ts`); camelCase for function modules
