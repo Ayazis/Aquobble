@@ -16,3 +16,4 @@ export {
   type ThirdPersonCameraOptions,
 } from './camera/ThirdPersonCameraSystem';
 export { GltfModelLoader } from './GltfModelLoader';
+export { HIGH_QUALITY, type RenderQuality } from './RenderQuality';

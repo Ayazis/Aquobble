@@ -21,7 +21,7 @@ export class Environment {
     const { scene, renderer, camera } = context;
     const night = new NightSky(random);
     const sky = new SkyDome();
-    const light = new SunLight();
+    const light = new SunLight(undefined, context.quality.shadows ? context.quality.shadowMapSize : 512);
     const fog = new THREE.FogExp2(0xffffff, 0);
 
     scene.add(sky.sky, night.group, light.sun, light.fill);

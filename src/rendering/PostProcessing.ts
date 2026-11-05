@@ -14,8 +14,10 @@ export class PostProcessing {
     const size = context.renderer.getSize(new THREE.Vector2());
     this.composer = new EffectComposer(context.renderer);
     this.composer.addPass(new RenderPass(context.scene, context.camera));
-    this.composer.addPass(this.createAmbientOcclusion(context, size));
-    this.composer.addPass(new UnrealBloomPass(size, 0.12, 0.4, 2.5));
+    if (context.quality.postEffects) {
+      this.composer.addPass(this.createAmbientOcclusion(context, size));
+      this.composer.addPass(new UnrealBloomPass(size, 0.12, 0.4, 2.5));
+    }
     this.composer.addPass(new OutputPass());
   }
 

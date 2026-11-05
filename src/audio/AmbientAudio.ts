@@ -17,6 +17,8 @@ export class AmbientAudio implements System {
   private beds: NoiseBed[] = [];
   private muted = false;
   private untilChirp = 3;
+  /** Called after M toggles mute, so UI can follow. */
+  onChange?: (muted: boolean) => void;
 
   constructor(
     private readonly random: Random,
@@ -45,6 +47,7 @@ export class AmbientAudio implements System {
 
   private readonly onKey = (event: KeyboardEvent): void => {
     if (event.code === 'KeyM' && !event.repeat && this.ctx) this.toggleMute();
+    this.onChange?.(this.muted);
     this.onGesture();
   };
 
@@ -61,7 +64,7 @@ export class AmbientAudio implements System {
     this.ctx = ctx;
     this.master = ctx.createGain();
     this.master.gain.setValueAtTime(0, ctx.currentTime);
-    this.master.gain.linearRampToValueAtTime(MASTER_VOLUME, ctx.currentTime + 3);
+    this.master.gain.linearRampToValueAtTime(this.muted ? 0 : MASTER_VOLUME, ctx.currentTime + 3);
     this.master.connect(ctx.destination);
     const noise = createNoiseBuffer(ctx, this.random);
     this.beds = [
@@ -88,9 +91,15 @@ export class AmbientAudio implements System {
     ];
   }
 
-  private toggleMute(): void {
-    if (!this.ctx || !this.master) return;
+  get isMuted(): boolean {
+    return this.muted;
+  }
+
+  /** Flips mute; works before audio has started (it then starts muted or audible accordingly). */
+  toggleMute(): void {
     this.muted = !this.muted;
+    if (!this.ctx) this.onGesture();
+    if (!this.ctx || !this.master) return;
     const now = this.ctx.currentTime;
     this.master.gain.cancelScheduledValues(now);
     this.master.gain.setValueAtTime(this.master.gain.value, now);

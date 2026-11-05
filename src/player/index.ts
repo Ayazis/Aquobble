@@ -1,6 +1,7 @@
 export { DEFAULT_PLAYER, type Player } from './Player';
 export { idleInput, type PlayerInput } from './PlayerInput';
 export { KeyboardState } from './KeyboardState';
+export { TouchControls } from './TouchControls';
 export { PlayerInputSystem } from './PlayerInputSystem';
 export { CharacterMovementSystem } from './CharacterMovementSystem';
 export { movementVelocity } from './movementVelocity';
