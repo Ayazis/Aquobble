@@ -13,7 +13,7 @@ export class PostProcessing {
     const size = context.renderer.getSize(new THREE.Vector2());
     this.composer = new EffectComposer(context.renderer);
     this.composer.addPass(new RenderPass(context.scene, context.camera));
-    this.composer.addPass(new UnrealBloomPass(size, 0.15, 0.4, 0.95));
+    this.composer.addPass(new UnrealBloomPass(size, 0.12, 0.4, 2.5));
     this.composer.addPass(new OutputPass());
   }
 
