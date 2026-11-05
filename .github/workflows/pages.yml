@@ -16,9 +16,12 @@ permissions:
   pull-requests: write
   pages: read
 
+# Group PR runs by PR number, not github.ref: once a PR is merged, its "closed" run gets
+# github.ref = refs/heads/main and would cancel the main deploy triggered by the merge.
+# Never cancel a main deploy halfway; it may be mid-push or mid-cleanup.
 concurrency:
-  group: deploy-${{ github.ref }}
-  cancel-in-progress: true
+  group: deploy-${{ github.event.pull_request.number && format('pr-{0}', github.event.pull_request.number) || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   build:
