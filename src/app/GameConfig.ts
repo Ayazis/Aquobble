@@ -1,6 +1,7 @@
 import { DEFAULT_ENVIRONMENT, type EnvironmentConfig } from '@environment';
 import type { RockRecycleOptions } from '@rocks';
 import { DEFAULT_TERRAIN, type TerrainConfig } from '@terrain';
+import type { TownSite } from '@town';
 import type { TreePlacerOptions } from '@vegetation';
 
 /** All tunable numbers in one place. */
@@ -11,6 +12,9 @@ export interface GameConfig {
   environment: EnvironmentConfig;
   forest: TreePlacerOptions;
   rocks: RockRecycleOptions;
+  /** Rain of falling rocks (the physics demo). Off now that the island hosts a town. */
+  fallingRocks: boolean;
+  town: TownSite;
 }
 
 export const DEFAULT_CONFIG: GameConfig = {
@@ -20,4 +24,6 @@ export const DEFAULT_CONFIG: GameConfig = {
   environment: DEFAULT_ENVIRONMENT,
   forest: { count: 220, extent: 80, minHeight: 2, maxHeight: 11 },
   rocks: { population: 40, removeBelow: -2, dropExtent: 50, dropHeight: 40 },
+  fallingRocks: false,
+  town: { x: 0, z: 0, blend: 14, minLevel: 3 },
 };

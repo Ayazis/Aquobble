@@ -37,7 +37,7 @@ export async function bootstrap(container: HTMLElement, config: GameConfig = DEF
 
   const loop = new GameLoop(new AnimationFrameScheduler(), {
     fixedSystems: [
-      new RockRecycleSystem(world, rocks, random, config.rocks),
+      ...(config.fallingRocks ? [new RockRecycleSystem(world, rocks, random, config.rocks)] : []),
       new PhysicsStepSystem(physics),
       new PhysicsPoseSystem(world, physics),
     ],

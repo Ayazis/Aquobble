@@ -1,3 +1,4 @@
+import type { FlattenRegion } from './FlattenRegion';
 import type { HeightSampler } from './HeightSampler';
 
 /**
@@ -39,4 +40,27 @@ export class HeightField implements HeightSampler {
     const bottom = this.at(c, r + 1) * (1 - tx) + this.at(c + 1, r + 1) * tx;
     return top * (1 - tz) + bottom * tz;
   }
+
+  /**
+   * Levels a square region to `height`. Inside the square heights are exactly `height`; across the
+   * blend band they ease (smoothstep) back to the original terrain. Mutates in place.
+   */
+  flatten(region: FlattenRegion, height: number): void {
+    for (let row = 0; row < this.samples; row++) {
+      for (let column = 0; column < this.samples; column++) {
+        const dx = Math.abs(this.coordinate(column) - region.centerX);
+        const dz = Math.abs(this.coordinate(row) - region.centerZ);
+        const outside = Math.max(Math.max(dx, dz) - region.halfSize, 0);
+        const weight = region.blend > 0 ? 1 - smoothstep(outside / region.blend) : outside > 0 ? 0 : 1;
+        if (weight <= 0) continue;
+        const i = row * this.samples + column;
+        this.heights[i] += (height - this.heights[i]) * weight;
+      }
+    }
+  }
+}
+
+function smoothstep(t: number): number {
+  const c = Math.min(Math.max(t, 0), 1);
+  return c * c * (3 - 2 * c);
 }
