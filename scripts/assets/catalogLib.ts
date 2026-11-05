@@ -17,6 +17,8 @@ export interface CatalogEntry {
   author?: string;
   url: string;
   tags: string[];
+  /** Browsing categories (e.g. "fabric", "furniture", "nature"), lower-case. */
+  cats?: string[];
   tris?: number;
   animated?: boolean;
   /** Remote thumbnail URL (downloaded into thumbs/). */

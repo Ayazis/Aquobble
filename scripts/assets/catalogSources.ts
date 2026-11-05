@@ -37,6 +37,7 @@ export async function collectPolyhaven(): Promise<CatalogEntry[]> {
     author: Object.keys(a.authors ?? {}).join(', '),
     url: `https://polyhaven.com/a/${id}`,
     tags: tagsOf(a.tags, a.categories),
+    cats: tagsOf(a.categories.filter((c: string) => !c.startsWith('collection'))),
     thumbUrl: `https://cdn.polyhaven.com/asset_img/thumbs/${id}.png?width=256&height=256`,
     fetch: `npm run assets:fetch -- polyhaven ${id}`,
   }));
@@ -62,6 +63,7 @@ export async function collectPolypizza(terms: string[], pages: number): Promise<
           author: m.Creator?.Username,
           url: `https://poly.pizza/m/${m.ID}`,
           tags: tagsOf(m.Category, m.Tags, t),
+          cats: tagsOf(m.Category),
           tris: m['Tri Count'],
           animated: !!m.Animated,
           thumbUrl: m.Thumbnail,
@@ -100,6 +102,7 @@ export async function collectSketchfab(terms: string[], pages: number): Promise<
               m.categories?.map((x: any) => x.name),
               t,
             ),
+            cats: tagsOf(m.categories?.map((x: any) => x.name)),
             tris: m.faceCount,
             animated: (m.animationCount ?? 0) > 0,
             thumbUrl: img?.url,
@@ -108,6 +111,32 @@ export async function collectSketchfab(terms: string[], pages: number): Promise<
         }
       }
     }
+  }
+  return out;
+}
+
+/** ambientCG: the whole catalogue (PBR materials, HDRIs, a few models), paged. */
+export async function collectAmbientcg(): Promise<CatalogEntry[]> {
+  const out: CatalogEntry[] = [];
+  const kindOf = (t: string) => (t === 'HDRI' ? 'hdri' : t === '3DModel' ? 'model' : 'texture');
+  for (let offset = 0; ; offset += 250) {
+    const r = await getJson<any>(
+      `https://ambientcg.com/api/v2/full_json?limit=250&offset=${offset}&include=displayData,tagData,imageData`,
+    );
+    for (const a of r.foundAssets ?? [])
+      out.push({
+        source: 'ambientcg',
+        id: a.assetId,
+        name: a.displayName ?? a.assetId,
+        kind: kindOf(a.dataType),
+        license: 'CC0',
+        url: `https://ambientcg.com/view?id=${a.assetId}`,
+        tags: tagsOf(a.tags, a.displayCategory, a.dataType),
+        cats: tagsOf(a.displayCategory),
+        thumbUrl: a.previewImage?.['256-PNG'],
+        fetch: `npm run assets:fetch -- ambientcg ${a.assetId}`,
+      });
+    if (!r.foundAssets?.length || offset + 250 >= r.numberOfResults) break;
   }
   return out;
 }
@@ -145,6 +174,7 @@ export function collectLibrary(): CatalogEntry[] {
       author: meta?.author ?? rel[0],
       url: meta?.url ?? '',
       tags: tagsOf(rel.slice(0, -1), base.split(/[_\-\s]+/)),
+      cats: tagsOf(rel[1]),
       thumbUrl: img ? new URL('file:///' + img.replace(/\\/g, '/')).href : undefined,
       fetch: path.relative(path.dirname(LIBRARY), f).replace(/\\/g, '/'),
     };

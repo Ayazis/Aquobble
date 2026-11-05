@@ -25,7 +25,7 @@ into `public/assets/` (committed; the only place asset binaries may live in git,
 Keys go in `.env` (copy `.env.example`).
 
 ```bash
-# 1. find (all = local packs + every online source, NC/ND licenses dropped, CC0 first)
+# 1. find, local first: in-game (public/assets) → downloaded → cached catalog → online (--offline skips online)
 npm run assets:search -- all sail boat --max-tris 5000
 npm run assets:search -- polyhaven sky --type hdris
 npm run assets:search -- ambientcg grass --type Material
@@ -47,8 +47,8 @@ Kenney, Quaternius and KayKit have no API: download their packs in the browser
 
 ### Local preview catalog
 
-`npm run assets:catalog` crawls Poly Haven, Poly Pizza, Sketchfab (low-poly, CC0/CC-BY) and your unzipped
-packs into `assets/catalog/` (**gitignored**): `catalog.json`, `thumbs/` and an offline `index.html` grid
+`npm run assets:catalog` crawls Poly Haven, ambientCG, Poly Pizza, Sketchfab (low-poly, CC0/CC-BY) and your unzipped
+packs into `assets/catalog/` (**gitignored**): `catalog.json`, `thumbs/` and an offline `index.html` grid with type tabs (3D models / textures / HDRIs), categories (fabric, wood, furniture…)
 with search and license/triangle filters. Clicking a card copies its `assets:fetch` command. Re-runs merge
 and only download missing thumbnails; `--sources`, `--terms "a,b"` and `--pages n` narrow the crawl.
 

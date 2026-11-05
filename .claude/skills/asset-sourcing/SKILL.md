@@ -1,6 +1,6 @@
 ---
 name: asset-sourcing
-description: Use whenever the user asks for a new game asset (a model like a house, plane, boat, animal, prop; or a texture, HDRI or sky). Walks the user through free asset sources first, presents options to choose from, and only falls back to a code-built low-poly placeholder. Never model or generate an asset in Blender unless the user explicitly picks that.
+description: Use whenever the user asks for a new game asset (a model like a house, plane, boat, animal, prop; or a texture, HDRI or sky). Checks assets already in the game and the local cache first, then free online sources, presents options to choose from, and only falls back to a code-built low-poly placeholder. Never model or generate an asset in Blender unless the user explicitly picks that.
 ---
 
 # Asset sourcing
@@ -14,10 +14,28 @@ The user decides; your job is to show them the options.
 Ask briefly if unclear: what it is, rough style (low-poly to match Aquobble), static or animated,
 and its role (hero object vs background filler). Skip questions with obvious answers.
 
-## 2. Search free sources first
+## 2. Check what we already have (always, before anything online)
 
-Use the repo tooling (see README "Assets"). One command searches local packs and every online source,
-drops NC/ND licenses, and ranks local first, then CC0:
+```bash
+npm run assets:search -- all <query> --offline
+```
+
+This searches, in order of preference:
+
+1. **in-game**: optimised assets already in `public/assets/`. If one fits, propose reusing it (or a
+   recolour/rescale) and stop there unless the user wants something new.
+2. **downloaded**: raw downloads and unzipped packs in `assets/library/`, ready for `assets:use`.
+3. **catalog**: the cached preview catalog (`assets/catalog/catalog.json`, thousands of entries with
+   thumbnails). Instant and offline. If it's missing or the subject wasn't crawled, run
+   `npm run assets:catalog -- --terms "<subject>"` (only that term; a full crawl takes a while).
+
+Try a couple of synonyms (e.g. "plane", "airplane", "aircraft"). Tell the user what you found locally
+before going further.
+
+## 3. Search free sources online
+
+Only if the local tiers don't give good options. Drop `--offline`; online results already listed in
+the catalog are filtered out, and NC/ND licenses are dropped, CC0 ranked first:
 
 ```bash
 npm run assets:search -- all <query> [--license cc0] [--max-tris 5000]
@@ -37,7 +55,7 @@ match the low-poly style well. Mention the pack name and URL; the user downloads
 The Blender MCP `search_assets` covers the same libraries and is fine as a lookup, but don't import
 into Blender unless the user wants to edit the model there.
 
-## 3. Present options and stop
+## 4. Present options and stop
 
 Show a short table of the 3-5 best candidates, then **wait for the user's pick**:
 
@@ -49,7 +67,7 @@ Rules:
 - Note missing keys (`SKETCHFAB_API_TOKEN`, `POLYPIZZA_API_KEY` in `.env`) instead of failing silently.
 - Mention style mismatches (realistic vs low-poly, too many polys for the web).
 
-## 4. Bring in the chosen asset
+## 5. Bring in the chosen asset
 
 ```bash
 npm run assets:fetch -- <source> <id>
@@ -59,7 +77,7 @@ npm run assets:use -- <source>/<id> --as <snake_case_name>
 `assets:use` optimises into `public/assets/` and adds the credit line in `public/assets/CREDITS.md`;
 verify that line exists. Raw files stay in gitignored `assets/library/`.
 
-## 5. Nothing suitable? Suggest a placeholder
+## 6. Nothing suitable? Suggest a placeholder
 
 If no candidate fits, say so and **propose** (don't just build) a low-poly placeholder:
 
