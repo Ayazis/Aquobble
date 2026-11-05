@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import type { CatalogEntry } from './catalogLib';
 import { CATALOG_DIR } from './catalogLib';
+import { groupOf } from './categories';
 
 export function writeGallery(entries: CatalogEntry[]) {
   const data = JSON.stringify(
@@ -14,7 +15,7 @@ export function writeGallery(entries: CatalogEntry[]) {
       a: e.author ?? '',
       u: e.url,
       t: e.tags.join(' '),
-      c: e.cats ?? [],
+      c: [groupOf(e)],
       tr: e.tris ?? null,
       an: !!e.animated,
       th: e.thumb ?? '',
