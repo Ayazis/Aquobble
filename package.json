@@ -1,0 +1,39 @@
+{
+  "name": "aquobble",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "assets:search": "tsx scripts/assets/search.ts",
+    "assets:fetch": "tsx scripts/assets/fetch.ts",
+    "assets:use": "tsx scripts/assets/use.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ayazis/Aquobble.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/Ayazis/Aquobble/issues"
+  },
+  "homepage": "https://github.com/Ayazis/Aquobble#readme",
+  "dependencies": {
+    "three": "^0.187.0"
+  },
+  "devDependencies": {
+    "@gltf-transform/cli": "^4.5.1",
+    "@types/adm-zip": "^0.5.8",
+    "@types/node": "^26.6.6",
+    "@types/three": "^0.187.0",
+    "adm-zip": "^0.6.1",
+    "dotenv": "^18.0.9",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.6"
+  },
+  "private": true
+}
