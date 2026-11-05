@@ -23,10 +23,11 @@ import {
   PlayerMeshFactory,
   PlayerModelFactory,
   PlayerSpawner,
+  TouchControls,
   type AnimatedModel,
 } from '@player';
 import { TownsfolkAnimationSystem, TownsfolkMovementSystem } from '@townsfolk';
-import { AmbientAudio } from '@audio';
+import { AmbientAudio, MuteButton } from '@audio';
 import { FpsCounter, FpsOverlay, FpsSystem } from '@diagnostics';
 import { BirdMeshFactory, BirdRenderSystem, DEFAULT_WILDLIFE, FlockSpawner, FlockSystem } from '@wildlife';
 import { ModelRockFactory, RockMeshFactory, RockRecycleSystem, RockSpawner } from '@rocks';
@@ -34,6 +35,7 @@ import { WaterAnimationSystem } from '@water';
 import { GrassBendSystem, WindSwaySystem } from '@grass';
 import { Game } from './Game';
 import { DEFAULT_CONFIG, type GameConfig } from './GameConfig';
+import { forDevice, isMobileDevice } from './forDevice';
 import { loadTownModels } from './loadTownModels';
 import { populateWorld } from './populateWorld';
 import { spawnTownsfolk } from './spawnTownsfolk';
@@ -41,12 +43,14 @@ import { spawnTownsfolk } from './spawnTownsfolk';
 const CHARACTER_MODEL = 'assets/models/town/character.glb';
 
 /** Composition root: the only place that knows concrete classes and wires them together. */
-export async function bootstrap(container: HTMLElement, config: GameConfig = DEFAULT_CONFIG): Promise<Game> {
+export async function bootstrap(container: HTMLElement, baseConfig: GameConfig = DEFAULT_CONFIG): Promise<Game> {
+  const mobile = isMobileDevice();
+  const { config, quality } = forDevice(baseConfig, mobile);
   const world = createGameWorld();
   const random = new SeededRandom(config.seed);
   const physics = await RapierPhysicsEngine.create();
 
-  const render = new RenderContext(container);
+  const render = new RenderContext(container, quality);
   const post = new PostProcessing(render);
   const dayNight = new Environment(config.environment).install(render, new SeededRandom(config.seed + 303));
 
@@ -65,10 +69,11 @@ export async function bootstrap(container: HTMLElement, config: GameConfig = DEF
   const zoom = new SmoothZoom({ ...DEFAULT_SMOOTH_ZOOM, minDistance: 2, maxDistance: 25 });
   const wheel = new WheelZoomInput(render.canvas, zoom);
   const fpsOverlay = new FpsOverlay(container);
+  const touch = mobile ? new TouchControls(container) : undefined;
 
   const loop = new GameLoop(new AnimationFrameScheduler(), {
     fixedSystems: [
-      new PlayerInputSystem(world, keys),
+      new PlayerInputSystem(world, keys, touch),
       new CharacterMovementSystem(world, physics),
       new TownsfolkMovementSystem(world, physics, wanderArea, folkRandom),
       ...(config.fallingRocks ? [new RockRecycleSystem(world, rocks, random, config.rocks)] : []),
@@ -101,6 +106,8 @@ export async function bootstrap(container: HTMLElement, config: GameConfig = DEF
     look,
     fpsOverlay,
     ambience,
+    new MuteButton(container, ambience),
+    ...(touch ? [touch] : []),
   ]);
 }
 

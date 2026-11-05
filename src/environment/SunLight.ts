@@ -8,9 +8,9 @@ export class SunLight {
   readonly sun = new THREE.DirectionalLight(0xffffff, 1);
   readonly fill = new THREE.HemisphereLight(0xbfd8ff, 0x3a2f24, 0.6);
 
-  constructor(shadowExtent = 70) {
+  constructor(shadowExtent = 70, shadowMapSize = 4096) {
     this.sun.castShadow = true;
-    this.sun.shadow.mapSize.set(4096, 4096);
+    this.sun.shadow.mapSize.set(shadowMapSize, shadowMapSize);
     Object.assign(this.sun.shadow.camera, {
       left: -shadowExtent,
       right: shadowExtent,
