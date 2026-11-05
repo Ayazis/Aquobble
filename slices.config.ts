@@ -8,8 +8,12 @@ export const SLICES = [
   'terrain',
   'water',
   'vegetation',
+  'grass',
   'rocks',
   'diagnostics',
   'player',
   'town',
+  'townsfolk',
+  'wildlife',
+  'audio',
 ] as const;

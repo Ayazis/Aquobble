@@ -2,12 +2,14 @@ import type { GameWorld, Random } from '@core';
 import type { Object3D } from 'three';
 import type { PhysicsEngine } from '@physics';
 import { FractalNoise, TerrainGenerator, TerrainMeshFactory, TerrainSpawner, ValueNoise } from '@terrain';
+import { RockMeshFactory, RockScatterFactory, RockScatterPlacer, RockScatterSpawner } from '@rocks';
 import { ForestSpawner, TreeInstancesFactory, TreePlacer } from '@vegetation';
-import { WaterMeshFactory, WaterSpawner } from '@water';
+import { FlowerInstancesFactory, GrassInstancesFactory, GrassSpawner } from '@grass';
 import type { GameConfig } from './GameConfig';
 import { populateTown } from './populateTown';
+import { populateWater } from './populateWater';
 
-/** Creates the static world: terrain (levelled for the town), sea, town and forest. */
+/** Creates the static world: terrain (levelled for the town, ponds carved), sea and ponds, town and forest. */
 export function populateWorld(
   world: GameWorld,
   physics: PhysicsEngine,
@@ -19,8 +21,19 @@ export function populateWorld(
   const terrain = new TerrainGenerator(noise, config.terrain).generate();
   const townArea = populateTown(world, physics, terrain, config.town, townModels);
 
+  const pondAreas = populateWater(world, terrain, random, config, [townArea]);
   new TerrainSpawner(world, physics, new TerrainMeshFactory()).spawn(terrain);
-  new WaterSpawner(world, new WaterMeshFactory()).spawn(config.waterLevel);
-  const forest = { ...config.forest, exclude: [...(config.forest.exclude ?? []), townArea] };
+  const forest = { ...config.forest, exclude: [...(config.forest.exclude ?? []), townArea, ...pondAreas] };
   new ForestSpawner(world, new TreePlacer(terrain, random), new TreeInstancesFactory(), physics).spawn(forest);
+  new GrassSpawner(world, terrain, random, new GrassInstancesFactory(), new FlowerInstancesFactory()).spawn(
+    config.grass,
+    config.waterLevel,
+    [townArea, ...pondAreas],
+  );
+  const scatter = new RockScatterFactory(new RockMeshFactory(random));
+  new RockScatterSpawner(world, new RockScatterPlacer(terrain, random), scatter, physics).spawn({
+    ...config.rockScatter,
+    waterLevel: config.waterLevel,
+    exclude: [...(config.rockScatter.exclude ?? []), townArea, ...pondAreas],
+  });
 }

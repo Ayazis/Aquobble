@@ -1,22 +1,20 @@
 export interface EnvironmentConfig {
-  /** Sun angle from straight up, in degrees. 90 = on the horizon. */
-  sunElevationFromZenith: number;
-  /** Sun compass direction in degrees. */
+  /** Sun height above the horizon at noon, in degrees. */
+  noonSunElevation: number;
+  /** Sun compass direction at noon, in degrees. It rises 90° before this and sets 90° after. */
   sunAzimuth: number;
-  sunColor: number;
-  sunIntensity: number;
-  fogColor: number;
-  fogDensity: number;
-  /** How much the sky lights the scene (image-based lighting). */
-  environmentIntensity: number;
+  /** Real seconds for one full day/night cycle. 0 freezes time at `startTimeOfDay`. */
+  dayLengthSeconds: number;
+  /** Time of day at start: 0 = midnight, 0.25 = sunrise, 0.5 = noon, 0.75 = sunset. */
+  startTimeOfDay: number;
+  /** Seconds between re-baking the sky into the image-based-lighting map. */
+  environmentRefreshSeconds: number;
 }
 
 export const DEFAULT_ENVIRONMENT: EnvironmentConfig = {
-  sunElevationFromZenith: 62,
+  noonSunElevation: 62,
   sunAzimuth: 200,
-  sunColor: 0xffe2b8,
-  sunIntensity: 2.4,
-  fogColor: 0xc9d6e3,
-  fogDensity: 0.0025,
-  environmentIntensity: 0.5,
+  dayLengthSeconds: 360,
+  startTimeOfDay: 0.32,
+  environmentRefreshSeconds: 1.5,
 };

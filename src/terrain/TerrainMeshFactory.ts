@@ -1,9 +1,20 @@
 import * as THREE from 'three';
 import type { HeightField } from './HeightField';
 import { colorForHeight } from './TerrainPalette';
+import { TerrainMaterialFactory } from './TerrainMaterialFactory';
+import { TerrainTextureLoader } from './TerrainTextureLoader';
+import { createTerrainTextureUniforms } from './TerrainTextureUniforms';
 
-/** Builds the flat-shaded, per-face coloured terrain mesh from a height field. */
+/**
+ * Builds the flat-shaded, per-face coloured terrain mesh from a height field. The palette colours
+ * are tinted with detail textures (blended by height and slope) once those load in the background.
+ */
 export class TerrainMeshFactory {
+  constructor(
+    private readonly materials = new TerrainMaterialFactory(),
+    private readonly textures: TerrainTextureLoader | null = new TerrainTextureLoader(),
+  ) {}
+
   create(field: HeightField): THREE.Mesh {
     const segments = field.samples - 1;
     // PlaneGeometry vertices are row-major from -z to +z after rotation, matching HeightField.
@@ -16,7 +27,9 @@ export class TerrainMeshFactory {
     geometry.setAttribute('color', this.faceColors(geometry));
     geometry.computeVertexNormals();
 
-    const material = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.95 });
+    const uniforms = createTerrainTextureUniforms();
+    const material = this.materials.create(uniforms);
+    this.textures?.load(uniforms);
     const mesh = new THREE.Mesh(geometry, material);
     mesh.castShadow = true;
     mesh.receiveShadow = true;

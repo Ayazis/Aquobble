@@ -18,6 +18,8 @@ export class RapierColliderFactory {
         if (!desc) throw new Error('Convex hull could not be computed from the given points.');
         return desc;
       }
+      case 'trimesh':
+        return RAPIER.ColliderDesc.trimesh(shape.vertices, shape.indices);
       case 'heightField':
         return this.heightField(shape);
     }

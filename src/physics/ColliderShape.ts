@@ -5,6 +5,7 @@ export type ColliderShape =
   | { type: 'cylinder'; halfHeight: number; radius: number }
   | { type: 'cuboid'; halfExtents: { x: number; y: number; z: number } }
   | { type: 'convexHull'; points: Float32Array }
+  | TriMeshShape
   | HeightFieldShape;
 
 /**
@@ -18,4 +19,14 @@ export interface HeightFieldShape {
   heights: Float32Array;
   /** Total extent of the grid on x and z. */
   size: { x: number; z: number };
+}
+
+/**
+ * Triangle mesh in body-local space: `vertices` is xyz-interleaved, `indices` lists three vertex indices per triangle.
+ * Meant for fixed bodies (buildings, props); dynamic bodies should use a convex hull instead.
+ */
+export interface TriMeshShape {
+  type: 'trimesh';
+  vertices: Float32Array;
+  indices: Uint32Array;
 }
