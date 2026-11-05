@@ -11,6 +11,8 @@ export interface GameConfig {
   environment: EnvironmentConfig;
   forest: TreePlacerOptions;
   rocks: RockRecycleOptions;
+  /** Optional model for the falling rocks (path under public/), e.g. "assets/models/cookie.glb". Procedural rocks if unset. */
+  rockModel?: string;
 }
 
 export const DEFAULT_CONFIG: GameConfig = {
@@ -20,4 +22,5 @@ export const DEFAULT_CONFIG: GameConfig = {
   environment: DEFAULT_ENVIRONMENT,
   forest: { count: 220, extent: 80, minHeight: 2, maxHeight: 11 },
   rocks: { population: 40, removeBelow: -2, dropExtent: 50, dropHeight: 40 },
+  rockModel: 'assets/models/cookie.glb',
 };

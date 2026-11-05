@@ -25,7 +25,8 @@ export class PointerLookInput {
   }
 
   private readonly onClick = (): void => {
-    if (!this.isLocked) void this.element.requestPointerLock();
+    // Rejects in embedded or unfocused documents; mouse look then simply stays off.
+    if (!this.isLocked) this.element.requestPointerLock()?.catch(() => undefined);
   };
 
   private readonly onMove = (event: MouseEvent): void => {

@@ -15,3 +15,4 @@ export {
   DEFAULT_THIRD_PERSON_CAMERA,
   type ThirdPersonCameraOptions,
 } from './camera/ThirdPersonCameraSystem';
+export { GltfModelLoader } from './GltfModelLoader';

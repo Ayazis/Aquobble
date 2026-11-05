@@ -1,14 +1,10 @@
 import * as THREE from 'three';
 import type { Random } from '@core';
 
-export interface RockModel {
-  mesh: THREE.Mesh;
-  /** Vertex positions, used as the convex-hull collider so physics matches the visual shape. */
-  hullPoints: Float32Array;
-}
+import type { RockModel, RockModelFactory } from './RockModelFactory';
 
 /** Makes unique low-poly rocks by jittering an icosahedron. */
-export class RockMeshFactory {
+export class RockMeshFactory implements RockModelFactory {
   private readonly material = new THREE.MeshStandardMaterial({ color: 0x8c8378, flatShading: true, roughness: 1 });
 
   constructor(private readonly random: Random) {}
