@@ -2,6 +2,7 @@ import { AnimationFrameScheduler, createGameWorld, GameLoop, SeededRandom, vec3 
 import { Environment } from '@environment';
 import { PhysicsBodyCleanup, PhysicsPoseSystem, PhysicsStepSystem, RapierPhysicsEngine } from '@physics';
 import {
+  GltfModelLoader,
   OrbitCameraSystem,
   PostProcessing,
   RenderContext,
@@ -13,7 +14,7 @@ import {
   WheelZoomInput,
 } from '@rendering';
 import { FpsCounter, FpsOverlay, FpsSystem } from '@diagnostics';
-import { RockMeshFactory, RockRecycleSystem, RockSpawner } from '@rocks';
+import { ModelRockFactory, RockMeshFactory, RockRecycleSystem, RockSpawner } from '@rocks';
 import { Game } from './Game';
 import { DEFAULT_CONFIG, type GameConfig } from './GameConfig';
 import { populateWorld } from './populateWorld';
@@ -29,7 +30,10 @@ export async function bootstrap(container: HTMLElement, config: GameConfig = DEF
   new Environment(config.environment).install(render);
 
   populateWorld(world, physics, random, config);
-  const rocks = new RockSpawner(world, physics, new RockMeshFactory(random));
+  const rockModels = config.rockModel
+    ? new ModelRockFactory(await new GltfModelLoader().load(config.rockModel))
+    : new RockMeshFactory(random);
+  const rocks = new RockSpawner(world, physics, rockModels);
 
   const zoom = new SmoothZoom();
   const wheel = new WheelZoomInput(render.canvas, zoom);
