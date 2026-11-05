@@ -36,7 +36,7 @@ npm run assets:fetch -- polyhaven kloofendal_48d_partly_cloudy_puresky --res 1k
 npm run assets:fetch -- ambientcg Grass004 --res 1K-JPG
 npm run assets:fetch -- url https://example.com/pack.zip --source kenney --license CC0
 
-# 3. use: optimise (glTF → meshopt + webp) into public/assets/ and add a credit line
+# 3. use: optimise (glTF or OBJ → meshopt + webp) into public/assets/ and add a credit line
 npm run assets:use -- sketchfab/<id> --as apple_tree
 ```
 
