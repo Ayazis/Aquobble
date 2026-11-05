@@ -12,9 +12,11 @@ export interface GameConfig {
   environment: EnvironmentConfig;
   forest: TreePlacerOptions;
   rocks: RockRecycleOptions;
-  /** Rain of falling rocks (the physics demo). Off now that the island hosts a town. */
+  /** Rain of falling rocks/cookies (the physics demo). Off now that the island hosts a town. */
   fallingRocks: boolean;
   town: TownSite;
+  /** Optional model for the falling rocks (path under public/), e.g. "assets/models/cookie.glb". Procedural rocks if unset. */
+  rockModel?: string;
 }
 
 export const DEFAULT_CONFIG: GameConfig = {
@@ -26,4 +28,5 @@ export const DEFAULT_CONFIG: GameConfig = {
   rocks: { population: 40, removeBelow: -2, dropExtent: 50, dropHeight: 40 },
   fallingRocks: false,
   town: { x: 0, z: 0, blend: 14, minLevel: 3 },
+  rockModel: 'assets/models/cookie.glb',
 };

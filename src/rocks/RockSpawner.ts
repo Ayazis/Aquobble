@@ -2,14 +2,14 @@ import { identityQuat, type GameWorld, type Vec3 } from '@core';
 import type { PhysicsEngine } from '@physics';
 import type {} from '@rendering';
 import type {} from './Rock';
-import type { RockMeshFactory } from './RockMeshFactory';
+import type { RockModelFactory } from './RockModelFactory';
 
 /** Creates a rock entity: dynamic convex-hull body + matching mesh. */
 export class RockSpawner {
   constructor(
     private readonly world: GameWorld,
     private readonly physics: PhysicsEngine,
-    private readonly meshes: RockMeshFactory,
+    private readonly meshes: RockModelFactory,
   ) {}
 
   spawn(position: Vec3, radius: number): void {

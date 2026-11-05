@@ -1,4 +1,4 @@
-// npm run assets:use -- <path under assets/library> [--as name]
+// npm run assets:use -- <path under assets/library> [--as name]   (glb/gltf, obj+mtl, hdr/exr or images)
 // Optimises a library asset into public/assets/ (committed) and records its credit.
 import fs from 'node:fs';
 import path from 'node:path';
@@ -14,7 +14,14 @@ const input = path.resolve(LIBRARY, pos[0]);
 if (!fs.existsSync(input)) throw new Error(`Not found: ${input}`);
 
 const files = fs.statSync(input).isDirectory() ? walk(input) : [input];
-const model = files.find((f) => /\.(glb|gltf)$/i.test(f));
+let model = files.find((f) => /\.(glb|gltf)$/i.test(f));
+const obj = files.find((f) => /\.obj$/i.test(f));
+if (!model && obj) {
+  // ambientCG and many packs ship OBJ + MTL: convert to a binary glTF next to it first.
+  model = obj.replace(/\.obj$/i, '.glb');
+  const cli = path.join(ROOT, 'node_modules/obj2gltf/bin/obj2gltf.js');
+  execFileSync(process.execPath, [cli, '-i', obj, '-o', model, '--binary'], { stdio: 'inherit' });
+}
 const hdri = files.find((f) => /\.(hdr|exr)$/i.test(f));
 const images = files.filter((f) => /\.(jpe?g|png|webp)$/i.test(f));
 const name = flags.as ?? path.basename(fs.statSync(input).isDirectory() ? input : path.dirname(input));
