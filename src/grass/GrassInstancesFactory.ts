@@ -3,22 +3,19 @@ import type { GrassPlacement } from './GrassPlacement';
 import type { WindSway } from './WindSway';
 import { applyWindSway } from './applyWindSway';
 import { composeInstance } from './composeInstance';
+import { grassTuftGeometry } from './grassTuftGeometry';
 
-/** Builds all grass blades as one instanced mesh of single-triangle blades (one draw call). */
+/** Builds all grass tufts as one instanced mesh (one draw call) that sways and bends in the shader. */
 export class GrassInstancesFactory {
   create(placements: readonly GrassPlacement[], wind: WindSway): THREE.InstancedMesh {
-    const geometry = new THREE.BufferGeometry();
-    // A tapered triangle, 0.5 m tall; normals tilted up so blades light like the ground.
-    geometry.setAttribute('position', new THREE.Float32BufferAttribute([-0.06, 0, 0, 0.06, 0, 0, 0, 0.5, 0], 3));
-    geometry.setAttribute('normal', new THREE.Float32BufferAttribute([0, 1, 0.3, 0, 1, 0.3, 0, 1, 0.3], 3));
-    const material = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.95, side: THREE.DoubleSide });
-    applyWindSway(material, wind, 0.6);
+    const material = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.9, side: THREE.DoubleSide });
+    applyWindSway(material, wind, { strength: 0.55, fadeStart: 55, fadeEnd: 75 });
 
-    const mesh = new THREE.InstancedMesh(geometry, material, placements.length);
+    const mesh = new THREE.InstancedMesh(grassTuftGeometry(), material, placements.length);
     const color = new THREE.Color();
     placements.forEach((p, i) => {
       mesh.setMatrixAt(i, composeInstance(p));
-      mesh.setColorAt(i, color.setHSL(0.22 + p.tint * 0.08, 0.5 + p.tint * 0.15, 0.22 + p.tint * 0.14));
+      mesh.setColorAt(i, color.setHSL(0.2 + p.tint * 0.1, 0.45 + p.tint * 0.2, 0.42 + p.tint * 0.16));
     });
     mesh.castShadow = false;
     mesh.receiveShadow = true;

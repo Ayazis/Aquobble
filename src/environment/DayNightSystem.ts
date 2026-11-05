@@ -1,5 +1,6 @@
 import type * as THREE from 'three';
 import type { System, Vec3 } from '@core';
+import type { NightSky } from './NightSky';
 import type { DayKeyframe } from './DayKeyframe';
 import type { EnvironmentConfig } from './EnvironmentConfig';
 import { sampleDayCycle } from './sampleDayCycle';
@@ -23,6 +24,8 @@ export class DayNightSystem implements System {
     private readonly light: SunLight,
     private readonly keyframes: readonly DayKeyframe[],
     private readonly config: EnvironmentConfig,
+    private readonly night: NightSky,
+    private readonly camera: THREE.Camera,
   ) {
     this.time = config.startTimeOfDay;
   }
@@ -61,6 +64,8 @@ export class DayNightSystem implements System {
     this.renderer.toneMappingExposure = lighting.exposure;
     this.scene.environmentIntensity = lighting.environmentIntensity;
     this.sky.setSun(sun, lighting.turbidity, lighting.rayleigh);
+    const darkness = Math.min(1, Math.max(0, -sun.y / 0.15 + 0.15));
+    this.night.update(dt, darkness, { x: -sun.x, y: -sun.y, z: -sun.z }, this.camera.position);
 
     this.sinceBake += dt;
     if (this.sinceBake >= environmentRefreshSeconds) {

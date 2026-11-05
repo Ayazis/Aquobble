@@ -1,0 +1,62 @@
+import { MAX_GRASS_BENDERS } from './WindSway';
+
+export const WIND_UNIFORMS = `
+uniform float uWindTime;
+uniform vec4 uBenders[${MAX_GRASS_BENDERS}];
+`;
+
+/**
+ * Replaces three's project_vertex: works in world space so wind and trampling push the same way
+ * whatever the instance yaw. Bend grows with height above the base (local y); far plants shrink away.
+ */
+export function windProjectVertex(strength: number, fadeStart: number, fadeEnd: number): string {
+  const f = (v: number) => v.toFixed(3);
+  return `
+vec4 plantWorld = vec4(transformed, 1.0);
+#ifdef USE_INSTANCING
+  plantWorld = instanceMatrix * plantWorld;
+  vec3 plantRoot = (modelMatrix * vec4(instanceMatrix[3].xyz, 1.0)).xyz;
+#else
+  vec3 plantRoot = (modelMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
+#endif
+plantWorld = modelMatrix * plantWorld;
+float plantH = max(position.y, 0.0);
+float plantBend = plantH * plantH * ${f(strength)};
+
+// Wind: a steady lean plus gusts rolling across the field, and per-plant flutter.
+vec2 windDir = normalize(vec2(1.0, 0.35));
+float windAlong = dot(plantRoot.xz, windDir);
+float gust = 0.5 + 0.5 * sin(windAlong * 0.09 - uWindTime * 1.1);
+gust = gust * gust * (0.6 + 0.4 * sin(dot(plantRoot.xz, vec2(-0.05, 0.07)) + uWindTime * 0.37));
+float flutter = sin(uWindTime * 3.3 + plantRoot.x * 1.7 + plantRoot.z * 1.3);
+vec2 windPush = windDir * (0.25 + gust * 1.2 + flutter * 0.18)
+  + vec2(-windDir.y, windDir.x) * sin(uWindTime * 2.1 + windAlong * 0.6) * 0.14;
+windPush *= plantBend;
+
+// Trampling: characters push blades away from them and press them down.
+vec2 trampleDir = vec2(0.0);
+float trample = 0.0;
+for (int i = 0; i < ${MAX_GRASS_BENDERS}; i++) {
+  vec4 b = uBenders[i];
+  if (b.w <= 0.0) continue;
+  vec2 away = plantRoot.xz - b.xz;
+  float dist = length(away);
+  float reach = 1.0 - smoothstep(b.w * 0.35, b.w, dist);
+  reach *= 1.0 - smoothstep(1.6, 2.6, b.y - plantRoot.y);
+  trampleDir += (dist > 0.001 ? away / dist : vec2(1.0, 0.0)) * reach;
+  trample = max(trample, reach);
+}
+float trampleLen = length(trampleDir);
+trampleDir = trampleLen > 0.001 ? trampleDir / trampleLen : vec2(0.0);
+vec2 push = mix(windPush, trampleDir * plantH * 1.4, trample);
+plantWorld.xz += push;
+// Keep blade length roughly constant: the further it leans, the lower the tip.
+plantWorld.y -= min(dot(push, push) * 0.6 / max(plantH, 0.05), plantH * 0.85) + trample * plantH * 0.25;
+
+float plantFade = 1.0 - smoothstep(${f(fadeStart)}, ${f(fadeEnd)}, distance(plantRoot, cameraPosition));
+plantWorld.xyz = plantRoot + (plantWorld.xyz - plantRoot) * plantFade;
+
+vec4 mvPosition = viewMatrix * plantWorld;
+gl_Position = projectionMatrix * mvPosition;
+`;
+}

@@ -31,3 +31,5 @@
 | Windmill | models/town/windmill.glb | https://poly.pizza/m/WUbU1Nct2W | Quaternius | CC0 1.0 |
 | Fantasy Barracks | models/town/barracks.glb | https://poly.pizza/m/wTDbVozPAj | Quaternius | CC0 1.0 |
 | Fantasy Stable | models/town/stable.glb | https://poly.pizza/m/qhNQSOGGbi | Quaternius | CC0 1.0 |
+| Ground 078 (road dirt) | textures/road-dirt.webp, textures/road-dirt-normal.webp | https://ambientcg.com/view?id=Ground078 | ambientCG (Lennart Demes) | CC0 |
+| Cobblestone Floor 001 | textures/cobblestone.webp, textures/cobblestone-normal.webp | https://polyhaven.com/a/cobblestone_floor_001 | Rob Tuytel | CC0 |

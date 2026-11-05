@@ -1,8 +1,8 @@
 import type { DayKeyframe } from './DayKeyframe';
 
 const NIGHT: Omit<DayKeyframe, 'time'> = {
-  sunColor: 0x7d93c9,
-  sunIntensity: 0.25,
+  sunColor: 0x9fb4e6,
+  sunIntensity: 0.55,
   hemisphereSky: 0x2a3a5c,
   hemisphereGround: 0x14121a,
   hemisphereIntensity: 0.35,

@@ -7,3 +7,5 @@ export { GrassInstancesFactory } from './GrassInstancesFactory';
 export { FlowerInstancesFactory } from './FlowerInstancesFactory';
 export { GrassSpawner, type GrassOptions } from './GrassSpawner';
 export { WindSwaySystem } from './WindSwaySystem';
+export { GrassBendSystem } from './GrassBendSystem';
+export { MAX_GRASS_BENDERS, createWindSway } from './WindSway';

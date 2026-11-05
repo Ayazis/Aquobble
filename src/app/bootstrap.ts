@@ -31,7 +31,7 @@ import { FpsCounter, FpsOverlay, FpsSystem } from '@diagnostics';
 import { BirdMeshFactory, BirdRenderSystem, DEFAULT_WILDLIFE, FlockSpawner, FlockSystem } from '@wildlife';
 import { ModelRockFactory, RockMeshFactory, RockRecycleSystem, RockSpawner } from '@rocks';
 import { WaterAnimationSystem } from '@water';
-import { WindSwaySystem } from '@grass';
+import { GrassBendSystem, WindSwaySystem } from '@grass';
 import { Game } from './Game';
 import { DEFAULT_CONFIG, type GameConfig } from './GameConfig';
 import { loadTownModels } from './loadTownModels';
@@ -48,7 +48,7 @@ export async function bootstrap(container: HTMLElement, config: GameConfig = DEF
 
   const render = new RenderContext(container);
   const post = new PostProcessing(render);
-  const dayNight = new Environment(config.environment).install(render);
+  const dayNight = new Environment(config.environment).install(render, new SeededRandom(config.seed + 303));
 
   const loader = new GltfModelLoader();
   const [townModels, characterModel] = await Promise.all([loadTownModels(loader), loadCharacter(loader)]);
@@ -80,6 +80,7 @@ export async function bootstrap(container: HTMLElement, config: GameConfig = DEF
       new TransformSyncSystem(world),
       new WaterAnimationSystem(world, dayNight),
       new WindSwaySystem(world),
+      new GrassBendSystem(world),
       new PlayerAnimationSystem(world),
       new TownsfolkAnimationSystem(world),
       new ThirdPersonCameraSystem(world, render.camera, physics, look, zoom),

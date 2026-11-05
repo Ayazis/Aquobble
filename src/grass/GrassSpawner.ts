@@ -6,7 +6,7 @@ import type {} from '@rendering';
 import type { FlowerInstancesFactory } from './FlowerInstancesFactory';
 import type { GrassInstancesFactory } from './GrassInstancesFactory';
 import { GrassPlacer, type FlowerPlacerOptions, type GrassPlacerOptions } from './GrassPlacer';
-import type { WindSway } from './WindSway';
+import { createWindSway, type WindSway } from './WindSway';
 
 export interface GrassOptions {
   grass: GrassPlacerOptions;
@@ -36,7 +36,7 @@ export class GrassSpawner {
       exclude,
     };
     const placer = new GrassPlacer(this.ground, this.random, rules);
-    const windSway: WindSway = { time: { value: 0 } };
+    const windSway = createWindSway();
     this.add(this.grass.create(placer.grass(options.grass), windSway), windSway);
     this.add(this.flowers.create(placer.flowers(options.flowers), windSway), windSway);
   }

@@ -14,7 +14,7 @@ export class FlowerInstancesFactory {
     const head = new THREE.OctahedronGeometry(0.045, 0).scale(1, 0.55, 1).translate(0, 0.33, 0);
     const geometry = mergeColoured(stem, head);
     const material = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.8, flatShading: true });
-    applyWindSway(material, wind, 1.2);
+    applyWindSway(material, wind, { strength: 1.2, fadeStart: 60, fadeEnd: 80 });
 
     const mesh = new THREE.InstancedMesh(geometry, material, placements.length);
     const color = new THREE.Color();
