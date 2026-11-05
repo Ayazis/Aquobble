@@ -10,4 +10,6 @@ export const SLICES = [
   'vegetation',
   'rocks',
   'diagnostics',
+  'player',
+  'town',
 ] as const;

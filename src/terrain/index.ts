@@ -3,6 +3,7 @@ export { ValueNoise } from './noise/ValueNoise';
 export { FractalNoise } from './noise/FractalNoise';
 export type { HeightSampler } from './HeightSampler';
 export { HeightField } from './HeightField';
+export type { FlattenRegion } from './FlattenRegion';
 export { DEFAULT_TERRAIN, type TerrainConfig } from './TerrainConfig';
 export { TerrainGenerator } from './TerrainGenerator';
 export { DEFAULT_PALETTE, colorForHeight, type TerrainBand } from './TerrainPalette';

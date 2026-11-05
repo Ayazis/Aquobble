@@ -1,22 +1,38 @@
-import { AnimationFrameScheduler, createGameWorld, GameLoop, SeededRandom, vec3 } from '@core';
+import { AnimationFrameScheduler, createGameWorld, GameLoop, SeededRandom } from '@core';
 import { Environment } from '@environment';
 import { PhysicsBodyCleanup, PhysicsPoseSystem, PhysicsStepSystem, RapierPhysicsEngine } from '@physics';
 import {
-  OrbitCameraSystem,
+  PointerLookInput,
+  GltfModelLoader,
   PostProcessing,
   RenderContext,
   RenderSystem,
   SceneMembership,
   SmoothZoom,
+  DEFAULT_SMOOTH_ZOOM,
+  ThirdPersonCameraSystem,
   TransformSyncSystem,
   ViewportResizer,
   WheelZoomInput,
 } from '@rendering';
+import {
+  CharacterMovementSystem,
+  KeyboardState,
+  PlayerAnimationSystem,
+  PlayerInputSystem,
+  PlayerMeshFactory,
+  PlayerModelFactory,
+  PlayerSpawner,
+  type PlayerVisualFactory,
+} from '@player';
 import { FpsCounter, FpsOverlay, FpsSystem } from '@diagnostics';
-import { RockMeshFactory, RockRecycleSystem, RockSpawner } from '@rocks';
+import { ModelRockFactory, RockMeshFactory, RockRecycleSystem, RockSpawner } from '@rocks';
 import { Game } from './Game';
 import { DEFAULT_CONFIG, type GameConfig } from './GameConfig';
+import { loadTownModels } from './loadTownModels';
 import { populateWorld } from './populateWorld';
+
+const CHARACTER_MODEL = 'assets/models/town/character.glb';
 
 /** Composition root: the only place that knows concrete classes and wires them together. */
 export async function bootstrap(container: HTMLElement, config: GameConfig = DEFAULT_CONFIG): Promise<Game> {
@@ -28,22 +44,36 @@ export async function bootstrap(container: HTMLElement, config: GameConfig = DEF
   const post = new PostProcessing(render);
   new Environment(config.environment).install(render);
 
-  populateWorld(world, physics, random, config);
-  const rocks = new RockSpawner(world, physics, new RockMeshFactory(random));
+  const loader = new GltfModelLoader();
+  const [townModels, playerVisuals] = await Promise.all([loadTownModels(loader), loadPlayerVisuals(loader)]);
+  populateWorld(world, physics, random, config, townModels);
+  // Only fetch the model when the rain is on; the spawner still exists so the flag can stay a pure toggle.
+  const rockModels =
+    config.fallingRocks && config.rockModel
+      ? new ModelRockFactory(await loader.load(config.rockModel))
+      : new RockMeshFactory(random);
+  const rocks = new RockSpawner(world, physics, rockModels);
 
-  const zoom = new SmoothZoom();
+  new PlayerSpawner(world, physics, playerVisuals).spawn(config.town.x, config.town.z + 8);
+  const keys = new KeyboardState();
+  const look = new PointerLookInput(render.canvas);
+
+  const zoom = new SmoothZoom({ ...DEFAULT_SMOOTH_ZOOM, minDistance: 2, maxDistance: 25 });
   const wheel = new WheelZoomInput(render.canvas, zoom);
   const fpsOverlay = new FpsOverlay(container);
 
   const loop = new GameLoop(new AnimationFrameScheduler(), {
     fixedSystems: [
-      new RockRecycleSystem(world, rocks, random, config.rocks),
+      new PlayerInputSystem(world, keys),
+      new CharacterMovementSystem(world, physics),
+      ...(config.fallingRocks ? [new RockRecycleSystem(world, rocks, random, config.rocks)] : []),
       new PhysicsStepSystem(physics),
       new PhysicsPoseSystem(world, physics),
     ],
     frameSystems: [
       new TransformSyncSystem(world),
-      new OrbitCameraSystem(render.camera, render.canvas, zoom, vec3(90, 55, 90), vec3(0, 5, 0)),
+      new PlayerAnimationSystem(world),
+      new ThirdPersonCameraSystem(world, render.camera, physics, look, zoom),
       new RenderSystem(post),
       new FpsSystem(new FpsCounter(), fpsOverlay),
     ],
@@ -54,6 +84,18 @@ export async function bootstrap(container: HTMLElement, config: GameConfig = DEF
     new PhysicsBodyCleanup(world, physics),
     new ViewportResizer(render, post),
     wheel,
+    keys,
+    look,
     fpsOverlay,
   ]);
+}
+
+/** The rigged character, or the capsule if it fails to load. */
+async function loadPlayerVisuals(loader: GltfModelLoader): Promise<PlayerVisualFactory> {
+  try {
+    return new PlayerModelFactory(await loader.loadAnimated(CHARACTER_MODEL));
+  } catch (error) {
+    console.warn('Character model failed to load; using the capsule.', error);
+    return new PlayerMeshFactory();
+  }
 }

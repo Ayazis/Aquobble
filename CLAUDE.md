@@ -67,4 +67,5 @@ slice has no `index.ts`.
 ## Assets
 
 See README: `npm run assets:search|fetch|use`. Raw downloads in `assets/library/` are gitignored; only
-optimised, used assets go to `public/assets/` with a line in `public/assets/CREDITS.md`.
+optimised, used assets go to `public/assets/` with a line in `public/assets/CREDITS.md`. Asset binaries are
+committed only from `public/assets/`; `.gitignore` blocks them (and all archives) everywhere else.

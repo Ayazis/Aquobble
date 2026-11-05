@@ -8,3 +8,11 @@ export { ViewportResizer } from './ViewportResizer';
 export { OrbitCameraSystem } from './OrbitCameraSystem';
 export { SmoothZoom, DEFAULT_SMOOTH_ZOOM, type SmoothZoomOptions } from './camera/SmoothZoom';
 export { WheelZoomInput } from './camera/WheelZoomInput';
+export type { CameraTarget } from './camera/CameraTarget';
+export { PointerLookInput } from './camera/PointerLookInput';
+export {
+  ThirdPersonCameraSystem,
+  DEFAULT_THIRD_PERSON_CAMERA,
+  type ThirdPersonCameraOptions,
+} from './camera/ThirdPersonCameraSystem';
+export { GltfModelLoader } from './GltfModelLoader';

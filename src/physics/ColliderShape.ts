@@ -1,6 +1,8 @@
 /** Engine-agnostic collider shapes. Dimensions in metres. */
 export type ColliderShape =
   | { type: 'ball'; radius: number }
+  | { type: 'capsule'; halfHeight: number; radius: number }
+  | { type: 'cylinder'; halfHeight: number; radius: number }
   | { type: 'cuboid'; halfExtents: { x: number; y: number; z: number } }
   | { type: 'convexHull'; points: Float32Array }
   | HeightFieldShape;

@@ -9,3 +9,39 @@ assets/library/
 # Blender backups
 *.blend1
 *.blend2
+
+# Local asset preview catalog (metadata + thumbnails), rebuilt with npm run assets:catalog
+assets/catalog/
+
+# No asset binaries or archives anywhere, except the optimised, used assets in public/assets/
+*.zip
+*.7z
+*.rar
+*.tar
+*.gz
+*.glb
+*.gltf
+*.bin
+*.fbx
+*.obj
+*.mtl
+*.blend
+*.hdr
+*.exr
+*.ktx2
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.avif
+*.tga
+*.dds
+*.wav
+*.mp3
+*.ogg
+!/public/assets/**
+# ...but never archives or raw .blend sources, even there
+/public/assets/**/*.zip
+/public/assets/**/*.7z
+/public/assets/**/*.rar
+/public/assets/**/*.blend

@@ -40,3 +40,47 @@ describe('RapierPhysicsEngine', () => {
     expect(pose.position.y).toBeLessThan(3.8);
   });
 });
+
+describe('RapierPhysicsEngine characters and rays', () => {
+  const flatGround = (engine: RapierPhysicsEngine) =>
+    engine.createBody({
+      kind: 'fixed',
+      position: vec3(0, -0.5, 0),
+      shape: { type: 'cuboid', halfExtents: vec3(50, 0.5, 50) },
+    });
+
+  it('stops a character at a wall and reports it grounded', async () => {
+    const engine = await RapierPhysicsEngine.create();
+    flatGround(engine);
+    engine.createBody({
+      kind: 'fixed',
+      position: vec3(3, 1, 0),
+      shape: { type: 'cuboid', halfExtents: vec3(0.5, 1, 5) },
+    });
+    const character = engine.createCharacter({
+      position: vec3(0, 0.95, 0),
+      halfHeight: 0.5,
+      radius: 0.4,
+      maxSlopeClimb: Math.PI / 4,
+      stepHeight: 0.3,
+      snapToGround: 0.3,
+    });
+    let grounded = false;
+    for (let i = 0; i < 120; i++) {
+      grounded = engine.moveCharacter(character, vec3(0.1, -0.1, 0)).grounded;
+      engine.step(1 / 60);
+    }
+    const pose: Transform = { position: vec3(), rotation: identityQuat() };
+    engine.readPose(character.body, pose);
+    expect(grounded).toBe(true);
+    expect(pose.position.x).toBeLessThan(2.2);
+    expect(pose.position.x).toBeGreaterThan(1.9);
+  });
+
+  it('casts a ray to the ground and can exclude a body', async () => {
+    const engine = await RapierPhysicsEngine.create();
+    const ground = flatGround(engine);
+    expect(engine.castRay(vec3(0, 10, 0), vec3(0, -1, 0), 100)).toBeCloseTo(10, 3);
+    expect(engine.castRay(vec3(0, 10, 0), vec3(0, -1, 0), 100, ground)).toBeNull();
+  });
+});
