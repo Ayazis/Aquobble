@@ -7,7 +7,10 @@
     "strict": true,
     "skipLibCheck": true,
     "noEmit": true,
-    "types": ["vite/client", "node"]
+    "types": ["vite/client", "node", "vitest/globals"],
+    "paths": {
+      "@*": ["./src/*"]
+    }
   },
-  "include": ["src", "scripts"]
+  "include": ["src", "scripts", "*.config.ts", "*.test.ts"]
 }

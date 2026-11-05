@@ -1,21 +1,25 @@
-name: Deploy to GitHub Pages
+name: Build and deploy
 
+# main → site root of the gh-pages branch: https://ayazis.github.io/Aquobble/
+# PRs  → preview at /pr/pr-<number>/ on the same branch, removed when the PR closes.
 on:
   push:
     branches: [main]
+  pull_request:
+    types: [opened, reopened, synchronize, closed]
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
+  pull-requests: write
 
 concurrency:
-  group: pages
+  group: deploy-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   build:
+    if: github.event.action != 'closed'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -24,17 +28,53 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm test
       - run: npm run build
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
+          name: site
           path: dist
 
   deploy:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     needs: build
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: site
+          path: dist
+      - uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: dist
+          branch: gh-pages
+          clean-exclude: pr/
+
+  preview:
+    if: github.event_name == 'pull_request' && github.event.action != 'closed'
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: site
+          path: dist
+      - uses: rossjrw/pr-preview-action@v1
+        with:
+          source-dir: dist
+          umbrella-dir: pr
+          action: deploy
+
+  preview-cleanup:
+    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: rossjrw/pr-preview-action@v1
+        with:
+          umbrella-dir: pr
+          action: remove

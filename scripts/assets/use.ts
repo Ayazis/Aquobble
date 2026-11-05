@@ -24,7 +24,22 @@ if (model) {
   const out = path.join(PUBLIC, 'models', `${name}.glb`);
   fs.mkdirSync(path.dirname(out), { recursive: true });
   const cli = path.join(ROOT, 'node_modules/@gltf-transform/cli/bin/cli.js');
-  execFileSync(process.execPath, [cli, 'optimize', model, out, '--compress', 'meshopt', '--texture-compress', 'webp', '--texture-size', flags.size ?? '1024'], { stdio: 'inherit' });
+  execFileSync(
+    process.execPath,
+    [
+      cli,
+      'optimize',
+      model,
+      out,
+      '--compress',
+      'meshopt',
+      '--texture-compress',
+      'webp',
+      '--texture-size',
+      flags.size ?? '1024',
+    ],
+    { stdio: 'inherit' },
+  );
   outputs.push(out);
 } else if (hdri) {
   const out = path.join(PUBLIC, 'env', `${name}${path.extname(hdri)}`);
@@ -47,10 +62,14 @@ while (!fs.existsSync(path.join(metaDir, 'meta.json')) && metaDir.startsWith(LIB
 const metaFile = path.join(metaDir, 'meta.json');
 const meta: Partial<AssetMeta> = fs.existsSync(metaFile) ? JSON.parse(fs.readFileSync(metaFile, 'utf8')) : {};
 const credits = path.join(PUBLIC, 'CREDITS.md');
-if (!fs.existsSync(credits)) fs.writeFileSync(credits, '# Asset credits\n\n| Asset | File | Source | Author | License |\n|---|---|---|---|---|\n');
+if (!fs.existsSync(credits))
+  fs.writeFileSync(credits, '# Asset credits\n\n| Asset | File | Source | Author | License |\n|---|---|---|---|---|\n');
 for (const o of outputs) {
   const rel = path.relative(PUBLIC, o).split(path.sep).join('/');
-  fs.appendFileSync(credits, `| ${meta.name ?? name} | ${rel} | ${meta.url ?? '?'} | ${meta.author ?? '?'} | ${meta.license ?? 'CHECK'} |\n`);
+  fs.appendFileSync(
+    credits,
+    `| ${meta.name ?? name} | ${rel} | ${meta.url ?? '?'} | ${meta.author ?? '?'} | ${meta.license ?? 'CHECK'} |\n`,
+  );
   console.log(`✓ ${path.relative(ROOT, o)}`);
 }
 if (!meta.license || meta.license === 'CHECK') console.warn('⚠ License unknown: fill it in public/assets/CREDITS.md');

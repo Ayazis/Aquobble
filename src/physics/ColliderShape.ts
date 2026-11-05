@@ -1,0 +1,19 @@
+/** Engine-agnostic collider shapes. Dimensions in metres. */
+export type ColliderShape =
+  | { type: 'ball'; radius: number }
+  | { type: 'cuboid'; halfExtents: { x: number; y: number; z: number } }
+  | { type: 'convexHull'; points: Float32Array }
+  | HeightFieldShape;
+
+/**
+ * Regular height grid centred on the body origin.
+ * `heights` is row-major: index = row * columns + column, rows along +z, columns along +x.
+ */
+export interface HeightFieldShape {
+  type: 'heightField';
+  rows: number;
+  columns: number;
+  heights: Float32Array;
+  /** Total extent of the grid on x and z. */
+  size: { x: number; z: number };
+}

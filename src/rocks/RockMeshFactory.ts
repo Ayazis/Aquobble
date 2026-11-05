@@ -1,0 +1,34 @@
+import * as THREE from 'three';
+import type { Random } from '@core';
+
+export interface RockModel {
+  mesh: THREE.Mesh;
+  /** Vertex positions, used as the convex-hull collider so physics matches the visual shape. */
+  hullPoints: Float32Array;
+}
+
+/** Makes unique low-poly rocks by jittering an icosahedron. */
+export class RockMeshFactory {
+  private readonly material = new THREE.MeshStandardMaterial({ color: 0x8c8378, flatShading: true, roughness: 1 });
+
+  constructor(private readonly random: Random) {}
+
+  create(radius: number): RockModel {
+    const geometry = new THREE.IcosahedronGeometry(radius, 0);
+    const positions = geometry.attributes.position;
+    // Icosahedron vertices are duplicated per face; jitter by position so faces stay closed.
+    const offsets = new Map<string, number>();
+    for (let i = 0; i < positions.count; i++) {
+      const key = `${positions.getX(i).toFixed(3)},${positions.getY(i).toFixed(3)},${positions.getZ(i).toFixed(3)}`;
+      if (!offsets.has(key)) offsets.set(key, this.random.range(0.7, 1.2));
+      const k = offsets.get(key) ?? 1;
+      positions.setXYZ(i, positions.getX(i) * k, positions.getY(i) * k * 0.8, positions.getZ(i) * k);
+    }
+    geometry.computeVertexNormals();
+
+    const mesh = new THREE.Mesh(geometry, this.material);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    return { mesh, hullPoints: Float32Array.from(positions.array) };
+  }
+}
