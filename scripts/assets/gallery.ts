@@ -39,6 +39,8 @@ main{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:
 .c img{width:100%;aspect-ratio:1;object-fit:cover;background:#8882;display:block}
 .c div{padding:6px 8px}.n{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .m{color:var(--mut);font-size:12px}.cc0{color:var(--acc)}
+a.c{display:block;color:inherit;text-decoration:none}a.c:hover{border-color:var(--acc)}
+.cp{margin-top:6px;font:inherit;font-size:11px;padding:2px 6px;border:1px solid var(--bd);border-radius:4px;background:transparent;color:var(--mut);cursor:pointer}.cp:hover{color:var(--fg)}
 #types{display:flex;gap:4px;flex-wrap:wrap;width:100%}#types button{font:inherit;padding:6px 12px;border:1px solid var(--bd);border-radius:999px;background:var(--card);color:var(--fg);cursor:pointer}#types button.on{background:var(--acc);border-color:var(--acc);color:#fff}#types small{opacity:.7}label{align-self:center;color:var(--mut)}
 </style>
 <header><nav id="types"></nav>
@@ -66,9 +68,9 @@ const ok=(d,f)=>{if(type&&d.k!==type)return false;if(f.cat&&!d.c.includes(f.cat)
  const h=(d.n+' '+d.t+' '+d.a+' '+d.s+' '+d.c.join(' ')).toLowerCase();return f.ws.every(w=>h.includes(w))};
 function render(){const f={ws:$('q').value.toLowerCase().split(/\\s+/).filter(Boolean),cat:$('cat').value,src:$('src').value,lic:$('lic').value,tri:$('tri').value,anim:$('anim').checked};
  const r=D.filter(d=>ok(d,f));$('count').textContent=r.length+' / '+D.length+(r.length>600?' (first 600 shown)':'');
- $('g').innerHTML=r.slice(0,600).map(d=>'<div class="c" data-i="'+d.i+'"><img loading="lazy" src="'+(d.th||'')+'" alt=""><div><div class="n" title="'+esc(d.n)+'">'+esc(d.n)+'</div><div class="m"><span class="'+(/cc0/i.test(d.l)?'cc0':'')+'">'+esc(d.l)+'</span> · '+esc(d.s)+(d.tr?' · '+d.tr+' tris':'')+(d.an?' · anim':'')+'</div><div class="m">'+esc([d.k].concat(d.c).join(' · '))+'</div></div></div>').join('')}
+ $('g').innerHTML=r.slice(0,600).map(d=>'<a class="c" data-i="'+d.i+'"'+(d.u?' href="'+esc(d.u)+'" target="_blank" rel="noopener"':'')+' title="'+esc(d.u?'Open on '+d.s:d.f)+'"><img loading="lazy" src="'+(d.th||'')+'" alt=""><div><div class="n">'+esc(d.n)+'</div><div class="m"><span class="'+(/cc0/i.test(d.l)?'cc0':'')+'">'+esc(d.l)+'</span> · '+esc(d.s)+(d.tr?' · '+d.tr+' tris':'')+(d.an?' · anim':'')+'</div><div class="m">'+esc([d.k].concat(d.c).join(' · '))+'</div><button class="cp" title="'+esc(d.f)+'">copy fetch command</button></div></a>').join('')}
 $('types').onclick=e=>{const b=e.target.closest('button');if(!b)return;type=b.dataset.k;tabs();cats();render()};
-$('g').onclick=e=>{const c=e.target.closest('.c');if(!c)return;const d=D[c.dataset.i];
- navigator.clipboard?.writeText(d.f).catch(()=>{});if(d.u&&e.ctrlKey)open(d.u);else alert(d.n+'\\n'+d.l+' · '+d.a+'\\n'+d.u+'\\n\\nCopied: '+d.f+'\\n(Ctrl+click opens the source page)')};
+$('g').onclick=e=>{const b=e.target.closest('.cp');if(!b)return;e.preventDefault();const d=D[b.closest('.c').dataset.i];
+ navigator.clipboard?.writeText(d.f).then(()=>{b.textContent='copied ✓';setTimeout(()=>b.textContent='copy fetch command',1500)}).catch(()=>{b.textContent=d.f})};
 ['q','cat','src','lic','tri','anim'].forEach(id=>$(id).addEventListener('input',render));tabs();cats();render();
 </script>`;
