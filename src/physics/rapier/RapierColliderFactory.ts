@@ -7,6 +7,10 @@ export class RapierColliderFactory {
     switch (shape.type) {
       case 'ball':
         return RAPIER.ColliderDesc.ball(shape.radius);
+      case 'capsule':
+        return RAPIER.ColliderDesc.capsule(shape.halfHeight, shape.radius);
+      case 'cylinder':
+        return RAPIER.ColliderDesc.cylinder(shape.halfHeight, shape.radius);
       case 'cuboid':
         return RAPIER.ColliderDesc.cuboid(shape.halfExtents.x, shape.halfExtents.y, shape.halfExtents.z);
       case 'convexHull': {

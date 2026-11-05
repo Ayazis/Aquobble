@@ -12,5 +12,6 @@ export function populateWorld(world: GameWorld, physics: PhysicsEngine, random: 
 
   new TerrainSpawner(world, physics, new TerrainMeshFactory()).spawn(terrain);
   new WaterSpawner(world, new WaterMeshFactory()).spawn(config.waterLevel);
-  new ForestSpawner(world, new TreePlacer(terrain, random), new TreeInstancesFactory()).spawn(config.forest);
+  const placer = new TreePlacer(terrain, random);
+  new ForestSpawner(world, placer, new TreeInstancesFactory(), physics).spawn(config.forest);
 }
