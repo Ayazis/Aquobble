@@ -1,7 +1,9 @@
 name: Build and deploy
 
 # main → site root of the gh-pages branch: https://ayazis.github.io/Aquobble/
-# PRs  → preview at /pr/pr-<number>/ on the same branch, removed when the PR closes.
+# PRs  → preview at /pr/pr-<number>/ on the same branch.
+#        Closed without merge: removed right away.
+#        Merged: kept until the main deploy containing it is live on Pages, then removed.
 on:
   push:
     branches: [main]
@@ -53,6 +55,20 @@ jobs:
           folder: dist
           branch: gh-pages
           clean-exclude: pr/
+      - name: Wait for GitHub Pages to publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: .github/scripts/wait-for-pages.sh
+      # Only now is the merged work live at the root, so previews of closed PRs can go.
+      - uses: actions/checkout@v5
+        with:
+          ref: gh-pages
+          path: gh-pages
+      - name: Remove previews of closed PRs
+        working-directory: gh-pages
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: ../.github/scripts/remove-closed-previews.sh
 
   preview:
     if: github.event_name == 'pull_request' && github.event.action != 'closed'
@@ -75,16 +91,7 @@ jobs:
       - name: Wait for GitHub Pages to publish
         env:
           GH_TOKEN: ${{ github.token }}
-        run: |
-          sha=$(git ls-remote origin refs/heads/gh-pages | cut -f1)
-          for i in $(seq 1 60); do
-            read -r commit status < <(gh api "repos/${{ github.repository }}/pages/builds/latest" --jq '"\(.commit) \(.status)"')
-            echo "Pages build for ${commit:0:7}: $status"
-            if [ "$commit" = "$sha" ] && [ "$status" = "built" ]; then exit 0; fi
-            if [ "$commit" = "$sha" ] && [ "$status" = "errored" ]; then exit 1; fi
-            sleep 10
-          done
-          echo "Timed out waiting for Pages"; exit 1
+        run: .github/scripts/wait-for-pages.sh
       - name: Comment preview link
         env:
           GH_TOKEN: ${{ github.token }}
@@ -94,7 +101,10 @@ jobs:
             --body "🚀 Preview is live: $url (commit ${{ github.event.pull_request.head.sha }})"
 
   preview-cleanup:
-    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+    # Merged PRs are cleaned up by the main deploy once it is live.
+    if: >-
+      github.event_name == 'pull_request' && github.event.action == 'closed' &&
+      !github.event.pull_request.merged
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
