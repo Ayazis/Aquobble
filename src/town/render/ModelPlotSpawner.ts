@@ -9,7 +9,7 @@ import type { PlotSpawner } from './PlotSpawner';
 const yawQuat = (yaw: number): Quat => ({ x: 0, y: Math.sin(yaw / 2), z: 0, w: Math.cos(yaw / 2) });
 
 /**
- * Places the loaded model for each plot, centred on the plot and standing on the ground, with a static box
+ * Places the loaded model for each plot, centred on the plot, standing on the ground and sized by `fitScale`, with a static box
  * collider around the model. Plots whose model is missing fall back to `fallback` (the grey box).
  */
 export class ModelPlotSpawner implements PlotSpawner {
@@ -18,8 +18,6 @@ export class ModelPlotSpawner implements PlotSpawner {
     private readonly physics: PhysicsEngine,
     private readonly models: ReadonlyMap<string, THREE.Object3D>,
     private readonly fallback: PlotSpawner,
-    /** Scale to the plot height (buildings) rather than keep real-world size (props); see `fitScale`. */
-    private readonly fill = false,
   ) {}
 
   spawn(placed: PlacedPlot): void {
@@ -28,7 +26,7 @@ export class ModelPlotSpawner implements PlotSpawner {
 
     const box = new THREE.Box3().setFromObject(source);
     const size = box.getSize(new THREE.Vector3());
-    const scale = fitScale({ width: size.x, depth: size.z, height: size.y }, placed.plot.footprint, this.fill);
+    const scale = fitScale({ width: size.x, depth: size.z, height: size.y }, placed.plot.footprint);
 
     const model = source.clone();
     model.scale.setScalar(scale);

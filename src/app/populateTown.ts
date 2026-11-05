@@ -33,9 +33,9 @@ export function populateTown(
 
   const town = planner.place(terrain, site);
   new TownSpawner(world, physics, new RoadMeshFactory(), new WallFactory()).spawn(town);
-  const boxes = new PlotBoxSpawner(world, physics);
-  new BuildingSpawner(new ModelPlotSpawner(world, physics, models, boxes, true)).spawn(town);
-  new PropSpawner(new ModelPlotSpawner(world, physics, models, boxes)).spawn(town);
+  const plots = new ModelPlotSpawner(world, physics, models, new PlotBoxSpawner(world, physics));
+  new BuildingSpawner(plots).spawn(town);
+  new PropSpawner(plots).spawn(town);
 
   const half = region.halfSize + 2;
   return { minX: site.x - half, maxX: site.x + half, minZ: site.z - half, maxZ: site.z + half };

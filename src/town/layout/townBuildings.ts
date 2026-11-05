@@ -13,7 +13,7 @@ const plot = (assetId: string, x: number, z: number, rotation: number, w: number
 /** Building plots: the well and stalls on the square, then three per block between the roads. */
 export const TOWN_BUILDINGS: TownPlot[] = [
   // Central square
-  plot('well', 0, 0, 0, 3, 3, 2.5),
+  plot('well', 0, 0, 0, 3, 3, 3.5),
   plot('market_stall', 7, -8, 0, 4, 3, 3),
   plot('market_stall', -7, -8, 0, 4, 3, 3),
   // North-east (+x, +z)
