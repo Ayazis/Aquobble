@@ -41,6 +41,11 @@ Rules for every change:
 6. **Every stone is a 20-triangle lump** and every tree is the same tree (4.1, 5.1).
 7. **No grass inside the town**, and bare squares around the round ponds (3.1).
 
+## Status
+
+Done: the two tools below (0.1, 0.2) and the decisions at the end. Nothing in sections 1 to 7 has been started.
+Baseline for 1.1: the `lane` view at noon is 17.7% blown-out white.
+
 ## Tools first
 
 Taking these screenshots meant reaching into private fields. Two small tools make every later item checkable.
@@ -149,17 +154,18 @@ read or a draw per object is checked against the debug counters from 0.1 on a ph
 
 ## Decisions
 
-1. **Carved detail, or stay perfectly flat?** Recommended: add normal maps to four surfaces only (cobbles,
-   wall masonry, bark, rock). Through the two-band lighting they would read as crisp chiselled shading, not as
-   realism. Plaster, roofs and foliage stay flat.
-2. **Make rocks and trees in code, or source models?** Recommended: rocks in code (endless variety, and
-   colliders already come from their hulls); trees from a CC0 nature set by the author of the town models, so
-   the styles match, through the asset-sourcing skill.
-3. **Photo textures or painted ones?** The grain textures are photo scans. At their current strength they pass
-   at a distance, but bark and rock look photographic up close. Recommended: keep them for now and revisit
-   after 2.1 and 4.1.
-4. **Real devices.** Frame rate could not be measured here. Someone needs to open each preview on a phone and
-   a desktop.
+Decided on 2026-11-10, as recommended:
+
+1. **Carved detail on four surfaces.** Cobbles, wall masonry, bark and rock get normal maps. Through the
+   two-band lighting they read as crisp chiselled shading, not as realism. Plaster, roofs and foliage stay flat.
+2. **Rocks in code, trees from models.** Rocks are generated (endless variety, and colliders already come from
+   their hulls). Trees come from a CC0 nature set by the author of the town models, so the styles match,
+   through the asset-sourcing skill.
+3. **Photo textures stay for now.** The grain textures are photo scans; revisit after 2.1 and 4.1 if bark and
+   rock still look photographic up close.
+
+Still open: **real devices.** Frame rate could not be measured while writing or implementing this plan. Someone
+needs to open each preview on a phone and a desktop.
 
 ## Parked
 

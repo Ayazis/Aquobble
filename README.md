@@ -9,6 +9,20 @@ npm run dev      # http://localhost:5173
 npm run build    # → dist/
 ```
 
+## Debug mode and reference screenshots
+
+Open the game with `?debug` for an FPS, draw-call and triangle readout, and these keys: `[` and `]` step the
+time of day, `\` stops the clock, `F` freezes the camera (then `I` `K` `J` `L` fly it, `U` and `O` lower and raise it).
+
+```bash
+npx playwright-core install chromium   # once
+npm run shots -- before                # all views, times and devices → shots/before/ (gitignored)
+npm run shots -- after --views plaza,lane --times noon --devices desktop
+```
+
+Each line of output gives the view's mean brightness and how much of it is blown-out white or crushed black.
+Add `--software` on a machine without a GPU (slow). Views live in `scripts/shots/views.ts`.
+
 ## Assets
 
 Raw downloads go to `assets/library/` (**gitignored**). Only assets that are actually used get optimised
