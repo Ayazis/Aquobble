@@ -5,6 +5,7 @@ import type { SurfaceStyler } from './SurfaceStyler';
 import {
   DETAIL_FRAGMENT_MAIN,
   DETAIL_FRAGMENT_PARS,
+  DETAIL_NORMAL_MAIN,
   DETAIL_VERTEX_MAIN,
   DETAIL_VERTEX_PARS,
 } from './surfaceDetailChunks';
@@ -13,6 +14,8 @@ interface DetailUniforms {
   uDetailMap: { value: THREE.Texture | null };
   uDetailStrength: { value: number };
   uDetailScale: { value: number };
+  uDetailNormalMap: { value: THREE.Texture | null };
+  uDetailNormalStrength: { value: number };
 }
 
 /**
@@ -36,8 +39,15 @@ export class SurfaceDetailLibrary implements SurfaceStyler {
       shader.fragmentShader = shader.fragmentShader
         .replace('#include <common>', `#include <common>\n${DETAIL_FRAGMENT_PARS}`)
         .replace('#include <color_fragment>', `#include <color_fragment>\n${DETAIL_FRAGMENT_MAIN}`);
+      if (!source.normalPath) return;
+      shader.fragmentShader = shader.fragmentShader.replace(
+        '#include <normal_fragment_maps>',
+        `#include <normal_fragment_maps>\n${DETAIL_NORMAL_MAIN}`,
+      );
     };
-    material.customProgramCacheKey = () => 'aquobble-surface-detail';
+    // Two programs at most: kinds with a normal map pay for its texture read, the others do not.
+    const key = source.normalPath ? 'aquobble-surface-detail-normal' : 'aquobble-surface-detail';
+    material.customProgramCacheKey = () => key;
     material.needsUpdate = true;
   }
 
@@ -57,13 +67,29 @@ export class SurfaceDetailLibrary implements SurfaceStyler {
         },
         (error: unknown) => console.warn(`Surface texture for "${kind}" failed to load; using flat colour.`, error),
       );
+      if (!source.normalPath) continue;
+      loader.loadAsync(import.meta.env.BASE_URL + source.normalPath).then(
+        (texture) => {
+          texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+          texture.anisotropy = 8;
+          uniforms.uDetailNormalMap.value = texture;
+          uniforms.uDetailNormalStrength.value = source.normalStrength ?? 1;
+        },
+        (error: unknown) => console.warn(`Normal map for "${kind}" failed to load; staying flat.`, error),
+      );
     }
   }
 
   private uniformsFor(kind: SurfaceKind, scale: number): DetailUniforms {
     let uniforms = this.uniforms.get(kind);
     if (!uniforms) {
-      uniforms = { uDetailMap: { value: null }, uDetailStrength: { value: 0 }, uDetailScale: { value: scale } };
+      uniforms = {
+        uDetailMap: { value: null },
+        uDetailStrength: { value: 0 },
+        uDetailScale: { value: scale },
+        uDetailNormalMap: { value: null },
+        uDetailNormalStrength: { value: 0 },
+      };
       this.uniforms.set(kind, uniforms);
     }
     return uniforms;

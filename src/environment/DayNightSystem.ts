@@ -16,6 +16,8 @@ const HORIZON_FADE = 0.08;
 export class DayNightSystem implements System {
   private time: number;
   private sinceBake = Infinity;
+  /** True stops the clock (debug and screenshots); the lighting still follows `setTimeOfDay`. */
+  paused = false;
 
   constructor(
     private readonly renderer: THREE.WebGLRenderer,
@@ -37,6 +39,12 @@ export class DayNightSystem implements System {
     return this.time;
   }
 
+  /** Jumps to a time of day in [0, 1) and re-bakes the sky lighting on the next frame. */
+  setTimeOfDay(time: number): void {
+    this.time = ((time % 1) + 1) % 1;
+    this.sinceBake = Infinity;
+  }
+
   /** Unit direction towards the current key light (sun by day, moon by night). */
   get lightDirection(): Vec3 {
     return this.lightDir;
@@ -46,7 +54,7 @@ export class DayNightSystem implements System {
 
   update(dt: number): void {
     const { dayLengthSeconds, sunAzimuth, noonSunElevation, environmentRefreshSeconds } = this.config;
-    if (dayLengthSeconds > 0) this.time = (this.time + dt / dayLengthSeconds) % 1;
+    if (dayLengthSeconds > 0 && !this.paused) this.time = (this.time + dt / dayLengthSeconds) % 1;
 
     const lighting = sampleDayCycle(this.keyframes, this.time);
     const sun = sunDirectionAt(this.time, sunAzimuth, noonSunElevation);

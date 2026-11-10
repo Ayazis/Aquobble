@@ -5,6 +5,7 @@ export const SLICES = [
   'physics',
   'rendering',
   'environment',
+  'lighting',
   'terrain',
   'water',
   'vegetation',

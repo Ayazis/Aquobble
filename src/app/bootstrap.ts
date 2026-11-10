@@ -34,15 +34,17 @@ import {
 } from '@player';
 import { TownsfolkAnimationSystem, TownsfolkMovementSystem } from '@townsfolk';
 import { AmbientAudio, MuteButton } from '@audio';
-import { FpsCounter, FpsOverlay, FpsSystem } from '@diagnostics';
+import { isDebugMode } from '@diagnostics';
 import { BirdMeshFactory, BirdRenderSystem, DEFAULT_WILDLIFE, FlockSpawner, FlockSystem } from '@wildlife';
 import { RockRecycleSystem, RockSpawner } from '@rocks';
 import { WaterAnimationSystem } from '@water';
 import { GrassBendSystem, WindSwaySystem } from '@grass';
 import type { Object3D } from 'three';
+import { createDebug } from './createDebug';
 import { Game } from './Game';
 import { DEFAULT_CONFIG, type GameConfig } from './GameConfig';
 import { forDevice, isMobileDevice } from './forDevice';
+import { installStreetLighting } from './installStreetLighting';
 import { loadTownModels } from './loadTownModels';
 import { populateWorld } from './populateWorld';
 import { rockFactory } from './rockFactory';
@@ -68,6 +70,7 @@ export async function bootstrap(container: HTMLElement, baseConfig: GameConfig =
   const playerVisuals = characterModel ? new PlayerModelFactory(characterModel) : new PlayerMeshFactory();
   const surfaces = styleModels(townModels, characterModel, quality.surfaceDetail);
   const town = populateWorld(world, physics, random, config, townModels, surfaces);
+  const streetLights = installStreetLighting(world, townModels, dayNight, config.streetLights);
   const { birdMeshes, ambience } = spawnWildlife(world, config.seed);
   const rocks = new RockSpawner(world, physics, await rockFactory(loader, random, config));
   new PlayerSpawner(world, physics, playerVisuals, new LanternFactory()).spawn(config.town.x, config.town.z + 8);
@@ -79,7 +82,7 @@ export async function bootstrap(container: HTMLElement, baseConfig: GameConfig =
   const look = new PointerLookInput(render.canvas);
   const zoom = new SmoothZoom({ ...DEFAULT_SMOOTH_ZOOM, minDistance: 2, maxDistance: 25 });
   const wheel = new WheelZoomInput(render.canvas, zoom);
-  const fpsOverlay = new FpsOverlay(container);
+  const debug = createDebug(isDebugMode(), container, render, dayNight, keys, physics);
   const lanternButton = new LanternButton(container);
   const touch = mobile ? new TouchControls(container) : undefined;
 
@@ -102,11 +105,13 @@ export async function bootstrap(container: HTMLElement, baseConfig: GameConfig =
       new LanternSystem(world, keys, lanternButton),
       new TownsfolkAnimationSystem(world),
       new ThirdPersonCameraSystem(world, render.camera, physics, look, zoom),
+      ...debug.afterCamera,
       new BirdRenderSystem(world, birdMeshes.clock),
       ambience,
       dayNight,
+      streetLights,
       new RenderSystem(post, render),
-      new FpsSystem(new FpsCounter(), fpsOverlay),
+      ...debug.afterRender,
     ],
   });
 
@@ -117,7 +122,7 @@ export async function bootstrap(container: HTMLElement, baseConfig: GameConfig =
     wheel,
     keys,
     look,
-    fpsOverlay,
+    ...debug.disposables,
     ambience,
     new MuteButton(container, ambience),
     lanternButton,

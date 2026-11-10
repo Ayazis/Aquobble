@@ -1,4 +1,5 @@
 import { DEFAULT_ENVIRONMENT, type EnvironmentConfig } from '@environment';
+import { DEFAULT_STREET_LIGHTS, type StreetLightOptions } from '@lighting';
 import type { GrassOptions } from '@grass';
 import type { RockRecycleOptions, RockScatterSpawnOptions } from '@rocks';
 import { DEFAULT_TERRAIN, type PondOptions, type TerrainConfig } from '@terrain';
@@ -27,6 +28,8 @@ export interface GameConfig {
   fallingRocks: boolean;
   town: TownSite;
   townsfolk: TownsfolkConfig;
+  /** Lamp glass, lit windows, pools of lamplight and the few real lights at night. */
+  streetLights: StreetLightOptions;
   /** Optional model for the falling rocks (path under public/), e.g. "assets/models/cookie.glb". Procedural rocks if unset. */
   rockModel?: string;
 }
@@ -60,5 +63,6 @@ export const DEFAULT_CONFIG: GameConfig = {
   fallingRocks: false,
   town: { x: 0, z: 0, blend: 14, minLevel: 3 },
   townsfolk: { minCount: 10, maxCount: 16, walkSpeed: 1.4 },
+  streetLights: DEFAULT_STREET_LIGHTS,
   rockModel: 'assets/models/cookie.glb',
 };

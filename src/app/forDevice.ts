@@ -30,6 +30,8 @@ export function forDevice(config: GameConfig, mobile: boolean): { config: GameCo
       townsfolk: { ...config.townsfolk, minCount: 4, maxCount: 6 },
       // Re-baking the sky lighting is a burst of extra passes; do it rarely.
       environment: { ...config.environment, environmentRefreshSeconds: 8 },
+      // No real lamp lights (each one is extra work in every lit pixel): the painted pools carry the look alone.
+      streetLights: { ...config.streetLights, lightCount: 0, poolStrength: 0.55 },
     },
   };
 }

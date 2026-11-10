@@ -8,12 +8,12 @@ import {
 import type { TerrainTextureUniforms } from './TerrainTextureUniforms';
 
 /**
- * Terrain material: the flat-shaded vertex-colour palette, with grass/sand/rock detail textures
+ * Terrain material: flat-shaded (facet normals) palette colours blended per pixel by height/slope, with grass/sand/rock detail textures
  * blended by height and slope in world space (triplanar for rock) via a standard-material shader patch.
  */
 export class TerrainMaterialFactory {
   create(uniforms: TerrainTextureUniforms): THREE.MeshStandardMaterial {
-    const material = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.95 });
+    const material = new THREE.MeshStandardMaterial({ flatShading: true, roughness: 0.95 });
     material.onBeforeCompile = (shader) => {
       Object.assign(shader.uniforms, uniforms);
       shader.vertexShader = shader.vertexShader

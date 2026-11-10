@@ -5,8 +5,8 @@ const NIGHT: Omit<DayKeyframe, 'time'> = {
   sunColor: 0xb4c6f2,
   sunIntensity: 1.15,
   hemisphereSky: 0x34466e,
-  hemisphereGround: 0x14121a,
-  hemisphereIntensity: 0.5,
+  hemisphereGround: 0x1c2640,
+  hemisphereIntensity: 0.75,
   environmentIntensity: 0.2,
   fogColor: 0x1b2333,
   fogDensity: 0.0035,
@@ -17,11 +17,11 @@ const NIGHT: Omit<DayKeyframe, 'time'> = {
 
 const DAY: Omit<DayKeyframe, 'time'> = {
   sunColor: 0xfff2dc,
-  sunIntensity: 2.2,
+  sunIntensity: 1.8,
   // Strong blue sky light with a green bounce: shade stays bright and coloured, as in a cel-shaded scene.
   hemisphereSky: 0xb8d4ff,
   hemisphereGround: 0x6f8a5c,
-  hemisphereIntensity: 1.5,
+  hemisphereIntensity: 1.25,
   environmentIntensity: 0.35,
   fogColor: 0xbfe0f5,
   fogDensity: 0.0022,

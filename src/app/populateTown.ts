@@ -18,13 +18,18 @@ import {
   type TownSite,
 } from '@town';
 import type { ExclusionZone } from '@vegetation';
+import type { GrassBlocker } from '@grass';
+import { spawnStreetLamps } from './spawnStreetLamps';
+import { townGrassBlockers } from './townGrassBlockers';
 
 /** What the rest of the world needs to know about the town once it stands. */
 export interface TownGround {
-  /** Keep free of trees, grass, rocks and ponds. */
+  /** Keep free of trees, rocks and ponds. */
   area: ExclusionZone;
   /** Footprints nobody can walk through (buildings, props, wall), for route planning. */
   obstacles: TownObstacle[];
+  /** Where grass cannot grow inside the town (it grows, mown short, everywhere else in `area`). */
+  grassBlockers: GrassBlocker[];
 }
 
 /**
@@ -44,12 +49,14 @@ export function populateTown(
   terrain.flatten(region, planner.level(terrain, site));
 
   const town = planner.place(terrain, site);
-  new TownSpawner(world, physics, new RoadMeshFactory(), new WallFactory(surfaces)).spawn(town);
+  new TownSpawner(world, physics, new RoadMeshFactory(surfaces), new WallFactory(surfaces)).spawn(town);
   const plots = new ModelPlotSpawner(world, physics, models, new PlotBoxSpawner(world, physics));
   new BuildingSpawner(plots).spawn(town);
   new PropSpawner(plots).spawn(town);
+  spawnStreetLamps(world, town.props);
 
   const half = region.halfSize + 2;
   const area = { minX: site.x - half, maxX: site.x + half, minZ: site.z - half, maxZ: site.z + half };
-  return { area, obstacles: townObstacles(town) };
+  const obstacles = townObstacles(town);
+  return { area, obstacles, grassBlockers: townGrassBlockers(town, obstacles) };
 }

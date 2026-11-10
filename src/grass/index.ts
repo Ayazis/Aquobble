@@ -2,6 +2,8 @@ export type { GrassPlacement } from './GrassPlacement';
 export type { GroundRules } from './GroundRules';
 export type { WindSway } from './WindSway';
 export { canGrow } from './canGrow';
+export type { GrassBlocker } from './GrassBlocker';
+export { growthAt, distanceTo } from './growthAt';
 export { GrassPlacer, type GrassPlacerOptions, type FlowerPlacerOptions } from './GrassPlacer';
 export { GrassInstancesFactory } from './GrassInstancesFactory';
 export { FlowerInstancesFactory } from './FlowerInstancesFactory';

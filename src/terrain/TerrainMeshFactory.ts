@@ -1,13 +1,11 @@
 import * as THREE from 'three';
 import type { HeightField } from './HeightField';
-import { colorForHeight } from './TerrainPalette';
 import { TerrainMaterialFactory } from './TerrainMaterialFactory';
 import { TerrainTextureLoader } from './TerrainTextureLoader';
 import { createTerrainTextureUniforms } from './TerrainTextureUniforms';
 
 /**
- * Builds the flat-shaded, per-face coloured terrain mesh from a height field. The palette colours
- * are tinted with detail textures (blended by height and slope) once those load in the background.
+ * Builds the flat-shaded terrain mesh from a height field. Colours are blended per pixel in the shader and tinted with detail textures (blended by height and slope) once those load in the background.
  */
 export class TerrainMeshFactory {
   constructor(
@@ -24,7 +22,6 @@ export class TerrainMeshFactory {
 
     const geometry = indexed.toNonIndexed();
     indexed.dispose();
-    geometry.setAttribute('color', this.faceColors(geometry));
     geometry.computeVertexNormals();
 
     const uniforms = createTerrainTextureUniforms();
@@ -34,17 +31,5 @@ export class TerrainMeshFactory {
     mesh.castShadow = true;
     mesh.receiveShadow = true;
     return mesh;
-  }
-
-  private faceColors(geometry: THREE.BufferGeometry): THREE.BufferAttribute {
-    const positions = geometry.attributes.position;
-    const colors = new Float32Array(positions.count * 3);
-    const color = new THREE.Color();
-    for (let i = 0; i < positions.count; i += 3) {
-      const height = (positions.getY(i) + positions.getY(i + 1) + positions.getY(i + 2)) / 3;
-      color.setHex(colorForHeight(height));
-      for (let k = 0; k < 3; k++) color.toArray(colors, (i + k) * 3);
-    }
-    return new THREE.BufferAttribute(colors, 3);
   }
 }

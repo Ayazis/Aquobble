@@ -8,6 +8,10 @@ export interface SurfaceDetailSource {
   scale: number;
   /** 0 = flat colour only, 1 = full texture contrast. */
   strength: number;
+  /** Optional tangent-space normal map at the same scale, used on near-horizontal faces only. */
+  normalPath?: string;
+  /** 0 = flat, 1 = full normal map. */
+  normalStrength?: number;
 }
 
 /** Kinds without an entry keep their flat colour. */
@@ -20,4 +24,18 @@ export const DEFAULT_SURFACE_DETAILS: SurfaceDetailSources = {
   bark: { path: 'assets/textures/bark.webp', scale: 0.5, strength: 0.5 },
   foliage: { path: 'assets/textures/foliage.webp', scale: 0.4, strength: 0.39 },
   plaster: { path: 'assets/textures/plaster.webp', scale: 0.35, strength: 0.39 },
+  cobble: {
+    path: 'assets/textures/cobblestone.webp',
+    scale: 0.45,
+    strength: 0.85,
+    normalPath: 'assets/textures/cobblestone-normal.webp',
+    normalStrength: 0.8,
+  },
+  dirt: {
+    path: 'assets/textures/road-dirt.webp',
+    scale: 0.35,
+    strength: 0.7,
+    normalPath: 'assets/textures/road-dirt-normal.webp',
+    normalStrength: 0.5,
+  },
 };

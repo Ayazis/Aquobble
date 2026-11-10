@@ -10,6 +10,9 @@ assets/library/
 *.blend1
 *.blend2
 
+# Reference screenshots from npm run shots
+/shots/
+
 # Local asset preview catalog (metadata + thumbnails), rebuilt with npm run assets:catalog
 assets/catalog/
 

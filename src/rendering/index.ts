@@ -23,3 +23,4 @@ export { DEFAULT_SURFACE_DETAILS, type SurfaceDetailSources } from './surface/Su
 export { SurfaceDetailLibrary } from './surface/SurfaceDetailLibrary';
 export { ModelMaterialStyler } from './surface/ModelMaterialStyler';
 export { installToonLighting } from './installToonLighting';
+export { applyCharacterRim } from './applyCharacterRim';

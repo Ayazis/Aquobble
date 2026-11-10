@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { applyCharacterRim } from '@rendering';
 
 /** Placeholder player: a low-poly capsule centred on its origin, used when the rigged character is unavailable. */
 export class PlayerMeshFactory {
@@ -8,6 +9,7 @@ export class PlayerMeshFactory {
     const mesh = new THREE.Mesh(geometry, material);
     mesh.castShadow = true;
     mesh.receiveShadow = true;
+    applyCharacterRim(mesh);
     return { object: mesh };
   }
 }

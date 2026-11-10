@@ -9,6 +9,7 @@ import { FlowerInstancesFactory, GrassInstancesFactory, GrassSpawner } from '@gr
 import type { GameConfig } from './GameConfig';
 import { populateTown, type TownGround } from './populateTown';
 import { populateWater } from './populateWater';
+import { pondCircle } from './pondCircle';
 
 /** Creates the static world: terrain (levelled for the town, ponds carved), sea and ponds, town and forest. Returns the town's ground. */
 export function populateWorld(
@@ -31,7 +32,12 @@ export function populateWorld(
   new GrassSpawner(world, terrain, random, new GrassInstancesFactory(), new FlowerInstancesFactory()).spawn(
     config.grass,
     config.waterLevel,
-    [townArea, ...pondAreas],
+    [],
+    {
+      blockers: [...town.grassBlockers, ...pondAreas.map(pondCircle)],
+      feather: 1.5,
+      lawns: [townArea],
+    },
   );
   const scatter = new RockScatterFactory(new RockMeshFactory(random, surfaces));
   new RockScatterSpawner(world, new RockScatterPlacer(terrain, random), scatter, physics).spawn({

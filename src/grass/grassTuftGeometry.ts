@@ -1,12 +1,12 @@
 import * as THREE from 'three';
 
 const BLADES = 3;
-const BASE = new THREE.Color(0x2f4a1c);
-const TIP = new THREE.Color(0xd8e8a0);
+/** Shapes the root-to-tip colour blend: above 1 keeps the ground colour further up the blade. */
+const TIP_CURVE = 1.3;
 
 /**
- * A tuft of curved blades fanned around the base, each two segments (3 triangles). Vertex colours run
- * dark at the root to light at the tip; the instance colour tints the whole tuft.
+ * A tuft of curved blades fanned around the base, each two segments (3 triangles). Vertex colours hold a
+ * blend weight, 0 at the root to 1 at the tip, that the material uses to run from ground colour to tip colour.
  */
 export function grassTuftGeometry(): THREE.BufferGeometry {
   const positions: number[] = [];
@@ -46,12 +46,11 @@ function addBlade(pos: number[], col: number[], nor: number[], { angle, height, 
   const tip = at(0, 1);
   const tris = [l0, r0, r1, l0, r1, l1, l1, r1, tip];
   const vs = [0, 0, 0.55, 0, 0.55, 0.55, 0.55, 0.55, 1];
-  const colour = new THREE.Color();
   tris.forEach((p, i) => {
     pos.push(...p);
     // Mostly-up normals so blades light like the ground instead of flickering with facing.
     nor.push(-s * 0.3, 1, c * 0.3);
-    colour.copy(BASE).lerp(TIP, vs[i] ** 1.3);
-    col.push(colour.r, colour.g, colour.b);
+    const weight = vs[i] ** TIP_CURVE;
+    col.push(weight, weight, weight);
   });
 }

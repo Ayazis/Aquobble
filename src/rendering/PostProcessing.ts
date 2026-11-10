@@ -16,17 +16,21 @@ export class PostProcessing {
     const size = context.renderer.getSize(new THREE.Vector2());
     // The scene pass keeps its depth in a texture so ambient occlusion can read it instead of redrawing.
     const pixels = size.clone().multiplyScalar(context.renderer.getPixelRatio());
-    const target = new THREE.WebGLRenderTarget(pixels.x, pixels.y, { type: THREE.HalfFloatType });
+    const target = new THREE.WebGLRenderTarget(pixels.x, pixels.y, {
+      type: THREE.HalfFloatType,
+      samples: context.quality.antialias ? 4 : 0,
+    });
     if (context.quality.postEffects) target.depthTexture = new THREE.DepthTexture(pixels.x, pixels.y);
     this.composer = new EffectComposer(context.renderer, target);
     this.composer.setSize(size.x, size.y);
     this.composer.addPass(new RenderPass(context.scene, context.camera));
     if (context.quality.postEffects) {
       this.composer.addPass(this.createAmbientOcclusion(context, size, target.depthTexture));
-      this.composer.addPass(new UnrealBloomPass(size, 0.12, 0.4, 2.5));
+      this.composer.addPass(new UnrealBloomPass(size, 0.06, 0.3, 6));
     }
     this.composer.addPass(new OutputPass());
-    if (context.quality.postEffects) this.composer.addPass(new ShaderPass(ColorGradeShader));
+    // Phones get the same grade as desktop so the picture only differs in sharpness.
+    this.composer.addPass(new ShaderPass(ColorGradeShader));
   }
 
   render(): void {

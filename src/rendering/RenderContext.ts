@@ -18,8 +18,10 @@ export class RenderContext {
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 0.85;
     this.renderer.shadowMap.enabled = quality.shadows;
-    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.renderer.shadowMap.type = THREE.PCFShadowMap;
     this.renderer.shadowMap.autoUpdate = quality.shadowInterval <= 1;
+    // Counted per frame (see beginFrame), not per render call: post-processing makes several calls a frame.
+    this.renderer.info.autoReset = false;
     container.appendChild(this.renderer.domElement);
 
     this.camera = new THREE.PerspectiveCamera(55, container.clientWidth / container.clientHeight, 0.1, 2000);
@@ -30,8 +32,15 @@ export class RenderContext {
    * cheaper profiles refresh it only every few frames; shadows of moving things then lag by a frame or two.
    */
   beginFrame(): void {
+    this.renderer.info.reset();
     if (this.quality.shadowInterval <= 1) return;
     if (this.frame++ % this.quality.shadowInterval === 0) this.renderer.shadowMap.needsUpdate = true;
+  }
+
+  /** Draw calls and triangles of the last frame, all passes included. */
+  stats(): { calls: number; triangles: number } {
+    const { calls, triangles } = this.renderer.info.render;
+    return { calls, triangles };
   }
 
   get canvas(): HTMLCanvasElement {

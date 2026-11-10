@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { applyCharacterRim } from '@rendering';
 import type { CharacterAnimation, LocomotionClip } from './CharacterAnimation';
 
 /** The rigged character file: its scene and clips, as loaded from glTF. */
@@ -30,6 +31,7 @@ export class PlayerModelFactory {
       o.castShadow = true;
       o.frustumCulled = false;
     });
+    applyCharacterRim(scene);
 
     const facing = new THREE.Group();
     facing.position.y = -(halfHeight + radius);

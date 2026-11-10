@@ -37,3 +37,26 @@ describe('GrassPlacer', () => {
     for (const f of flowers) expect(Math.abs(f.x - cx)).toBeLessThan(4);
   });
 });
+
+describe('GrassPlacer near blockers', () => {
+  const flat = { heightAt: () => 1 };
+  const base = { minHeight: 0, maxHeight: 50, maxSlope: 1 };
+  const pond = { kind: 'circle' as const, x: 0, z: 0, radius: 5 };
+
+  it('keeps tufts off a round pond but grows in its square corners, shorter near the shore', () => {
+    const rules = { ...base, blockers: [pond], feather: 2 };
+    const blades = new GrassPlacer(flat, new SeededRandom(3), rules).grass({ count: 3000, extent: 10 });
+    for (const b of blades) expect(Math.hypot(b.x, b.z)).toBeGreaterThan(5);
+    expect(blades.some((b) => Math.abs(b.x) < 5 && Math.abs(b.z) < 5)).toBe(true);
+    const near = blades.filter((b) => Math.hypot(b.x, b.z) < 5.5);
+    const far = blades.filter((b) => Math.hypot(b.x, b.z) > 8);
+    const mean = (l: typeof blades) => l.reduce((s, b) => s + b.scale, 0) / l.length;
+    expect(mean(near)).toBeLessThan(mean(far));
+  });
+
+  it('scales tufts down on lawns', () => {
+    const rules = { ...base, lawns: [{ minX: -50, maxX: 50, minZ: -50, maxZ: 50 }] };
+    const blades = new GrassPlacer(flat, new SeededRandom(3), rules).grass({ count: 100, extent: 10 });
+    for (const b of blades) expect(b.scale).toBeLessThan(0.7);
+  });
+});

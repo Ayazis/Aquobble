@@ -8,7 +8,7 @@ import { SLICES as SLICE_LIST } from './slices.config.ts';
 const SLICES = SLICE_LIST.join('|');
 
 export default tseslint.config(
-  { ignores: ['dist', 'node_modules', 'assets/library', 'public', 'tools'] },
+  { ignores: ['dist', 'node_modules', 'assets/library', 'public', 'tools', 'shots'] },
   js.configs.recommended,
   ...tseslint.configs.strict,
   prettier,
