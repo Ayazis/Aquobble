@@ -1,172 +1,171 @@
-# Polish plan
+# Polish plan: graphics
 
-Goal: make Aquobble feel finished. It should load gracefully, feel good to move in, look and sound alive at
-every hour, run smoothly on a phone and a desktop, and give the player something to do.
+Goal: raise the visual quality of the island (lighting, textures and ground, grass, stones, trees, water, sky)
+without leaving the low-poly, cel-shaded look.
+
+Sound is out of scope. Menus, movement and goals are parked; a short list is at the end.
 
 ## How this plan was made
 
-From reading the code and from running the build at `fe5c61a` in headless Chromium: the town at start, the
-gate, the coast, noon, sunset and night, on a desktop and a phone viewport.
+From reading the rendering code and from running the build at `fe5c61a` in headless Chromium: about 25 views
+of the town, meadow, forest, coast, a pond, rocks, trees and the sky, at mid-morning, noon, sunset and night,
+plus one phone view.
 
-That run used software rendering at about 1 FPS. So everything said here about **looks** was seen on screen.
-Everything about **performance** and **feel** comes from the code and still needs a real device. The world-edge
-problem in 2.5 was also read from the code, not walked.
+That run used software rendering at 1x resolution and about 1 FPS. Colour, light and shape were seen on screen.
+Antialiasing (1.2) and all frame-rate cost are read from the code and need a real device to confirm.
 
-## Where the game stands
+## The look to aim for
 
-Already good, and worth protecting: the cel-shaded town, the sunset light (the best-looking moment in the game),
-grass and wind, the night sky, villagers routing around buildings, the phone profile, and a clean codebase
-(17 slices, 145 passing tests).
+The two best frames in the game today are the plaza at sunset and a house front at mid-morning: crisp facets, two
+clean bands of light, saturated mid-tone colour, and grain you only notice up close. Most of this plan is about
+bringing the rest of the picture (the ground, rocks, trees, midday and night) up to those frames.
 
-What a new player runs into, most noticeable first:
+Rules for every change:
 
-1. **No shell around the game.** The page is black until everything has loaded (8.5 s to the first canvas
-   in the test run; the JS bundle is 5.2 MB). Then the player is dropped into the world with a debug FPS counter, no
-   title, no controls hint, no pause and no settings. Mouse look needs a click that nothing asks for.
-2. **Nothing to do.** No goal, nothing to interact with, nothing saved.
-3. **Movement is correct but raw.** Speed snaps between 0, 4 and 8 m/s, jumping has no animation, the camera is
-   rigidly attached and snaps when something blocks it.
-4. **The world has no edges.** Nothing handles water or the end of the map (see 2.5).
-5. **The town is dead at night.** Lantern posts and windows give no light. The hand lantern is so strong that
-   the character's head burns out to white.
-6. **Every villager is a copy of the player**, same hair and clothes with a faint tint.
-7. **Sound is one unchanging ambience**: wind, surf and bird calls, identical in the plaza, on the beach and at
-   midnight.
-8. **A few rough visuals.** Looking towards the sun at midday washes out the middle of the frame; water foam
-   reads as noise; roads stop dead at the gates.
-9. **Quality has two settings, chosen by pointer type**, so a weak laptop gets the full desktop load.
+- Colour and light carry the detail. Shapes stay low-poly.
+- In sunlight nothing reaches white except clouds, foam and the sun itself.
+- Everything meets the ground convincingly: no hard line where a trunk, rock or wall stands on flat green.
+- A phone and a desktop show the same picture at different sharpness, not two different pictures.
 
-## Phases
+## What stands out today
 
-Order is by what a player notices per unit of work. Sizes: **S** a small change, **M** one focused pull
-request, **L** several.
+1. **The sun whites out the screen.** Whenever the sun is in view by day, a white haze covers a third of the
+   frame and spills over buildings and rocks in front of it (1.1).
+2. **Pale surfaces bleach at midday.** The town wall, the cobbled square and the roads come out nearly white.
+   The same surfaces look right at sunset (1.3).
+3. **Night shadows are pure black.** Under trees the screen is black; the town has no lit lamps or windows
+   (1.4, 1.5).
+4. **The square and roads are blurry smears**, while cobblestone and dirt textures made for them sit unused in
+   the repository (2.2).
+5. **Terrain colours change in sawtooth triangles**, and steep faces stay grass-green (2.1).
+6. **Every stone is a 20-triangle lump** and every tree is the same tree (4.1, 5.1).
+7. **No grass inside the town**, and bare squares around the round ponds (3.1).
 
-Every phase is done when `npm run check` passes, the screenshot set from 0.2 has been re-shot and compared, and
-the pull request preview has been tried on a real phone.
+## Tools first
 
-### Phase 0: Tools to see and measure
+Taking these screenshots meant reaching into private fields. Two small tools make every later item checkable.
 
-Small, and everything after it goes faster. Taking the screenshots for this plan meant reaching into private
-fields; that should be a supported feature.
+| #   | Change                                                                                                                                                                                            | Where                                   | Size |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- | ---- |
+| 0.1 | Debug mode behind `?debug`: set the time of day, free the camera, show draw calls and triangles. The FPS counter moves here.                                                                      | `diagnostics`, `Game`, `DayNightSystem` | M    |
+| 0.2 | `npm run shots`: saves a fixed set of views (plaza, lane, gate, meadow, forest, pond, coast, a rock, a tree) at noon, sunset and night, desktop and phone. Every item below is judged against it. | `scripts/shots/` (output is gitignored) | M    |
 
-| #   | Change                                                                                                                                                                                     | Where                                             | Size |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------- | ---- |
-| 0.1 | Debug mode behind `?debug`: the FPS counter moves here (off for players), plus draw calls and triangles from `renderer.info`, a time-of-day control and a free camera.                     | `diagnostics`, `Game`, `DayNightSystem`           | M    |
-| 0.2 | `npm run shots`: boots the build in Playwright and saves fixed views (plaza, gate, coast, forest, pond) at noon, sunset and night, desktop and phone. The before/after for visual changes. | `scripts/shots/` (PNG output is gitignored)       | M    |
-| 0.3 | CI smoke test: boot the built game headless, fail on a page error or a missing canvas. Catches a black-screen deploy.                                                                      | `.github/workflows/pages.yml`                     | S    |
-| 0.4 | Clear the console. three r187 removed `PCFSoftShadowMap`, so shadows silently fall back to a harder filter; there is also a `toNonIndexed` warning.                                        | `rendering/RenderContext.ts:21`, geometry helpers | S    |
+## 1. Lighting and image
 
-### Phase 1: Shell and first impression
+| #    | Seen today                                                                                                                                                                                                                  | Change                                                                                                                                                                                  | Where                                                   | Size |
+| ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- | ---- |
+| 1.1  | White haze around the sun, drawn over foreground objects. The sky shader's sun disc is far brighter than anything else and the bloom pass spreads it. Desktop only; phones skip bloom.                                      | Turn off the shader's disc (`showSunDisc`), draw our own sun with a controlled brightness, and cap what feeds the bloom. Keep a small, deliberate glow.                                 | `environment/SkyDome.ts`, `rendering/PostProcessing.ts` | S    |
+| 1.2  | Stair-stepped edges on roofs, timber and grass. The scene is drawn into a post-processing buffer created without multisampling, so the renderer's `antialias` flag does nothing for it. Phones have no antialiasing at all. | Multisample that buffer (4 samples) on desktop. On phones add a cheap edge-smoothing pass.                                                                                              | `rendering/PostProcessing.ts:19`                        | S    |
+| 1.3  | Wall, square and roads nearly white at midday; fine at sunset.                                                                                                                                                              | Retune the day keyframes (sun 2.2 plus sky fill 1.5) together with the palest colours so sunlit stone sits in the mid-tones. Add a brightness histogram to the shots tool as the check. | `environment/dayKeyframes.ts`, `town/render/`           | S    |
+| 1.4  | At night anything in moon shadow is black, and moonlit grass stays neon green.                                                                                                                                              | A blue fill light at night so shadows read as dark blue. Make the colour grade follow the hour: less saturation and contrast at night. It is one fixed setting today.                   | `dayKeyframes.ts`, `rendering/ColorGradeShader.ts`      | S    |
+| 1.5  | Lantern posts and windows give no light at night.                                                                                                                                                                           | Glowing lamp glass and windows that come on at dusk, with warm pools of light on the ground. Real lights for the nearest few on desktop; painted pools on phones.                       | `town`, `environment`                                   | M    |
+| 1.6  | The hand lantern bleaches the character's head to white.                                                                                                                                                                    | Lower it and move it so it lights the ground around the player.                                                                                                                         | `player/LanternFactory.ts`                              | S    |
+| 1.7  | Distant land and the horizon fade to white at midday.                                                                                                                                                                       | Fog that tints towards sky blue with distance, and a cloud sheet that thins before the horizon.                                                                                         | `dayKeyframes.ts`, `environment/cloudShader.ts`         | S    |
+| 1.8  | Trunks, rocks, props and walls stand on the ground with a hard line. Ambient occlusion softens it a little on desktop only.                                                                                                 | A soft dark patch under every static object, baked into the ground colour or as one instanced decal. Works on phones too.                                                               | `terrain`, `town/render/`                               | M    |
+| 1.9  | The sky has drifting clouds but the land never darkens under them.                                                                                                                                                          | Cloud shadows: sample the cloud pattern along the sun direction inside the lighting patch that already rewrites every material. Ties sky to ground for one texture read.                | `rendering/installToonLighting.ts`, `environment`       | M    |
+| 1.10 | One shadow map covers a fixed 140 m box: sharp on desktop, about 14 cm per texel on phones, and nothing beyond 70 m from the centre.                                                                                        | A 40 m shadow box that follows the player, snapped to texels so it does not shimmer.                                                                                                    | `environment/SunLight.ts`                               | M    |
+| 1.11 | Phones skip the colour grade along with bloom, so their picture is flatter than the desktop's.                                                                                                                              | Fold the grade into the output step so both get the same colours.                                                                                                                       | `rendering/PostProcessing.ts:29`                        | S    |
 
-The biggest gap. None of it touches the simulation.
+## 2. Ground and textures
 
-| #   | Change                                                                                                                                                                                                                                                        | Where                                              | Size |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- | ---- |
-| 1.1 | Loading screen written in plain HTML and CSS in `index.html`, so it paints before the bundle arrives. Progress from the bootstrap stages, then a fade into the first frame. Compile shaders behind it (`renderer.compileAsync`) to avoid first-second stalls. | `index.html`, `app/bootstrap.ts`, new `ui` slice   | M    |
-| 1.2 | Faster load. 4.1 MB of the 5.2 MB bundle is Rapier's WASM inlined as base64: serve it as a separate `.wasm` so it streams and compiles in parallel. Start model downloads before physics is ready; today they wait in sequence.                               | `physics/rapier/`, `app/bootstrap.ts`, Vite config | M    |
-| 1.3 | Title overlay: name, "Click to play" (or "Tap to play"), and the controls. That one click also starts audio and takes the mouse, which fixes both discoverability problems.                                                                                   | `ui`                                               | M    |
-| 1.4 | Pause on Esc, lost pointer lock or hidden tab: stop the loop, suspend audio, show Resume, Settings and Controls. Clamp the frame time on return; today day/night jumps ahead by however long the tab was hidden.                                              | `ui`, `core/loop/GameLoop.ts`, `audio`             | M    |
-| 1.5 | Settings saved in `localStorage`: music and effects volume, mouse sensitivity, invert Y, quality (auto, low, medium, high), FPS counter.                                                                                                                      | `ui`, `app`                                        | M    |
-| 1.6 | One HUD style. SVG icons instead of emoji (the speaker and lantern emoji look different on every OS), one stylesheet instead of inline styles per button, safe-area insets for notched phones, no text selection or long-press menus.                         | `ui`; moves `MuteButton`, `LanternButton`          | M    |
-| 1.7 | Page metadata: favicon, description, theme colour, a share image (use a sunset shot), web app manifest for a full-screen home-screen launch.                                                                                                                  | `index.html`, `public/`                            | S    |
-| 1.8 | Failure screens instead of a black page: no WebGL2, bootstrap throws, WebGL context lost.                                                                                                                                                                     | `main.ts`, `ui`                                    | S    |
+The eight textures in use are 1024 px colour maps, applied as faint grain. No surface uses a normal or roughness map, so
+every facet is perfectly flat to the light (see Decisions).
 
-### Phase 2: Game feel
+| #   | Seen today                                                                                                                                                                                                 | Change                                                                                                                                                                               | Where                                              | Size |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------- | ---- |
+| 2.1 | Terrain colour is one of five flat colours per triangle, chosen by height. Borders are 2.5 m sawteeth, and cliffs are green.                                                                               | Blend the colours per pixel by height and slope with a noisy edge. The shader already computes those weights but uses them only to pick the grain. Lighting stays flat-shaded.       | `terrain/terrainShaderChunks.ts`                   | M    |
+| 2.2 | The square and roads are soft grey-brown smears: their colour is painted per vertex on a half-metre grid. `cobblestone.webp`, `road-dirt.webp` and both normal maps (1.4 MB) are shipped but never loaded. | Use those textures. Break the dead-straight edges into a ragged, blended verge (the code computes an edge alpha that the opaque material ignores). Add wheel ruts and a few puddles. | `town/render/RoadMeshFactory.ts`, `groundPatch.ts` | M    |
+| 2.3 | The wall is plain boxes.                                                                                                                                                                                   | Cap stones, a plinth, darker mortar, a dirt and moss gradient at the base, and an arch with wooden doors at each gate.                                                               | `town/render/WallFactory.ts`                       | M    |
+| 2.4 | Sand meets grass in triangles and meets water in a hard line.                                                                                                                                              | A darker wet band at the waterline, pebbles, and the shore foam from 6.2.                                                                                                            | `terrain`, `rocks`                                 | S    |
+| 2.5 | Under trees the ground is the same bright lawn as the open meadow.                                                                                                                                         | Darken and brown the ground under the canopy from the tree positions, and scatter leaf litter.                                                                                       | `terrain`, `vegetation`                            | M    |
+| 2.6 | Every building material named "palette" gets plaster grain, including roofs, doors and stone footings.                                                                                                     | Choose the grain per colour region of the palette. Low priority: the buildings already look good.                                                                                    | `rendering/surface/surfaceKindOf.ts`               | M    |
 
-What the player touches every second. Keep the pure functions (`movementVelocity`, `followCamera`) pure and
-tested as they grow.
+## 3. Grass
 
-| #   | Change                                                                                                                                                                                                                                                             | Where                                                         | Size |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------- | ---- |
-| 2.1 | Interpolate rendering between simulation steps. The simulation runs at 60 Hz and its transforms are copied straight to the screen, so on a 120 or 144 Hz display the character and camera move only on some frames. Draw a blend of the previous and current step. | `core/loop/GameLoop.ts`, `rendering/TransformSyncSystem.ts`   | M    |
-| 2.2 | Movement: acceleration and braking, a short grace period for jumping just after leaving a ledge, remembering a jump pressed just before landing, lower jump on early release, less steering in the air.                                                            | `player/movementVelocity.ts`, `CharacterMovementSystem.ts`    | M    |
-| 2.3 | Airborne animation. `character.glb` has no jump clip (it has Idle, Walk, Run, Roll, PickUp, Punch, Death and combat clips). Source a CC0 jump and fall for the same rig, or pose it in code. Match walk and run playback to ground speed so feet do not slide.     | `player/PlayerAnimationSystem.ts`, `locomotionClip.ts`        | M    |
-| 2.4 | Camera: spring follow (mostly vertical, so steps do not jolt), eased pull-in with a sphere cast instead of an instant snap on a ray, fade the character when the camera is very close, field of view that widens in portrait and slightly when running.            | `rendering/camera/`                                           | M    |
-| 2.5 | Water and world edge. Nothing stops the player walking under the sea along the seabed, and the terrain collider ends 100 m out with nothing below and no respawn. Add wading and swimming at the surface, and a safety net that fades back to the last safe spot.  | `player`, `physics/PhysicsEngine.ts` (teleport), `app` config | M    |
-| 2.6 | Small effects: dust at the feet when running, a puff on landing, rings and a splash in water. One pooled, instanced particle system.                                                                                                                               | new `effects` slice                                           | M    |
-| 2.7 | Input: gamepad; a joystick that appears where the thumb lands, with a run toggle; keyboard camera keys as a fallback where pointer lock is refused.                                                                                                                | `player`                                                      | M    |
+93,000 tufts of three blades each, all outside the town. Up close it already looks good.
 
-### Phase 3: A world that feels alive
+| #   | Seen today                                                                                                                                             | Change                                                                                                                                                                            | Where                                           | Size |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- | ---- |
+| 3.1 | No grass inside the walls: the whole town square is one exclusion zone. Ponds are excluded as squares, leaving bare corners.                           | Exclude only building footprints, roads and the pond circle. Feather every edge: thinner and shorter towards it. A short lawn variant for yards, verges and the foot of the wall. | `app/populateTown.ts:52`, `grass/canGrow.ts`    | M    |
+| 3.2 | Dark, saturated roots on a brighter flat ground, so mid-distance tufts read as dark clumps. Past 75 m the grass is gone and the ground changes colour. | Tint each tuft's root with the ground colour under it, and set the far ground colour to the average blade colour so the fade-out is invisible.                                    | `grass/GrassInstancesFactory.ts`, `terrain`     | S    |
+| 3.3 | One tuft shape everywhere, spread evenly.                                                                                                              | Patchy density from noise, plus a few kinds: tall seed-head grass, reeds at ponds and shore, ferns in forest shade, dry patches on high ground.                                   | `grass/GrassPlacer.ts`, `grassTuftGeometry.ts`  | M    |
+| 3.4 | Flowers are invisible: 315 on the whole island (1,820 asked for) with 4.5 cm heads.                                                                    | Bigger heads, several times as many, planted in drifts.                                                                                                                           | `grass/FlowerInstancesFactory.ts`, `GameConfig` | S    |
+| 3.5 | Light never plays on the grass: every blade has the same upward normal.                                                                                | A glow through the blades when looking towards a low sun, and a lighter band that travels with each gust (the gust value is already computed per tuft).                           | `grass/windShaderChunk.ts`                      | M    |
+| 3.6 | Blades are up to 10 cm wide, so they read as leaves at the player's feet. Phones get a quarter of the tufts.                                           | Two rings: narrower and denser near the camera, wider and sparser far away, for about the same triangle count.                                                                    | `grass/GrassInstancesFactory.ts`                | M    |
 
-| #   | Change                                                                                                                                                                                                                                                  | Where                                              | Size |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- | ---- |
-| 3.1 | Light the town at night: glowing lamp glass and windows driven by the day/night darkness value, with warm light pools under the posts. Use a few real lights on desktop and painted pools on phones, since each extra light costs every lit pixel.      | `town`, `environment` (expose darkness)            | M    |
-| 3.2 | Tame the hand lantern (intensity 14, hung right beside the body): it should light the ground around the player, not bleach the player.                                                                                                                  | `player/LanternFactory.ts`                         | S    |
-| 3.3 | Midday grade. Retune exposure, bloom and fog at the noon keyframes so views towards the sun and the pale town wall keep their colour. Use the sunset look as the reference.                                                                             | `environment/dayKeyframes.ts`, `PostProcessing.ts` | S    |
-| 3.4 | Water: a foam line and colour fade at the shore, calmer flecks that fade with distance, a gentle swell. Bake distance-to-shore from the `HeightField` into a texture, which keeps the "no extra scene pass" budget and works on phones.                 | `water`, `terrain`                                 | M    |
-| 3.5 | Villagers who are not the player. The model has one palette material, so a tint cannot change hair or clothes: remap palette swatches per villager, add two or three more CC0 characters from the same set, and give the player a look nobody else has. | `townsfolk`, asset-sourcing skill                  | M    |
-| 3.6 | Villager behaviour: sit on benches, stand at stalls, stop to face each other, glance at the player, thin out at night as windows light up.                                                                                                              | `townsfolk`, `navigation`                          | L    |
-| 3.7 | Ambient motion: chimney smoke, fireflies at dusk near ponds, butterflies over flowers, turning windmill sails if the model allows.                                                                                                                      | `effects`, `town`                                  | M    |
-| 3.8 | Somewhere to go: continue the four roads past the gates as dirt paths to a few landmarks (a pier, a hilltop view, a pond, a clearing), and give the gates arches.                                                                                       | `town`, `terrain`                                  | L    |
-| 3.9 | The horizon: the sea plane ends 500 m out and, from high ground, the square edge of the terrain shows through shallow water. Fade both into haze and add a few distant rock silhouettes.                                                                | `water`, `terrain`, `environment`                  | S    |
+## 4. Stones
 
-### Phase 4: Sound
+| #   | Seen today                                                                                   | Change                                                                                                                                                   | Where                                   | Size |
+| --- | -------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- | ---- |
+| 4.1 | Each rock is a jittered icosahedron: 20 triangles, six shapes, one grey. They read as lumps. | Three families (boulder, slab, pebble cluster) from a subdivided shape with layered noise and a few flat cuts for a chiselled look. Warm and cool greys. | `rocks/RockMeshFactory.ts:20`           | M    |
+| 4.2 | Rocks rest on top of the grass with a hard line.                                             | Sink them a little, darken the base, and let the grass placer crowd tufts around them.                                                                   | `rocks/RockScatterPlacer.ts`, `grass`   | S    |
+| 4.3 | Rocks look the same in forest shade, on a hilltop and in the surf.                           | Moss on upward faces in the forest, lichen on high ground, a dark wet band and a foam ring at the shore.                                                 | `rocks`, `rendering/surface/`           | M    |
+| 4.4 | 256 rocks in small clusters; steep slopes are stretched grass triangles.                     | A few large outcrops and rock faces on the steepest ground, scree below them, stepping stones in ponds, pebbles on beaches.                              | `rocks/RockScatterPlacer.ts`, `terrain` | M    |
 
-Today everything is synthesised and nothing reacts to the player.
+## 5. Trees
 
-| #   | Change                                                                                                                            | Where                           | Size |
-| --- | --------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- | ---- |
-| 4.1 | Footsteps by surface (grass, dirt, cobble, sand, wood), timed to the foot plants. Jump, landing, splash, lantern and menu sounds. | `audio`, `player`               | M    |
-| 4.2 | Mix by place: surf by distance to the coast, wind by height, a murmur near the plaza, the smithy, water at ponds.                 | `audio`                         | M    |
-| 4.3 | Mix by hour: birds by day, crickets and an owl at night (bird calls currently play at midnight), a chapel bell on the hour.       | `audio`, `environment`          | S    |
-| 4.4 | A quiet looping theme, with its own volume slider.                                                                                | `audio`, `public/assets/audio/` | M    |
-| 4.5 | Hygiene: a limiter on the master output, separate music and effects buses, audio suspended while the tab is hidden (part of 1.4). | `audio`                         | S    |
+| #   | Seen today                                                                                         | Change                                                                                                                                     | Where                                  | Size |
+| --- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------- | ---- |
+| 5.1 | All 340 trees are one mesh (a six-sided trunk and five blobs), varied only by size, turn and tint. | Three or four species with two shapes each: a conifer for high ground, a birch, a broad oak, plus saplings, bushes and the odd dead trunk. | `vegetation/TreeInstancesFactory.ts`   | L    |
+| 5.2 | Trunks enter the ground as bare prisms.                                                            | Root flare, a slight lean, and the ground patch from 1.8.                                                                                  | `vegetation`                           | S    |
+| 5.3 | Grass sways; tree crowns are frozen.                                                               | Reuse the wind shader on crowns with a slow, small sway.                                                                                   | `vegetation`, `grass/applyWindSway.ts` | S    |
+| 5.4 | From below, a crown is a flat pale slab.                                                           | Darker undersides and inner faces, a different tint per clump, a lit rim on the sun side.                                                  | `vegetation/treeCrownGeometry.ts`      | S    |
+| 5.5 | The forest floor is empty.                                                                         | Ferns, mushrooms, fallen logs and stumps, placed by the same seeded scatter.                                                               | `vegetation`                           | M    |
 
-### Phase 5: Something to do
+## 6. Water and sky
 
-The one phase that is a product decision rather than polish (see Decisions). Without it the result is a very
-polished walk. The recommendation is the lightest loop that fits the tone and reuses what exists.
+| #   | Seen today                                                               | Change                                                                                                                                                                       | Where                        | Size |
+| --- | ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------- | ---- |
+| 6.1 | White flecks cover the whole sea evenly and read as noise or ice.        | Fewer flecks, in streaks, fading with distance.                                                                                                                              | `water/waterShaderChunks.ts` | S    |
+| 6.2 | No shoreline: the same colour and opacity from the beach to the horizon. | Bake distance-to-shore from the height field into a texture. Use it for a moving foam line, pale shallows and darker deep water. No extra scene pass, so it works on phones. | `water`, `terrain`           | M    |
+| 6.3 | The sea is a flat plane.                                                 | A slow swell in the vertex shader and a glitter path towards the sun.                                                                                                        | `water/waterShaderChunks.ts` | S    |
+| 6.4 | Ponds use the sea's look.                                                | Calmer, darker water with lily pads and the reeds from 3.3.                                                                                                                  | `water/WaterMeshFactory.ts`  | S    |
+| 6.5 | The moon is a blurred disc.                                              | A simple moon face. Low priority; the stars are fine.                                                                                                                        | `environment/NightSky.ts`    | S    |
 
-| #   | Change                                                                                                                                                                                                                                  | Where                    | Size |
-| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------ | ---- |
-| 5.1 | Interaction: a prompt near anything usable, E or a tap to use it.                                                                                                                                                                       | new `interaction` slice  | M    |
-| 5.2 | A collectible hunt: a seeded set of items hidden across the island (the unused `cookie.glb` is a ready candidate), the existing PickUp clip, a sparkle and a chime, a counter, progress saved, and a payoff when the last one is found. | new `collectibles` slice | L    |
-| 5.3 | Villagers say a line when spoken to; signposts name where the paths lead; benches can be sat on; the bell can be rung.                                                                                                                  | `townsfolk`, `town`      | M    |
-| 5.4 | A short toast the first time each landmark is reached.                                                                                                                                                                                  | `ui`                     | S    |
-| 5.5 | Photo mode: hide the HUD, free the camera, scrub the time of day. Nearly free once 0.1 exists.                                                                                                                                          | `ui`, `diagnostics`      | S    |
+## 7. Town details
 
-### Phase 6: Performance and device fit
-
-To be measured on real hardware first; the numbers below are from the code.
-
-| #   | Change                                                                                                                                                                                                                                              | Where                                            | Size |
-| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ | ---- |
-| 6.1 | Quality tiers that adapt. Add a medium tier, measure frame time, and step resolution and effects down or up with some hysteresis. Today a strong tablet gets the phone profile and a weak laptop gets 4096 px shadows, ambient occlusion and bloom. | `app/forDevice.ts`, `rendering/RenderQuality.ts` | M    |
-| 6.2 | Shadows that follow the player. One fixed map covers 140 m of island (about 14 cm per texel on phones) and the outer coast gets none. A 40 m box around the player, snapped to texels, is sharper and draws fewer casters.                          | `environment/SunLight.ts`                        | M    |
-| 6.3 | Edge smoothing on phones. With resolution capped at 1.25x and no antialiasing, edges are visibly stepped; add a cheap post-process pass.                                                                                                            | `rendering/PostProcessing.ts`                    | S    |
-| 6.4 | Cheaper crowds: fewer skinned draws per villager, blob shadows and slower animation updates for distant or off-screen ones.                                                                                                                         | `townsfolk`, `player/PlayerModelFactory.ts`      | M    |
-| 6.5 | Hunt stalls: the sky re-bake every 4 s is about 40 passes in one frame; spread it out or trigger it by sun movement.                                                                                                                                | `environment/DayNightSystem.ts`                  | S    |
-| 6.6 | Resize properly: react to pixel-ratio changes, orientation and the mobile address bar, not only window size.                                                                                                                                        | `rendering/ViewportResizer.ts`                   | S    |
-| 6.7 | Test matrix, repeated per phase: Chrome, Firefox and Safari on desktop, Safari on an iPhone, Chrome on a mid-range Android.                                                                                                                         | pull request previews                            | S    |
-
-### Phase 7: Release hygiene
-
-| #   | Change                                                                                                                    | Where                             | Size |
-| --- | ------------------------------------------------------------------------------------------------------------------------- | --------------------------------- | ---- |
-| 7.1 | README with a screenshot and the controls. Bring the slice table in `CLAUDE.md` up to date (it lists 9 of the 17 slices). | `README.md`, `CLAUDE.md`          | S    |
-| 7.2 | Clear the three lint warnings: `bootstrap` is 68 lines, and two navigation functions are over the complexity limit.       | `app/bootstrap.ts`, `navigation/` | S    |
-| 7.3 | Credits screen built from `public/assets/CREDITS.md`, and a build stamp in the pause menu.                                | `ui`                              | S    |
+| #   | Seen today                                                                           | Change                                                                                                            | Where                         | Size |
+| --- | ------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------- | ----------------------------- | ---- |
+| 7.1 | Every villager has the player's hair and clothes; the faint tint cannot change them. | Remap the colour swatches of the shared palette texture per villager, and give the player a look nobody else has. | `townsfolk`                   | M    |
+| 7.2 | Nothing in the town moves except people.                                             | Chimney smoke, swaying awnings, turning windmill sails if the model allows.                                       | `town`, small `effects` slice | M    |
+| 7.3 | Characters merge with dark backgrounds at dusk and night.                            | A thin rim light on characters from the key light's side.                                                         | `player`, `rendering`         | S    |
 
 ## Order
 
-1. Phases 0 and 1 together, as the first pull request or two. They change the first minute for every player
-   and make the rest measurable.
-2. Phase 2, starting with 2.1 and 2.5.
-3. Phase 3, starting with 3.1 to 3.3 (small, and they fix the worst-looking moments), then 3.5.
-4. Phase 4.
-5. Phase 5, once decided.
-6. Phase 6 items as measurements call for them; pull 6.1 to 6.3 forward if the phone preview is rough.
-7. Phase 7 last.
+Each step ends with `npm run check` passing, the shots re-taken and compared, and a look at the pull request
+preview on a real phone and a desktop.
 
-New slices (`ui`, `effects`, `interaction`, `collectibles`) follow the usual steps: a folder with an
-`index.ts`, an entry in `slices.config.ts`. New assets go through the asset-sourcing skill and
-`public/assets/CREDITS.md`.
+1. **Tools**: 0.1, 0.2.
+2. **Cheap fixes to the whole picture**: 1.1, 1.2, 1.3, 1.4, 1.11. All small, and they change every frame.
+3. **The ground the player stands on**: 2.2 (the textures are already there), 2.1, 3.1, 3.2.
+4. **Night**: 1.5, 1.6, 7.3.
+5. **Stones and trees**: 4.1 to 4.4, 5.1 to 5.5, with 1.8.
+6. **Water and atmosphere**: 6.1 to 6.4, 1.7, 1.9, 2.4.
+7. **Richness**: 3.3 to 3.6, 2.3, 2.5, 7.1, 7.2.
+8. **As measurements call for it**: 1.10, 2.6, 6.5.
+
+Budget rule: each item states what it costs per frame and which devices get it. Anything that adds a texture
+read or a draw per object is checked against the debug counters from 0.1 on a phone before it merges.
 
 ## Decisions
 
-1. **Phase 5: add a goal, or stay a walk?** Recommended: the collectible hunt (5.1, 5.2, 5.4), with photo mode
-   either way. It decides what the HUD needs, so it is worth settling before 1.6.
-2. **Sound: synthesised only, or recorded?** Recommended: CC0 recordings for footsteps and music, keeping the
-   synthesised wind and surf. Synthesised footsteps rarely sound right.
-3. **Real devices.** Performance could not be measured while making this plan. Someone needs to open each
-   pull request preview on a phone and a desktop.
+1. **Carved detail, or stay perfectly flat?** Recommended: add normal maps to four surfaces only (cobbles,
+   wall masonry, bark, rock). Through the two-band lighting they would read as crisp chiselled shading, not as
+   realism. Plaster, roofs and foliage stay flat.
+2. **Make rocks and trees in code, or source models?** Recommended: rocks in code (endless variety, and
+   colliders already come from their hulls); trees from a CC0 nature set by the author of the town models, so
+   the styles match, through the asset-sourcing skill.
+3. **Photo textures or painted ones?** The grain textures are photo scans. At their current strength they pass
+   at a distance, but bark and rock look photographic up close. Recommended: keep them for now and revisit
+   after 2.1 and 4.1.
+4. **Real devices.** Frame rate could not be measured here. Someone needs to open each preview on a phone and
+   a desktop.
+
+## Parked
+
+Not graphics, not in this plan, noted so they are not lost:
+
+- No loading screen, title, pause or settings; the page is black while 5.2 MB of JavaScript loads.
+- Movement and camera are functional but raw, and jumping has no animation.
+- Nothing stops the player walking under the sea or off the edge of the terrain.
+- There is no goal or interaction.
