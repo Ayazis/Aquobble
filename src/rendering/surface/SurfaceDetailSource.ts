@@ -15,4 +15,9 @@ export type SurfaceDetailSources = Partial<Record<SurfaceKind, SurfaceDetailSour
 
 export const DEFAULT_SURFACE_DETAILS: SurfaceDetailSources = {
   stone: { path: 'assets/textures/rock.webp', scale: 0.3, strength: 0.85 },
+  masonry: { path: 'assets/textures/stone-blocks.webp', scale: 0.25, strength: 0.9 },
+  wood: { path: 'assets/textures/wood-planks.webp', scale: 0.6, strength: 0.8 },
+  bark: { path: 'assets/textures/bark.webp', scale: 0.5, strength: 0.9 },
+  foliage: { path: 'assets/textures/foliage.webp', scale: 0.4, strength: 0.7 },
+  plaster: { path: 'assets/textures/plaster.webp', scale: 0.35, strength: 0.7 },
 };

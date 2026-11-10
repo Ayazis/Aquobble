@@ -9,7 +9,7 @@ export class WallFactory {
   private readonly material = new THREE.MeshStandardMaterial({ color: 0x8a8580, roughness: 0.95, flatShading: true });
 
   constructor(surfaces?: SurfaceStyler) {
-    surfaces?.apply(this.material, 'stone');
+    surfaces?.apply(this.material, 'masonry');
   }
 
   create(wall: TownWall): { object: THREE.Object3D; boxes: Box[] } {
