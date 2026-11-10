@@ -43,8 +43,12 @@ Rules for every change:
 
 ## Status
 
-Done: the two tools below (0.1, 0.2) and the decisions at the end. Nothing in sections 1 to 7 has been started.
-Baseline for 1.1: the `lane` view at noon is 17.7% blown-out white.
+Done: the two tools below (0.1, 0.2), the decisions at the end, and the first pass of step 2: 1.1 (sun disc off,
+bloom strength 0.06 and threshold 6; `lane` at noon went from 17.7% to 14.0% white and the haze is gone, but the
+sun is now invisible, so our own controlled sun is still to do), 1.2 (4x multisampled scene buffer on desktop; phone
+edge smoothing still to do), 1.4 in part (brighter blue night fill; the hour-driven grade is still to do), 1.3 in
+part (sun 1.8, sky fill 1.25; the palest surface colours and the histogram are still to do) and 1.11 (phones now run
+the grade as its own pass instead of folding it into the output step).
 
 ## Tools first
 
