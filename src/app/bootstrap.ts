@@ -4,6 +4,7 @@ import { PhysicsBodyCleanup, PhysicsPoseSystem, PhysicsStepSystem, RapierPhysics
 import {
   PointerLookInput,
   GltfModelLoader,
+  installToonLighting,
   ModelMaterialStyler,
   SurfaceDetailLibrary,
   PostProcessing,
@@ -53,6 +54,7 @@ export async function bootstrap(container: HTMLElement, baseConfig: GameConfig =
   const random = new SeededRandom(config.seed);
   const physics = await RapierPhysicsEngine.create();
 
+  installToonLighting();
   const render = new RenderContext(container, quality);
   const post = new PostProcessing(render);
   const dayNight = new Environment(config.environment).install(render, new SeededRandom(config.seed + 303));
@@ -60,7 +62,7 @@ export async function bootstrap(container: HTMLElement, baseConfig: GameConfig =
   const loader = new GltfModelLoader();
   const [townModels, characterModel] = await Promise.all([loadTownModels(loader), loadCharacter(loader)]);
   const playerVisuals = characterModel ? new PlayerModelFactory(characterModel) : new PlayerMeshFactory();
-  const surfaces = styleModels(townModels, characterModel);
+  const surfaces = styleModels(townModels, characterModel, quality.surfaceDetail);
   populateWorld(world, physics, random, config, townModels, surfaces);
   const { birdMeshes, ambience } = spawnWildlife(world, config.seed);
   const rocks = new RockSpawner(world, physics, await rockFactory(loader, random, config));
@@ -87,7 +89,7 @@ export async function bootstrap(container: HTMLElement, baseConfig: GameConfig =
     ],
     frameSystems: [
       new TransformSyncSystem(world),
-      new WaterAnimationSystem(world, dayNight),
+      new WaterAnimationSystem(world),
       new WindSwaySystem(world),
       new GrassBendSystem(world),
       new PlayerAnimationSystem(world),
@@ -115,9 +117,14 @@ export async function bootstrap(container: HTMLElement, baseConfig: GameConfig =
   ]);
 }
 
-/** One shared look for every model: matte materials, plus surface detail on the static town models. */
-function styleModels(town: ReadonlyMap<string, Object3D>, character: AnimatedModel | null): SurfaceDetailLibrary {
-  const surfaces = new SurfaceDetailLibrary();
+/** One shared look for every model: matte materials, plus surface detail on the static town models where affordable. */
+function styleModels(
+  town: ReadonlyMap<string, Object3D>,
+  character: AnimatedModel | null,
+  detail: boolean,
+): SurfaceDetailLibrary {
+  // With no sources the library leaves every material flat: cheaper shaders for phones.
+  const surfaces = new SurfaceDetailLibrary(detail ? undefined : {});
   const styler = new ModelMaterialStyler(surfaces);
   for (const model of town.values()) styler.style(model, true);
   if (character) styler.style(character.scene, false);

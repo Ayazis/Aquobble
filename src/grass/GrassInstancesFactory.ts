@@ -15,7 +15,7 @@ export class GrassInstancesFactory {
     const color = new THREE.Color();
     placements.forEach((p, i) => {
       mesh.setMatrixAt(i, composeInstance(p));
-      mesh.setColorAt(i, color.setHSL(0.2 + p.tint * 0.1, 0.45 + p.tint * 0.2, 0.42 + p.tint * 0.16));
+      mesh.setColorAt(i, color.setHSL(0.24 + p.tint * 0.08, 0.6 + p.tint * 0.15, 0.44 + p.tint * 0.14));
     });
     mesh.castShadow = false;
     mesh.receiveShadow = true;

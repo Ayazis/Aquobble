@@ -1,8 +1,6 @@
-/** Animated water: shader uniforms; `time` is advanced each frame by `WaterAnimationSystem`. */
+/** Animated water: `time` is advanced each frame by `WaterAnimationSystem` and read by the water shader. */
 export interface WaterSurface {
   time: { value: number };
-  /** Shader sun direction (unit vector); write into `.value` to follow a moving sun. */
-  sunDirection: { value: { x: number; y: number; z: number } };
 }
 
 declare module '@core/ecs/Entity' {

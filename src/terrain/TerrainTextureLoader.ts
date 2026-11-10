@@ -36,7 +36,8 @@ export class TerrainTextureLoader {
     uniforms.uGrassMap.value = grass;
     uniforms.uRockMap.value = rock;
     uniforms.uSandMap.value = sand;
-    uniforms.uTerrainDetail.value = 1;
+    // Half strength: the palette colour stays dominant, the texture only adds a painted grain.
+    uniforms.uTerrainDetail.value = 0.5;
   }
 
   private async loadOne(path: string): Promise<THREE.Texture> {

@@ -22,3 +22,4 @@ export type { SurfaceStyler } from './surface/SurfaceStyler';
 export { DEFAULT_SURFACE_DETAILS, type SurfaceDetailSources } from './surface/SurfaceDetailSource';
 export { SurfaceDetailLibrary } from './surface/SurfaceDetailLibrary';
 export { ModelMaterialStyler } from './surface/ModelMaterialStyler';
+export { installToonLighting } from './installToonLighting';

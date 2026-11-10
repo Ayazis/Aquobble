@@ -32,7 +32,7 @@ export const CLOUD_FRAGMENT = /* glsl */ `
   float fbm(vec2 p) {
     float sum = 0.0;
     float amp = 0.5;
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 4; i++) {
       sum += amp * noise(p);
       p = p * 2.03 + vec2(17.0, 9.0);
       amp *= 0.5;
@@ -42,8 +42,10 @@ export const CLOUD_FRAGMENT = /* glsl */ `
 
   void main() {
     vec2 uv = vWorld.xz * 0.0022 + vec2(time * 0.006, time * 0.002);
-    float shape = fbm(uv + 0.5 * fbm(uv * 1.7 - time * 0.004));
-    float density = smoothstep(0.5, 0.78, shape);
+    // One cheap low-frequency sample pushes the pattern around so the clumps billow instead of sliding.
+    float shape = fbm(uv + 0.6 * noise(uv * 0.7 - time * 0.004));
+    // A narrow threshold gives firm, puffy edges rather than haze.
+    float density = smoothstep(0.5, 0.58, shape);
 
     vec3 toCamera = cameraPosition - vWorld;
     float edge = 1.0 - smoothstep(fadeRadius * 0.35, fadeRadius, length(toCamera.xz));
@@ -51,8 +53,10 @@ export const CLOUD_FRAGMENT = /* glsl */ `
     // Denser cores are shaded; the side towards the sun picks up its colour.
     vec3 view = normalize(-toCamera);
     float towardsSun = pow(max(dot(view, normalize(sunDir)), 0.0), 6.0);
-    vec3 color = tint * mix(1.0, 0.72, density) + glow * towardsSun * (1.0 - 0.6 * density);
+    // Two flat tones: bright body, shaded core.
+    float core = smoothstep(0.62, 0.66, shape);
+    vec3 color = tint * mix(1.0, 0.8, core) + glow * towardsSun * (1.0 - 0.6 * core);
 
-    gl_FragColor = vec4(color, density * edge * 0.85);
+    gl_FragColor = vec4(color, density * edge * 0.95);
   }
 `;

@@ -15,6 +15,6 @@ export const DEFAULT_ENVIRONMENT: EnvironmentConfig = {
   noonSunElevation: 62,
   sunAzimuth: 200,
   dayLengthSeconds: 360,
-  startTimeOfDay: 0.32,
+  startTimeOfDay: 0.42,
   environmentRefreshSeconds: 1.5,
 };

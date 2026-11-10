@@ -3,9 +3,9 @@ export const ColorGradeShader = {
   name: 'ColorGradeShader',
   uniforms: {
     tDiffuse: { value: null },
-    saturation: { value: 1.14 },
+    saturation: { value: 1.22 },
     contrast: { value: 1.06 },
-    vignette: { value: 0.32 },
+    vignette: { value: 0.22 },
   },
   vertexShader: /* glsl */ `
     varying vec2 vUv;

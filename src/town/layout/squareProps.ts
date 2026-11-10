@@ -7,14 +7,14 @@ const LANTERNS: TownPlot[] = [
   prop('lantern_post', 1.95, 9),
   prop('lantern_post', -1.95, 21.5),
   prop('lantern_post', -1.95, -9),
-  prop('lantern_post', 1.95, -22),
+  prop('lantern_post', 1.95, -14),
   prop('lantern_post', 8.5, 2.3),
-  prop('lantern_post', 22.3, 1.95, Math.PI / 2),
+  prop('lantern_post', 17, 1.95, Math.PI / 2),
   prop('lantern_post', -10.2, -1.95, Math.PI / 2),
   prop('lantern_post', -22.3, 1.95, Math.PI / 2),
 ];
 
-/** The market square: benches, a cart and the stalls' stock, plus a signpost inside each gate. */
+/** The market square: benches, a cart and the stalls' stock, plus a signpost inside three of the gates. */
 export const SQUARE_PROPS: TownPlot[] = [
   ...LANTERNS,
   prop('bench', 3.2, 4.7, Math.PI),
@@ -31,7 +31,6 @@ export const SQUARE_PROPS: TownPlot[] = [
   prop('crate', -1.45, 3.4, -0.4),
   prop('hay_bale', -5.1, 1.2),
   prop('sign_post', -2.6, 22.6),
-  prop('sign_post', -2.6, -22.6, Math.PI),
-  prop('sign_post', 22.75, -2.6, Math.PI / 2),
-  prop('sign_post', -22.3, -2.6, -Math.PI / 2),
+  prop('sign_post', 2.6, -22.75, Math.PI),
+  prop('sign_post', 22.75, 2.6, Math.PI / 2),
 ];

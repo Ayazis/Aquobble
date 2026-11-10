@@ -11,8 +11,8 @@ import type { TownsfolkConfig } from './spawnTownsfolk';
 export interface GameConfig {
   seed: number;
   waterLevel: number;
-  /** Shading of sea and ponds; the sun direction comes from `environment`. */
-  water: Omit<WaterLook, 'sunDirection'>;
+  /** Shading of sea and ponds. */
+  water: WaterLook;
   /** Seeded hollows with their own water; the town area is avoided automatically. */
   ponds: Omit<PondOptions, 'avoid'>;
   terrain: TerrainConfig;
@@ -34,7 +34,7 @@ export interface GameConfig {
 export const DEFAULT_CONFIG: GameConfig = {
   seed: 1337,
   waterLevel: 0.2,
-  water: { sunColor: 0xfff1d6, waterColor: 0x1d4f5f, distortionScale: 2.5 },
+  water: { waterColor: 0x1fa3c4, opacity: 0.8 },
   ponds: { count: 3, extent: 60, minRadius: 3.5, maxRadius: 6.5, depth: 1.6, minLevel: 1.2, freeboard: 0.25 },
   terrain: DEFAULT_TERRAIN,
   environment: DEFAULT_ENVIRONMENT,

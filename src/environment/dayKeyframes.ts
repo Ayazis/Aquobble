@@ -15,17 +15,18 @@ const NIGHT: Omit<DayKeyframe, 'time'> = {
 };
 
 const DAY: Omit<DayKeyframe, 'time'> = {
-  sunColor: 0xfff0d8,
-  sunIntensity: 2.6,
-  hemisphereSky: 0xc4dbff,
-  hemisphereGround: 0x4a3b2a,
-  hemisphereIntensity: 0.6,
-  environmentIntensity: 0.55,
-  fogColor: 0xd8d6cc,
-  fogDensity: 0.003,
-  turbidity: 6,
-  rayleigh: 1.8,
-  exposure: 0.55,
+  sunColor: 0xfff2dc,
+  sunIntensity: 2.2,
+  // Strong blue sky light with a green bounce: shade stays bright and coloured, as in a cel-shaded scene.
+  hemisphereSky: 0xb8d4ff,
+  hemisphereGround: 0x6f8a5c,
+  hemisphereIntensity: 1.5,
+  environmentIntensity: 0.35,
+  fogColor: 0xbfe0f5,
+  fogDensity: 0.0022,
+  turbidity: 2.5,
+  rayleigh: 1.3,
+  exposure: 0.62,
 };
 
 /** Night → dawn → morning → noon → evening → dusk → night, sorted by time. */
@@ -45,9 +46,9 @@ export const DEFAULT_DAY_KEYFRAMES: readonly DayKeyframe[] = [
     turbidity: 9,
     rayleigh: 2.6,
   },
-  { time: 0.34, ...DAY, sunColor: 0xffe2b8, sunIntensity: 2.3, fogColor: 0xe3d3bd, fogDensity: 0.0034 },
+  { time: 0.34, ...DAY, sunColor: 0xffe2b8, sunIntensity: 2.3, fogColor: 0xd3e4ee, fogDensity: 0.0026 },
   { time: 0.5, ...DAY },
-  { time: 0.66, ...DAY, sunColor: 0xffdcae, sunIntensity: 2.3, fogColor: 0xe6d0b2, fogDensity: 0.0032 },
+  { time: 0.66, ...DAY, sunColor: 0xffdcae, sunIntensity: 2.3, fogColor: 0xdcdcd8, fogDensity: 0.0026 },
   {
     time: 0.74,
     ...DAY,

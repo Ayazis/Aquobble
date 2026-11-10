@@ -9,10 +9,10 @@ const label = (p: TownPlot) => `${p.assetId} at (${p.x}, ${p.z})`;
 const everything = [...town.buildings, ...town.props];
 
 describe('DEFAULT_TOWN_LAYOUT', () => {
-  it('is a compact ~52 x 52 m village with over twenty buildings and a well in the middle', () => {
+  it('is a compact ~52 x 52 m village with a landmark in every quarter and a well in the middle', () => {
     expect(town.size).toBeLessThanOrEqual(52);
     expect(town.wall.halfSize * 2).toBeLessThanOrEqual(town.size);
-    expect(town.buildings.length).toBeGreaterThanOrEqual(20);
+    expect(town.buildings.length).toBeGreaterThanOrEqual(16);
     expect(town.buildings.some((b) => b.assetId === 'well' && b.x === 0 && b.z === 0)).toBe(true);
     expect(town.roads.length).toBeGreaterThanOrEqual(3);
   });

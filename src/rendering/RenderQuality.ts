@@ -8,6 +8,8 @@ export interface RenderQuality {
   postEffects: boolean;
   /** Sun shadow map resolution (square). */
   shadowMapSize: number;
+  /** Detail textures over models, trees and rocks (several texture reads per pixel). */
+  surfaceDetail: boolean;
 }
 
 export const HIGH_QUALITY: RenderQuality = {
@@ -16,4 +18,5 @@ export const HIGH_QUALITY: RenderQuality = {
   shadows: true,
   postEffects: true,
   shadowMapSize: 4096,
+  surfaceDetail: true,
 };

@@ -43,7 +43,7 @@ export class CloudLayer {
     const uniforms = this.mesh.material.uniforms;
     uniforms.time.value = this.elapsed;
     // Body of the cloud: haze colour lifted towards white by day, left dark at night.
-    this.tint.setHex(base).lerp(this.glow.setRGB(1, 1, 1), 0.55 * brightness);
+    this.tint.setHex(base).lerp(this.glow.setRGB(1, 1, 1), 0.85 * brightness);
     (uniforms.tint.value as THREE.Color).copy(this.tint).multiplyScalar(0.35 + 1.5 * brightness);
     // Sun-facing rim: the key light colour, strongest at dawn and dusk when it is most saturated.
     (uniforms.glow.value as THREE.Color).setHex(light).multiplyScalar(0.2 + 1.6 * brightness);
