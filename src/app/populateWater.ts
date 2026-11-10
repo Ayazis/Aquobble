@@ -1,5 +1,4 @@
-import * as THREE from 'three';
-import { vec3, type GameWorld, type Random } from '@core';
+import type { GameWorld, Random } from '@core';
 import { PondCarver, type HeightField } from '@terrain';
 import type { ExclusionZone } from '@vegetation';
 import { WaterMeshFactory, WaterNormalsFactory, WaterSpawner } from '@water';
@@ -17,17 +16,8 @@ export function populateWater(
   avoid: readonly ExclusionZone[],
 ): ExclusionZone[] {
   const ponds = new PondCarver(random).carve(terrain, { ...config.ponds, avoid });
-  const { environment, water } = config;
-  // Noon sun; WaterSurface.sunDirection can be updated per frame once the day cycle exposes the sun.
-  const elevation = THREE.MathUtils.degToRad(environment.noonSunElevation);
-  const azimuth = THREE.MathUtils.degToRad(environment.sunAzimuth);
-  const sunDirection = vec3(
-    Math.cos(elevation) * Math.sin(azimuth),
-    Math.sin(elevation),
-    Math.cos(elevation) * Math.cos(azimuth),
-  );
   const normals = new WaterNormalsFactory(random).create();
-  const meshes = new WaterMeshFactory(normals, { ...water, sunDirection });
+  const meshes = new WaterMeshFactory(normals, config.water);
   const spawner = new WaterSpawner(world, meshes);
   spawner.spawn(config.waterLevel);
   for (const p of ponds) spawner.spawnPond(p.x, p.z, p.radius, p.level);

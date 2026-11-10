@@ -6,6 +6,7 @@ export class RenderContext {
   readonly renderer: THREE.WebGLRenderer;
   readonly scene = new THREE.Scene();
   readonly camera: THREE.PerspectiveCamera;
+  private frame = 0;
 
   constructor(
     container: HTMLElement,
@@ -18,9 +19,19 @@ export class RenderContext {
     this.renderer.toneMappingExposure = 0.85;
     this.renderer.shadowMap.enabled = quality.shadows;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.renderer.shadowMap.autoUpdate = quality.shadowInterval <= 1;
     container.appendChild(this.renderer.domElement);
 
     this.camera = new THREE.PerspectiveCamera(55, container.clientWidth / container.clientHeight, 0.1, 2000);
+  }
+
+  /**
+   * Call once per frame before rendering. The shadow pass redraws every shadow caster on the island, so
+   * cheaper profiles refresh it only every few frames; shadows of moving things then lag by a frame or two.
+   */
+  beginFrame(): void {
+    if (this.quality.shadowInterval <= 1) return;
+    if (this.frame++ % this.quality.shadowInterval === 0) this.renderer.shadowMap.needsUpdate = true;
   }
 
   get canvas(): HTMLCanvasElement {

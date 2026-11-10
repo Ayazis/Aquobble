@@ -10,3 +10,4 @@ export { vec3, type Vec3 } from './math/Vec3';
 export { identityQuat, type Quat } from './math/Quat';
 export type { Random } from './random/Random';
 export { SeededRandom } from './random/SeededRandom';
+export { groupByCell } from './spatial/groupByCell';

@@ -17,3 +17,9 @@ export {
 } from './camera/ThirdPersonCameraSystem';
 export { GltfModelLoader } from './GltfModelLoader';
 export { HIGH_QUALITY, type RenderQuality } from './RenderQuality';
+export type { SurfaceKind } from './surface/SurfaceKind';
+export type { SurfaceStyler } from './surface/SurfaceStyler';
+export { DEFAULT_SURFACE_DETAILS, type SurfaceDetailSources } from './surface/SurfaceDetailSource';
+export { SurfaceDetailLibrary } from './surface/SurfaceDetailLibrary';
+export { ModelMaterialStyler } from './surface/ModelMaterialStyler';
+export { installToonLighting } from './installToonLighting';

@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import type { RenderContext } from '@rendering';
+import { CloudLayer } from './CloudLayer';
 import { DayNightSystem } from './DayNightSystem';
 import type { DayKeyframe } from './DayKeyframe';
 import { DEFAULT_DAY_KEYFRAMES } from './dayKeyframes';
@@ -21,12 +22,24 @@ export class Environment {
     const { scene, renderer, camera } = context;
     const night = new NightSky(random);
     const sky = new SkyDome();
+    const clouds = new CloudLayer();
     const light = new SunLight(undefined, context.quality.shadows ? context.quality.shadowMapSize : 512);
     const fog = new THREE.FogExp2(0xffffff, 0);
 
-    scene.add(sky.sky, night.group, light.sun, light.fill);
+    scene.add(sky.sky, night.group, clouds.mesh, light.sun, light.fill);
     scene.fog = fog;
-    const dayNight = new DayNightSystem(renderer, scene, fog, sky, light, this.keyframes, this.config, night, camera);
+    const dayNight = new DayNightSystem(
+      renderer,
+      scene,
+      fog,
+      sky,
+      light,
+      this.keyframes,
+      this.config,
+      night,
+      camera,
+      clouds,
+    );
     dayNight.update(0); // apply the start time before the first frame
     return dayNight;
   }

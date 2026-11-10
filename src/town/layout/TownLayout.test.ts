@@ -1,5 +1,6 @@
 import { overlaps, plotBounds, roadBounds, type Bounds } from './Bounds';
 import { DEFAULT_TOWN_LAYOUT as town } from './defaultTownLayout';
+import { TOWN_ASSET_SIZES, type TownAssetId } from './townAssetSizes';
 import type { TownPlot } from './TownPlot';
 
 const inner = town.wall.halfSize - town.wall.thickness / 2;
@@ -8,10 +9,10 @@ const label = (p: TownPlot) => `${p.assetId} at (${p.x}, ${p.z})`;
 const everything = [...town.buildings, ...town.props];
 
 describe('DEFAULT_TOWN_LAYOUT', () => {
-  it('is a compact ~56 x 56 m village with over a dozen buildings and a well in the middle', () => {
-    expect(town.size).toBeLessThanOrEqual(60);
+  it('is a compact ~52 x 52 m village with a landmark in every quarter and a well in the middle', () => {
+    expect(town.size).toBeLessThanOrEqual(52);
     expect(town.wall.halfSize * 2).toBeLessThanOrEqual(town.size);
-    expect(town.buildings.length).toBeGreaterThanOrEqual(12);
+    expect(town.buildings.length).toBeGreaterThanOrEqual(16);
     expect(town.buildings.some((b) => b.assetId === 'well' && b.x === 0 && b.z === 0)).toBe(true);
     expect(town.roads.length).toBeGreaterThanOrEqual(3);
   });
@@ -41,6 +42,22 @@ describe('DEFAULT_TOWN_LAYOUT', () => {
       for (const b of town.buildings) {
         expect(overlaps(plotBounds(prop), plotBounds(b)), `${label(prop)} vs ${label(b)}`).toBe(false);
       }
+    }
+  });
+
+  it('keeps props from overlapping each other', () => {
+    const { props } = town;
+    for (let i = 0; i < props.length; i++) {
+      for (let j = i + 1; j < props.length; j++) {
+        const hit = overlaps(plotBounds(props[i]), plotBounds(props[j]));
+        expect(hit, `${label(props[i])} vs ${label(props[j])}`).toBe(false);
+      }
+    }
+  });
+
+  it('gives every copy of an asset the same true size', () => {
+    for (const plot of everything) {
+      expect(plot.footprint, label(plot)).toBe(TOWN_ASSET_SIZES[plot.assetId as TownAssetId]);
     }
   });
 

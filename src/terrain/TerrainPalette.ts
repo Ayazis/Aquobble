@@ -5,10 +5,10 @@ export interface TerrainBand {
 }
 
 export const DEFAULT_PALETTE: readonly TerrainBand[] = [
-  { below: 1, color: 0xd9c28a }, // sand
-  { below: 6, color: 0x7aa35a }, // grass
-  { below: 14, color: 0x4f7d45 }, // forest
-  { below: 22, color: 0x8a7d6b }, // rock
+  { below: 1, color: 0xead9a0 }, // sand
+  { below: 6, color: 0x7fc24a }, // grass
+  { below: 14, color: 0x4f9a3c }, // forest
+  { below: 22, color: 0x9a8f80 }, // rock
   { below: Infinity, color: 0xf2f2f2 }, // snow
 ];
 

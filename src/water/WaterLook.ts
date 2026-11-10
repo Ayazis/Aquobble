@@ -1,9 +1,6 @@
-import type { Vec3 } from '@core';
-
 /** Shading parameters shared by every water surface. */
 export interface WaterLook {
-  sunDirection: Vec3;
-  sunColor: number;
   waterColor: number;
-  distortionScale: number;
+  /** 0 = invisible, 1 = opaque; below 1 the sand shows through in the shallows. */
+  opacity: number;
 }
