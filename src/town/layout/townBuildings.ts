@@ -1,46 +1,44 @@
 import type { TownPlot } from './TownPlot';
+import { sizedPlot as plot } from './sizedPlot';
 
-const QUARTER = Math.PI / 2;
-/** Small yaw offsets so the houses don't sit on a perfect grid. */
-const SKEW = 0.05;
-
-const plot = (assetId: string, x: number, z: number, rotation: number, w: number, d: number, h: number): TownPlot => ({
-  assetId,
-  x,
-  z,
-  rotation,
-  footprint: { width: w, depth: d, height: h },
-});
+/** Model fronts face +z; these turn them towards the lane they stand on. */
+const NORTH = 0;
+const SOUTH = Math.PI;
+const EAST = Math.PI / 2;
+const WEST = -Math.PI / 2;
 
 /**
- * Building plots at real-world scale (cottages ~6 m wide and ~6.5 m to the ridge), packed tightly along the lanes
- * like a walled village: the well and stalls on the square, four or five buildings per quarter.
+ * Building plots at true size, packed wall to wall like a walled village: the well and stalls on the square,
+ * five or six buildings per quarter with only alleys and small yards between them.
  */
 export const TOWN_BUILDINGS: TownPlot[] = [
   // Central square
-  plot('well', 0, 0, 0, 2.2, 2.2, 3),
-  plot('market_stall', 4, -4.5, 0, 3, 2.2, 2.6),
-  plot('market_stall', -4, -4.5, 0, 3, 2.2, 2.6),
-  // North-east (+x, +z)
-  plot('tavern', 9, 11, Math.PI, 9, 8, 8),
-  plot('house_a', 19.5, 6.5, Math.PI + SKEW, 6, 6, 6.5),
-  plot('blacksmith', 8, 20.5, -QUARTER, 7, 6, 5.5),
-  plot('house_b', 19, 17, Math.PI, 6, 5.5, 6.5),
-  // North-west
-  plot('chapel', -12, 15, 0, 8, 13, 12),
-  plot('house_b', -4.6, 11, Math.PI, 5, 6, 6.5),
-  plot('house_a', -4.6, 20, Math.PI, 5, 6, 6.5),
-  plot('house_c', -21, 6, Math.PI, 7, 8, 5.5),
-  plot('windmill', -21, 17, QUARTER, 4, 4, 7),
-  // South-west
-  plot('watchtower', -21.5, -21.5, 0, 4, 4, 10),
-  plot('house_a', -10, -11, SKEW, 6, 6, 6.5),
-  plot('house_b', -19, -9, QUARTER, 6, 5.5, 6.5),
-  plot('stable', -9, -21, 0, 8, 5.6, 4.5),
-  // South-east
-  plot('house_c', 11, -11, 0, 7, 8, 5.5),
-  plot('barracks', 20, -8, 0, 6, 6, 6.5),
-  plot('sawmill', 22, -14, 0, 6, 4.5, 4),
-  plot('house_b', 6, -20, QUARTER, 5.5, 6, 6.5),
-  plot('house_a', 16, -20, -SKEW, 5.8, 5.8, 6.5),
+  plot('well', 0, 0),
+  plot('market_stall', 3.4, -3.3),
+  plot('market_stall', -3.4, -3.3),
+  plot('market_stall', -3.4, 3.3, SOUTH),
+  // North-east (+x, +z): tavern on the east lane, smithy on the north lane
+  plot('tavern', 17.1, 8, SOUTH),
+  plot('blacksmith', 6.75, 17.55, WEST),
+  plot('house_a', 15, 18.1, SOUTH),
+  plot('house_b', 20.6, 18.35, SOUTH),
+  // North-west: chapel by the square, windmill in the corner
+  plot('chapel', -6.25, 9.9, EAST),
+  plot('house_c', -14.5, 6.15, SOUTH),
+  plot('windmill', -20.7, 5.5, EAST),
+  plot('house_b', -6.25, 16.55, EAST),
+  plot('house_a', -14, 14.7, SOUTH),
+  plot('house_b', -20.6, 14.2, SOUTH),
+  // South-west: stable on the south lane, watchtower in the corner
+  plot('stable', -6.15, -16.9, EAST),
+  plot('house_a', -10, -6, NORTH),
+  plot('house_b', -16.55, -6.25, NORTH),
+  plot('house_a', -14, -15.2, NORTH),
+  plot('watchtower', -21.15, -21, NORTH),
+  // South-east: barracks on the east lane, sawmill on the south lane
+  plot('house_c', 9.7, -6.15, NORTH),
+  plot('barracks', 17.85, -7.05, NORTH),
+  plot('sawmill', 6.25, -16.8, WEST),
+  plot('house_b', 13.55, -16.45, NORTH),
+  plot('house_a', 19.8, -16.2, NORTH),
 ];
