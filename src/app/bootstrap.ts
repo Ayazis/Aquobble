@@ -4,6 +4,8 @@ import { PhysicsBodyCleanup, PhysicsPoseSystem, PhysicsStepSystem, RapierPhysics
 import {
   PointerLookInput,
   GltfModelLoader,
+  ModelMaterialStyler,
+  SurfaceDetailLibrary,
   PostProcessing,
   RenderContext,
   RenderSystem,
@@ -33,6 +35,7 @@ import { BirdMeshFactory, BirdRenderSystem, DEFAULT_WILDLIFE, FlockSpawner, Floc
 import { ModelRockFactory, RockMeshFactory, RockRecycleSystem, RockSpawner } from '@rocks';
 import { WaterAnimationSystem } from '@water';
 import { GrassBendSystem, WindSwaySystem } from '@grass';
+import type { Object3D } from 'three';
 import { Game } from './Game';
 import { DEFAULT_CONFIG, type GameConfig } from './GameConfig';
 import { forDevice, isMobileDevice } from './forDevice';
@@ -57,7 +60,8 @@ export async function bootstrap(container: HTMLElement, baseConfig: GameConfig =
   const loader = new GltfModelLoader();
   const [townModels, characterModel] = await Promise.all([loadTownModels(loader), loadCharacter(loader)]);
   const playerVisuals = characterModel ? new PlayerModelFactory(characterModel) : new PlayerMeshFactory();
-  populateWorld(world, physics, random, config, townModels);
+  const surfaces = styleModels(townModels, characterModel);
+  populateWorld(world, physics, random, config, townModels, surfaces);
   const { birdMeshes, ambience } = spawnWildlife(world, config.seed);
   const rocks = new RockSpawner(world, physics, await rockFactory(loader, random, config));
   new PlayerSpawner(world, physics, playerVisuals).spawn(config.town.x, config.town.z + 8);
@@ -109,6 +113,16 @@ export async function bootstrap(container: HTMLElement, baseConfig: GameConfig =
     new MuteButton(container, ambience),
     ...(touch ? [touch] : []),
   ]);
+}
+
+/** One shared look for every model: matte materials, plus surface detail on the static town models. */
+function styleModels(town: ReadonlyMap<string, Object3D>, character: AnimatedModel | null): SurfaceDetailLibrary {
+  const surfaces = new SurfaceDetailLibrary();
+  const styler = new ModelMaterialStyler(surfaces);
+  for (const model of town.values()) styler.style(model, true);
+  if (character) styler.style(character.scene, false);
+  surfaces.load();
+  return surfaces;
 }
 
 /** Birds and ambient sound, each on its own seeded stream so they never shift the world's random sequence. */

@@ -1,0 +1,18 @@
+import type { SurfaceKind } from './SurfaceKind';
+
+/** One detail texture and how it is laid over a surface. */
+export interface SurfaceDetailSource {
+  /** Path under public/, relative to the site base URL. */
+  path: string;
+  /** Texture repeats per metre. */
+  scale: number;
+  /** 0 = flat colour only, 1 = full texture contrast. */
+  strength: number;
+}
+
+/** Kinds without an entry keep their flat colour. */
+export type SurfaceDetailSources = Partial<Record<SurfaceKind, SurfaceDetailSource>>;
+
+export const DEFAULT_SURFACE_DETAILS: SurfaceDetailSources = {
+  stone: { path: 'assets/textures/rock.webp', scale: 0.3, strength: 0.85 },
+};

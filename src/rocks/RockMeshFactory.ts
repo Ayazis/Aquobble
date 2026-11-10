@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import type { Random } from '@core';
+import type { SurfaceStyler } from '@rendering';
 
 import type { RockModel, RockModelFactory } from './RockModelFactory';
 
@@ -7,7 +8,13 @@ import type { RockModel, RockModelFactory } from './RockModelFactory';
 export class RockMeshFactory implements RockModelFactory {
   private readonly material = new THREE.MeshStandardMaterial({ color: 0x8c8378, flatShading: true, roughness: 1 });
 
-  constructor(private readonly random: Random) {}
+  /** Pass `surfaces` only for rocks that stay put; the detail texture is anchored in world space. */
+  constructor(
+    private readonly random: Random,
+    surfaces?: SurfaceStyler,
+  ) {
+    surfaces?.apply(this.material, 'stone');
+  }
 
   create(radius: number): RockModel {
     const geometry = new THREE.IcosahedronGeometry(radius, 0);

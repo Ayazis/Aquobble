@@ -2,10 +2,15 @@ import * as THREE from 'three';
 import type { TownWall } from '../layout/TownWall';
 import type { Box } from './Box';
 import { wallBoxes } from './wallBoxes';
+import type { SurfaceStyler } from '@rendering';
 
 /** Builds the low-poly stone wall (with gates) as one group of boxes, town-local. */
 export class WallFactory {
   private readonly material = new THREE.MeshStandardMaterial({ color: 0x8a8580, roughness: 0.95, flatShading: true });
+
+  constructor(surfaces?: SurfaceStyler) {
+    surfaces?.apply(this.material, 'stone');
+  }
 
   create(wall: TownWall): { object: THREE.Object3D; boxes: Box[] } {
     const boxes = wallBoxes(wall);

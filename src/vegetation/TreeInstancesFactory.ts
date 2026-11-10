@@ -1,14 +1,19 @@
 import * as THREE from 'three';
+import type { SurfaceStyler } from '@rendering';
 import type { TreePlacement } from './TreePlacement';
 
 /** Builds placeholder low-poly trees as two instanced meshes (one draw call each). */
 export class TreeInstancesFactory {
+  constructor(private readonly surfaces?: SurfaceStyler) {}
+
   create(placements: readonly TreePlacement[]): THREE.Group {
     const count = placements.length;
     const trunkGeometry = new THREE.CylinderGeometry(0.25, 0.35, 2, 5).translate(0, 1, 0);
     const crownGeometry = new THREE.ConeGeometry(1.6, 4, 6).translate(0, 3.8, 0);
-    const trunkMaterial = new THREE.MeshStandardMaterial({ color: 0x6b4a2f, flatShading: true });
+    const trunkMaterial = new THREE.MeshStandardMaterial({ color: 0x6b4a2f, flatShading: true, roughness: 0.9 });
     const crownMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff, flatShading: true, roughness: 0.9 });
+    this.surfaces?.apply(trunkMaterial, 'bark');
+    this.surfaces?.apply(crownMaterial, 'foliage');
     const trunks = new THREE.InstancedMesh(trunkGeometry, trunkMaterial, count);
     const crowns = new THREE.InstancedMesh(crownGeometry, crownMaterial, count);
 

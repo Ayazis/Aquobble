@@ -1,6 +1,7 @@
 import type { GameWorld } from '@core';
 import type { Object3D } from 'three';
 import type { PhysicsEngine } from '@physics';
+import type { SurfaceStyler } from '@rendering';
 import type { HeightField } from '@terrain';
 import {
   BuildingSpawner,
@@ -26,13 +27,14 @@ export function populateTown(
   terrain: HeightField,
   site: TownSite,
   models: ReadonlyMap<string, Object3D>,
+  surfaces: SurfaceStyler,
 ): ExclusionZone {
   const planner = new TownPlanner(DEFAULT_TOWN_LAYOUT);
   const region = planner.region(site);
   terrain.flatten(region, planner.level(terrain, site));
 
   const town = planner.place(terrain, site);
-  new TownSpawner(world, physics, new RoadMeshFactory(), new WallFactory()).spawn(town);
+  new TownSpawner(world, physics, new RoadMeshFactory(), new WallFactory(surfaces)).spawn(town);
   const plots = new ModelPlotSpawner(world, physics, models, new PlotBoxSpawner(world, physics));
   new BuildingSpawner(plots).spawn(town);
   new PropSpawner(plots).spawn(town);
