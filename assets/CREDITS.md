@@ -33,3 +33,8 @@
 | Fantasy Stable | models/town/stable.glb | https://poly.pizza/m/qhNQSOGGbi | Quaternius | CC0 1.0 |
 | Ground 078 (road dirt) | textures/road-dirt.webp, textures/road-dirt-normal.webp | https://ambientcg.com/view?id=Ground078 | ambientCG (Lennart Demes) | CC0 |
 | Cobblestone Floor 001 | textures/cobblestone.webp, textures/cobblestone-normal.webp | https://polyhaven.com/a/cobblestone_floor_001 | Rob Tuytel | CC0 |
+| Bark 012 (tree trunks) | textures/bark.webp | https://ambientcg.com/view?id=Bark012 | ambientCG (Lennart Demes) | CC0 |
+| Planks 023 A (wooden props) | textures/wood-planks.webp | https://ambientcg.com/view?id=Planks023A | ambientCG (Lennart Demes) | CC0 |
+| Plaster 001 (buildings) | textures/plaster.webp | https://ambientcg.com/view?id=Plaster001 | ambientCG (Lennart Demes) | CC0 |
+| Bricks 066 (town wall) | textures/stone-blocks.webp | https://ambientcg.com/view?id=Bricks066 | ambientCG (Lennart Demes) | CC0 |
+| Moss 002 (tree crowns, bushes, hay) | textures/foliage.webp | https://ambientcg.com/view?id=Moss002 | ambientCG (Lennart Demes) | CC0 |
