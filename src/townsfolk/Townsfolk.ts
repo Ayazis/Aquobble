@@ -1,16 +1,26 @@
+import type { NavPoint } from '@navigation';
+
 /** Component: a wandering townsperson's tuning and wander state. */
 export interface Townsfolk {
   walkSpeed: number;
   /** Seconds to stand still at each target, picked between these. */
   minIdle: number;
   maxIdle: number;
-  /** Close enough to the target to stop (m). */
+  /** Close enough to a waypoint to count as reached (m). */
   arriveDistance: number;
   state: 'walking' | 'idle';
-  targetX: number;
-  targetZ: number;
-  /** Seconds left standing still (idle) or before giving up on the target (walking). */
+  /** Waypoints of the current walk; the last one is the target. */
+  path: NavPoint[];
+  /** Index in `path` of the waypoint being walked to. */
+  waypoint: number;
+  /** Seconds left standing still (idle only). */
   timer: number;
+  /** Where it stood at the last progress check, and the seconds since. */
+  checkX: number;
+  checkZ: number;
+  sinceCheck: number;
+  /** Progress checks failed in a row on this walk. */
+  stalls: number;
   verticalVelocity: number;
   /** Horizontal velocity of the last move (m/s), read by presentation to animate and face the model. */
   moveX: number;
@@ -24,11 +34,15 @@ export function createTownsfolk(walkSpeed: number, idle: number): Townsfolk {
     walkSpeed,
     minIdle: 2,
     maxIdle: 6,
-    arriveDistance: 0.5,
+    arriveDistance: 0.3,
     state: 'idle',
-    targetX: 0,
-    targetZ: 0,
+    path: [],
+    waypoint: 0,
     timer: idle,
+    checkX: 0,
+    checkZ: 0,
+    sinceCheck: 0,
+    stalls: 0,
     verticalVelocity: 0,
     moveX: 0,
     moveZ: 0,

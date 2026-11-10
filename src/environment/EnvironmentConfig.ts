@@ -16,5 +16,6 @@ export const DEFAULT_ENVIRONMENT: EnvironmentConfig = {
   sunAzimuth: 200,
   dayLengthSeconds: 360,
   startTimeOfDay: 0.42,
-  environmentRefreshSeconds: 1.5,
+  // A day lasts minutes, so the sky's light barely moves in a few seconds; each bake is ~40 extra passes.
+  environmentRefreshSeconds: 4,
 };

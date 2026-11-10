@@ -11,15 +11,25 @@ import {
   PropSpawner,
   RoadMeshFactory,
   TownPlanner,
+  townObstacles,
   TownSpawner,
   WallFactory,
+  type TownObstacle,
   type TownSite,
 } from '@town';
 import type { ExclusionZone } from '@vegetation';
 
+/** What the rest of the world needs to know about the town once it stands. */
+export interface TownGround {
+  /** Keep free of trees, grass, rocks and ponds. */
+  area: ExclusionZone;
+  /** Footprints nobody can walk through (buildings, props, wall), for route planning. */
+  obstacles: TownObstacle[];
+}
+
 /**
  * Levels the terrain under the town (must run before the terrain mesh and collider are built),
- * then spawns roads, wall, buildings and props (models, grey boxes where a model is missing). Returns the area to keep free of trees.
+ * then spawns roads, wall, buildings and props (models, grey boxes where a model is missing).
  */
 export function populateTown(
   world: GameWorld,
@@ -28,7 +38,7 @@ export function populateTown(
   site: TownSite,
   models: ReadonlyMap<string, Object3D>,
   surfaces: SurfaceStyler,
-): ExclusionZone {
+): TownGround {
   const planner = new TownPlanner(DEFAULT_TOWN_LAYOUT);
   const region = planner.region(site);
   terrain.flatten(region, planner.level(terrain, site));
@@ -40,5 +50,6 @@ export function populateTown(
   new PropSpawner(plots).spawn(town);
 
   const half = region.halfSize + 2;
-  return { minX: site.x - half, maxX: site.x + half, minZ: site.z - half, maxZ: site.z + half };
+  const area = { minX: site.x - half, maxX: site.x + half, minZ: site.z - half, maxZ: site.z + half };
+  return { area, obstacles: townObstacles(town) };
 }

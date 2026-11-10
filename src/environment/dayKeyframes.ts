@@ -1,12 +1,13 @@
 import type { DayKeyframe } from './DayKeyframe';
 
 const NIGHT: Omit<DayKeyframe, 'time'> = {
-  sunColor: 0x9fb4e6,
-  sunIntensity: 0.55,
-  hemisphereSky: 0x2a3a5c,
+  // The "sun" at night is the moon: bright enough to read the town and cast clear shadows.
+  sunColor: 0xb4c6f2,
+  sunIntensity: 1.15,
+  hemisphereSky: 0x34466e,
   hemisphereGround: 0x14121a,
-  hemisphereIntensity: 0.35,
-  environmentIntensity: 0.15,
+  hemisphereIntensity: 0.5,
+  environmentIntensity: 0.2,
   fogColor: 0x1b2333,
   fogDensity: 0.0035,
   turbidity: 2,

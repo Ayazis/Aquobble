@@ -21,6 +21,9 @@ import {
 import {
   CharacterMovementSystem,
   KeyboardState,
+  LanternButton,
+  LanternFactory,
+  LanternSystem,
   PlayerAnimationSystem,
   PlayerInputSystem,
   PlayerMeshFactory,
@@ -33,7 +36,7 @@ import { TownsfolkAnimationSystem, TownsfolkMovementSystem } from '@townsfolk';
 import { AmbientAudio, MuteButton } from '@audio';
 import { FpsCounter, FpsOverlay, FpsSystem } from '@diagnostics';
 import { BirdMeshFactory, BirdRenderSystem, DEFAULT_WILDLIFE, FlockSpawner, FlockSystem } from '@wildlife';
-import { ModelRockFactory, RockMeshFactory, RockRecycleSystem, RockSpawner } from '@rocks';
+import { RockRecycleSystem, RockSpawner } from '@rocks';
 import { WaterAnimationSystem } from '@water';
 import { GrassBendSystem, WindSwaySystem } from '@grass';
 import type { Object3D } from 'three';
@@ -42,6 +45,7 @@ import { DEFAULT_CONFIG, type GameConfig } from './GameConfig';
 import { forDevice, isMobileDevice } from './forDevice';
 import { loadTownModels } from './loadTownModels';
 import { populateWorld } from './populateWorld';
+import { rockFactory } from './rockFactory';
 import { spawnTownsfolk } from './spawnTownsfolk';
 
 const CHARACTER_MODEL = 'assets/models/town/character.glb';
@@ -63,25 +67,27 @@ export async function bootstrap(container: HTMLElement, baseConfig: GameConfig =
   const [townModels, characterModel] = await Promise.all([loadTownModels(loader), loadCharacter(loader)]);
   const playerVisuals = characterModel ? new PlayerModelFactory(characterModel) : new PlayerMeshFactory();
   const surfaces = styleModels(townModels, characterModel, quality.surfaceDetail);
-  populateWorld(world, physics, random, config, townModels, surfaces);
+  const town = populateWorld(world, physics, random, config, townModels, surfaces);
   const { birdMeshes, ambience } = spawnWildlife(world, config.seed);
   const rocks = new RockSpawner(world, physics, await rockFactory(loader, random, config));
-  new PlayerSpawner(world, physics, playerVisuals).spawn(config.town.x, config.town.z + 8);
+  new PlayerSpawner(world, physics, playerVisuals, new LanternFactory()).spawn(config.town.x, config.town.z + 8);
   // Own seed stream so townsfolk never shift the rest of the world's random draws.
   const folkRandom = new SeededRandom(config.seed + 1);
-  const wanderArea = spawnTownsfolk(world, physics, folkRandom, config.town, config.townsfolk, characterModel);
+  const folk = config.townsfolk;
+  const navigator = spawnTownsfolk(world, physics, folkRandom, config.town, town.obstacles, folk, characterModel);
   const keys = new KeyboardState();
   const look = new PointerLookInput(render.canvas);
   const zoom = new SmoothZoom({ ...DEFAULT_SMOOTH_ZOOM, minDistance: 2, maxDistance: 25 });
   const wheel = new WheelZoomInput(render.canvas, zoom);
   const fpsOverlay = new FpsOverlay(container);
+  const lanternButton = new LanternButton(container);
   const touch = mobile ? new TouchControls(container) : undefined;
 
   const loop = new GameLoop(new AnimationFrameScheduler(), {
     fixedSystems: [
       new PlayerInputSystem(world, keys, touch),
       new CharacterMovementSystem(world, physics),
-      new TownsfolkMovementSystem(world, physics, wanderArea, folkRandom),
+      new TownsfolkMovementSystem(world, physics, navigator, folkRandom),
       ...(config.fallingRocks ? [new RockRecycleSystem(world, rocks, random, config.rocks)] : []),
       new PhysicsStepSystem(physics),
       new PhysicsPoseSystem(world, physics),
@@ -93,6 +99,7 @@ export async function bootstrap(container: HTMLElement, baseConfig: GameConfig =
       new WindSwaySystem(world),
       new GrassBendSystem(world),
       new PlayerAnimationSystem(world),
+      new LanternSystem(world, keys, lanternButton),
       new TownsfolkAnimationSystem(world),
       new ThirdPersonCameraSystem(world, render.camera, physics, look, zoom),
       new BirdRenderSystem(world, birdMeshes.clock),
@@ -113,6 +120,7 @@ export async function bootstrap(container: HTMLElement, baseConfig: GameConfig =
     fpsOverlay,
     ambience,
     new MuteButton(container, ambience),
+    lanternButton,
     ...(touch ? [touch] : []),
   ]);
 }
@@ -137,17 +145,6 @@ function spawnWildlife(world: GameWorld, seed: number): { birdMeshes: BirdMeshFa
   const birdMeshes = new BirdMeshFactory();
   new FlockSpawner(world, new SeededRandom(seed + 101), birdMeshes).spawn(DEFAULT_WILDLIFE);
   return { birdMeshes, ambience: new AmbientAudio(new SeededRandom(seed + 202)) };
-}
-
-/** Only fetch the rock model when the rain is on; the spawner still exists so the flag stays a pure toggle. */
-async function rockFactory(
-  loader: GltfModelLoader,
-  random: SeededRandom,
-  config: GameConfig,
-): Promise<ModelRockFactory | RockMeshFactory> {
-  return config.fallingRocks && config.rockModel
-    ? new ModelRockFactory(await loader.load(config.rockModel))
-    : new RockMeshFactory(random);
 }
 
 /** The rigged character, or null (capsules) if it fails to load. */

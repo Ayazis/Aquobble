@@ -13,6 +13,7 @@ export { PlotBoxSpawner } from './render/PlotBoxSpawner';
 export { BuildingSpawner } from './BuildingSpawner';
 export { PropSpawner } from './PropSpawner';
 export { TownSpawner } from './TownSpawner';
+export { townObstacles, type TownObstacle } from './townObstacles';
 export type { PlotSpawner } from './render/PlotSpawner';
 export { ModelPlotSpawner } from './render/ModelPlotSpawner';
 export { townAssetPath } from './render/townAssetPath';

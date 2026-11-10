@@ -3,7 +3,7 @@ import type { Random, Vec3 } from '@core';
 import { StarFieldFactory } from './StarFieldFactory';
 
 const RADIUS = 900;
-const MOON_SIZE = 45;
+const MOON_SIZE = 56;
 
 /** Draws a soft round glow into a canvas, used for the moon disc and its halo. */
 function glowTexture(core: number): THREE.CanvasTexture {
@@ -47,8 +47,8 @@ export class NightSky {
 
   constructor(random: Random) {
     this.stars = new StarFieldFactory(random).create(2500, RADIUS);
-    this.moon = sprite(glowTexture(0.42), 0xf4f1e6, MOON_SIZE);
-    this.halo = sprite(glowTexture(0.02), 0x8aa4d8, MOON_SIZE * 6);
+    this.moon = sprite(glowTexture(0.42), 0xfffdf2, MOON_SIZE);
+    this.halo = sprite(glowTexture(0.02), 0xa9c0f0, MOON_SIZE * 7);
     this.group.add(this.stars, this.halo, this.moon);
     this.group.renderOrder = -1;
   }
@@ -66,7 +66,7 @@ export class NightSky {
     uniforms.opacity.value = night;
     const moonUp = Math.min(1, Math.max(0, (moonDir.y + 0.02) / 0.1));
     this.moon.material.opacity = night * moonUp;
-    this.halo.material.opacity = night * moonUp * 0.35;
+    this.halo.material.opacity = night * moonUp * 0.7;
     const d = RADIUS * 0.95;
     this.moon.position.set(moonDir.x * d, moonDir.y * d, moonDir.z * d);
     this.halo.position.copy(this.moon.position);

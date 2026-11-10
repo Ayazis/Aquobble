@@ -1,16 +1,15 @@
 import { identityQuat, type GameWorld, type Random } from '@core';
+import type { Navigator } from '@navigation';
 import type { PhysicsEngine } from '@physics';
 import type { PlayerVisualFactory } from '@player';
 import type {} from '@rendering';
 import { createTownsfolk } from './Townsfolk';
-import type { WanderArea } from './WanderArea';
-import { pickWanderTarget } from './wanderStep';
 
 const HALF_HEIGHT = 0.5;
 const RADIUS = 0.35;
 const DROP_FROM = 500;
 
-/** Adds townsfolk: character-controlled capsules standing at random spots in the wander area. */
+/** Adds townsfolk: character-controlled capsules standing at random walkable spots. */
 export class TownsfolkSpawner {
   constructor(
     private readonly world: GameWorld,
@@ -19,9 +18,9 @@ export class TownsfolkSpawner {
     private readonly random: Random,
   ) {}
 
-  spawn(count: number, area: WanderArea, walkSpeed: number): void {
+  spawn(count: number, navigator: Navigator, walkSpeed: number): void {
     for (let i = 0; i < count; i++) {
-      const { x, z } = pickWanderTarget(area, this.random);
+      const { x, z } = navigator.randomPoint(this.random);
       const hit = this.physics.castRay({ x, y: DROP_FROM, z }, { x: 0, y: -1, z: 0 }, DROP_FROM * 2);
       const groundY = hit === null ? 0 : DROP_FROM - hit;
       const position = { x, y: groundY + HALF_HEIGHT + RADIUS + 0.05, z };

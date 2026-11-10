@@ -12,3 +12,7 @@ export { PlayerAnimationSystem } from './PlayerAnimationSystem';
 export type { CharacterAnimation, LocomotionClip } from './CharacterAnimation';
 export { locomotionClip } from './locomotionClip';
 export { turnTowards } from './turnTowards';
+export type { Lantern } from './Lantern';
+export { LanternFactory } from './LanternFactory';
+export { LanternButton } from './LanternButton';
+export { LanternSystem } from './LanternSystem';
