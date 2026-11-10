@@ -1,5 +1,6 @@
 import type * as THREE from 'three';
 import type { System, Vec3 } from '@core';
+import type { CloudLayer } from './CloudLayer';
 import type { NightSky } from './NightSky';
 import type { DayKeyframe } from './DayKeyframe';
 import type { EnvironmentConfig } from './EnvironmentConfig';
@@ -26,6 +27,7 @@ export class DayNightSystem implements System {
     private readonly config: EnvironmentConfig,
     private readonly night: NightSky,
     private readonly camera: THREE.Camera,
+    private readonly clouds: CloudLayer,
   ) {
     this.time = config.startTimeOfDay;
   }
@@ -66,6 +68,8 @@ export class DayNightSystem implements System {
     this.sky.setSun(sun, lighting.turbidity, lighting.rayleigh);
     const darkness = Math.min(1, Math.max(0, -sun.y / 0.15 + 0.15));
     this.night.update(dt, darkness, { x: -sun.x, y: -sun.y, z: -sun.z }, this.camera.position);
+    const daylight = Math.min(1, Math.max(0, sun.y / 0.35 + 0.1));
+    this.clouds.update(dt, lighting.fogColor, lighting.sunColor, daylight, sun, this.camera.position);
 
     this.sinceBake += dt;
     if (this.sinceBake >= environmentRefreshSeconds) {

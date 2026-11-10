@@ -3,10 +3,12 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { ColorGradeShader } from './ColorGradeShader';
 import type { RenderContext } from './RenderContext';
 
-/** Post-processing chain: scene → ambient occlusion → bloom → tone mapping/colour output. */
+/** Post-processing chain: scene → ambient occlusion → bloom → tone mapping/colour output → grade. */
 export class PostProcessing {
   private readonly composer: EffectComposer;
 
@@ -19,6 +21,7 @@ export class PostProcessing {
       this.composer.addPass(new UnrealBloomPass(size, 0.12, 0.4, 2.5));
     }
     this.composer.addPass(new OutputPass());
+    if (context.quality.postEffects) this.composer.addPass(new ShaderPass(ColorGradeShader));
   }
 
   render(): void {
