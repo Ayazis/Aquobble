@@ -8,6 +8,7 @@ export const MOBILE_QUALITY: RenderQuality = {
   shadows: true,
   postEffects: false,
   shadowMapSize: 1024,
+  shadowInterval: 2,
   surfaceDetail: false,
 };
 

@@ -1,17 +1,15 @@
 import type { TownPlot } from './TownPlot';
 import { sizedPlot as prop } from './sizedPlot';
 
-/** Lanterns on the square's corners and along the four lanes. */
+/** Tall street lanterns on the square's corners and wherever a lane has a gap between house fronts. */
 const LANTERNS: TownPlot[] = [
-  ...[-1, 1].flatMap((sx) => [-1, 1].map((sz) => prop('lantern_post', sx * 5.15, sz * 5.15))),
+  ...[-1, 1].flatMap((sx) => [-1, 1].map((sz) => prop('lantern_post', sx * 5.2, sz * 4.9))),
   prop('lantern_post', 1.95, 9),
-  prop('lantern_post', -1.95, 21.5),
-  prop('lantern_post', -1.95, -9),
-  prop('lantern_post', 1.95, -14),
-  prop('lantern_post', 8.5, 2.3),
+  prop('lantern_post', -1.95, 20.6),
+  prop('lantern_post', 8.5, 2.6),
   prop('lantern_post', 17, 1.95, Math.PI / 2),
-  prop('lantern_post', -10.2, -1.95, Math.PI / 2),
-  prop('lantern_post', -22.3, 1.95, Math.PI / 2),
+  prop('lantern_post', -6.4, 2, Math.PI / 2),
+  prop('lantern_post', 6.6, -2, Math.PI / 2),
 ];
 
 /** The market square: benches, a cart and the stalls' stock, plus a signpost inside three of the gates. */

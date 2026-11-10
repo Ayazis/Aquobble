@@ -98,7 +98,7 @@ export async function bootstrap(container: HTMLElement, baseConfig: GameConfig =
       new BirdRenderSystem(world, birdMeshes.clock),
       ambience,
       dayNight,
-      new RenderSystem(post),
+      new RenderSystem(post, render),
       new FpsSystem(new FpsCounter(), fpsOverlay),
     ],
   });

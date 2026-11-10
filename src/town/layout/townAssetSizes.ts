@@ -27,7 +27,7 @@ export const TOWN_ASSET_SIZES = {
   crate: size(0.8, 0.8, 0.8),
   cart: size(1.04, 2.1, 1.8),
   bench: size(1.89, 0.69, 0.9),
-  lantern_post: size(0.46, 1.13, 2.38),
+  lantern_post: size(0.65, 1.6, 3.36),
   hay_bale: size(0.68, 0.7, 1),
   fence: size(6.44, 0.18, 1.2),
   sign_post: size(1.69, 0.42, 2),
