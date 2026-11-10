@@ -3,6 +3,10 @@ import type { HeightSampler } from '@terrain';
 import { canGrow } from './canGrow';
 import type { GrassPlacement } from './GrassPlacement';
 import type { GroundRules } from './GroundRules';
+import { growthAt } from './growthAt';
+
+/** Tuft scale on mown ground. */
+const LAWN_SCALE = 0.45;
 
 export interface GrassPlacerOptions {
   count: number;
@@ -54,12 +58,18 @@ export class GrassPlacer {
   private tryAdd(out: GrassPlacement[], x: number, z: number, variant: number, min: number, max: number): void {
     const y = canGrow(this.ground, this.rules, x, z);
     if (y === null) return;
+    const { blockers = [], feather = 1.5, lawns = [] } = this.rules;
+    const growth = growthAt(blockers, feather, x, z);
+    // Thinner towards a blocker edge: keep a tuft with chance `growth`.
+    if (growth <= 0 || (growth < 1 && this.random.next() > growth)) return;
+    const lawn = lawns.some((e) => x > e.minX && x < e.maxX && z > e.minZ && z < e.maxZ) ? LAWN_SCALE : 1;
+    const shorter = (0.35 + 0.65 * growth) * lawn;
     out.push({
       x,
       y: y - 0.05,
       z,
       yaw: this.random.range(0, Math.PI * 2),
-      scale: this.random.range(min, max),
+      scale: this.random.range(min, max) * shorter,
       tint: this.random.next(),
       variant,
     });

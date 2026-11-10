@@ -44,6 +44,7 @@ import { createDebug } from './createDebug';
 import { Game } from './Game';
 import { DEFAULT_CONFIG, type GameConfig } from './GameConfig';
 import { forDevice, isMobileDevice } from './forDevice';
+import { installStreetLighting } from './installStreetLighting';
 import { loadTownModels } from './loadTownModels';
 import { populateWorld } from './populateWorld';
 import { rockFactory } from './rockFactory';
@@ -69,6 +70,7 @@ export async function bootstrap(container: HTMLElement, baseConfig: GameConfig =
   const playerVisuals = characterModel ? new PlayerModelFactory(characterModel) : new PlayerMeshFactory();
   const surfaces = styleModels(townModels, characterModel, quality.surfaceDetail);
   const town = populateWorld(world, physics, random, config, townModels, surfaces);
+  const streetLights = installStreetLighting(world, townModels, dayNight, config.streetLights);
   const { birdMeshes, ambience } = spawnWildlife(world, config.seed);
   const rocks = new RockSpawner(world, physics, await rockFactory(loader, random, config));
   new PlayerSpawner(world, physics, playerVisuals, new LanternFactory()).spawn(config.town.x, config.town.z + 8);
@@ -107,6 +109,7 @@ export async function bootstrap(container: HTMLElement, baseConfig: GameConfig =
       new BirdRenderSystem(world, birdMeshes.clock),
       ambience,
       dayNight,
+      streetLights,
       new RenderSystem(post, render),
       ...debug.afterRender,
     ],

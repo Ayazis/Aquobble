@@ -3,7 +3,7 @@ export type { TownPlot } from './layout/TownPlot';
 export type { TownRoad } from './layout/TownRoad';
 export type { TownGate, TownWall, WallSide } from './layout/TownWall';
 export type { TownLayout } from './layout/TownLayout';
-export { plotBounds, overlaps, type Bounds } from './layout/Bounds';
+export { plotBounds, roadBounds, overlaps, type Bounds } from './layout/Bounds';
 export { DEFAULT_TOWN_LAYOUT } from './layout/defaultTownLayout';
 export type { PlacedPlot, PlacedTown } from './PlacedTown';
 export { TownPlanner, type TownSite } from './TownPlanner';

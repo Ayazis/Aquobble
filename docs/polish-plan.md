@@ -50,6 +50,20 @@ edge smoothing still to do), 1.4 in part (brighter blue night fill; the hour-dri
 part (sun 1.8, sky fill 1.25; the palest surface colours and the histogram are still to do) and 1.11 (phones now run
 the grade as its own pass instead of folding it into the output step).
 
+Step 3, first pass: 2.2 (square is `cobble`, roads are `dirt`, both with their normal maps; edges fray through a
+noisy discard; wheel ruts; two draw calls instead of five; puddles not done), 2.1 (terrain colour blended per pixel
+by height and slope with a noisy edge), 3.1 (grass grows in the town as a short lawn, blocked only by footprints,
+roads and round ponds, feathered at the edges) and 3.2 (tuft roots take the ground colour, tips fade to it before
+the tufts shrink away); grass now grows into the frayed road and square edges. Still to do here: flower stems
+keep the old dark green.
+
+Step 4, first pass, typechecked and linted but never rendered or tested, so every brightness is a first guess:
+1.5 (new `lighting` slice: lamp glass and the windows of seven building types glow from dusk to dawn, one
+instanced additive pool per lamp on all devices, four unshadowed point lights that follow the nearest lamps on
+desktop; house-c, barracks, watchtower and windmill have no window swatch and stay dark), 1.6 (hand lantern light
+at knee height in front of the player, intensity 14 to 4, reach 16 to 9) and 7.3 (fresnel rim on player and
+townsfolk materials, keyed on the key light's brightness so it is strong at dusk and night and faint by day).
+
 ## Tools first
 
 Taking these screenshots meant reaching into private fields. Two small tools make every later item checkable.

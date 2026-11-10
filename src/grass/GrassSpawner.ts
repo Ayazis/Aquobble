@@ -5,6 +5,7 @@ import type { Object3D } from 'three';
 import type {} from '@rendering';
 import type { FlowerInstancesFactory } from './FlowerInstancesFactory';
 import type { GrassInstancesFactory } from './GrassInstancesFactory';
+import type { GroundRules } from './GroundRules';
 import { GrassPlacer, type FlowerPlacerOptions, type GrassPlacerOptions } from './GrassPlacer';
 import { createWindSway, type WindSway } from './WindSway';
 
@@ -28,8 +29,14 @@ export class GrassSpawner {
     private readonly flowers: FlowerInstancesFactory,
   ) {}
 
-  spawn(options: GrassOptions, waterLevel: number, exclude: readonly ExclusionZone[] = []): void {
-    const rules = {
+  spawn(
+    options: GrassOptions,
+    waterLevel: number,
+    exclude: readonly ExclusionZone[] = [],
+    ground: Pick<GroundRules, 'blockers' | 'feather' | 'lawns'> = {},
+  ): void {
+    const rules: GroundRules = {
+      ...ground,
       minHeight: waterLevel + options.beachMargin,
       maxHeight: options.maxHeight,
       maxSlope: options.maxSlope,

@@ -1,73 +1,73 @@
 import * as THREE from 'three';
-import { roadBounds } from '../layout/Bounds';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import type { SurfaceKind, SurfaceStyler } from '@rendering';
+import { roadBounds, type Bounds } from '../layout/Bounds';
 import type { TownLayout } from '../layout/TownLayout';
+import type { TownRoad } from '../layout/TownRoad';
+import { applyVerge } from './applyVerge';
 import { groundPatch } from './groundPatch';
-import { hash2 } from './hash2';
-import { valueNoise2 } from './valueNoise2';
+import { plazaShade } from './plazaShade';
+import { roadShade } from './roadShade';
 
 /** Lift above the ground so the strips never z-fight with the flattened terrain. */
 const LIFT = 0.06;
-/** Height jitter stays well below LIFT so no vertex dips into the terrain. */
-const BUMP = 0.012;
+/** The square lies this much above the roads that run in under it. */
+const PLAZA_LIFT = 0.02;
+/** Width in metres of the strip along each edge that frays into the terrain. */
+const FEATHER = 0.7;
+/** Roads continue this far under the square, so its frayed edge shows dirt instead of a gap. */
+const OVERLAP = 1.2;
+/** Metres per grid cell; only the edge cover and broad tints live on the vertices. */
+const STEP = 0.5;
 
-const DIRT = new THREE.Color(0x7a6450);
-const DIRT_WORN = new THREE.Color(0x5e4b3b);
-const DIRT_EDGE = new THREE.Color(0x6f7048);
-const GRAVEL = new THREE.Color(0x9a8a74);
-const COBBLE = new THREE.Color(0x8a7f72);
-const COBBLE_DARK = new THREE.Color(0x5f5850);
-const COBBLE_OCHRE = new THREE.Color(0x9a8360);
-
-/** Builds packed-dirt roads and a worn cobbled square just above the ground, town-local. */
+/** Builds textured packed-dirt roads and a cobbled square just above the ground, town-local: two meshes. */
 export class RoadMeshFactory {
-  private readonly material = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1 });
+  private readonly cobble: THREE.Material;
+  private readonly dirt: THREE.Material;
+
+  constructor(surfaces?: SurfaceStyler) {
+    this.cobble = groundMaterial('cobble', surfaces);
+    this.dirt = groundMaterial('dirt', surfaces);
+  }
 
   create(layout: TownLayout): THREE.Group {
     const group = new THREE.Group();
     const p = layout.plazaHalfSize;
     const plaza = { minX: -p, maxX: p, minZ: -p, maxZ: p };
-    group.add(this.mesh(groundPatch(plaza, LIFT + 0.02, 0.45, cobble)));
-    for (const road of layout.roads) {
+    group.add(mesh(groundPatch(plaza, LIFT + PLAZA_LIFT, STEP, plazaShade(p * 2, FEATHER)), this.cobble));
+
+    const strips = layout.roads.map((road) => {
       const alongX = road.from.z === road.to.z;
-      group.add(this.mesh(groundPatch(roadBounds(road), LIFT, 0.5, dirt(alongX))));
+      return groundPatch(towardsPlaza(road, alongX), LIFT, STEP, roadShade(alongX, road.width, FEATHER));
+    });
+    if (strips.length > 0) {
+      group.add(mesh(mergeGeometries(strips), this.dirt));
+      for (const strip of strips) strip.dispose();
     }
     return group;
   }
-
-  private mesh(geometry: THREE.BufferGeometry): THREE.Mesh {
-    const mesh = new THREE.Mesh(geometry, this.material);
-    mesh.receiveShadow = true;
-    return mesh;
-  }
 }
 
-/** Packed dirt: darker wheel ruts, gravel speckle, grassy soft edges. */
-function dirt(alongX: boolean) {
-  return (x: number, z: number, u: number, v: number) => {
-    const across = alongX ? v : u; // 0..1 across the road
-    const edge = Math.min(across, 1 - across) * 2; // 0 at the verge, 1 in the middle
-    const rut = Math.max(0, 1 - Math.abs(Math.abs(across - 0.5) - 0.2) / 0.08);
-    const n = valueNoise2(x * 0.35, z * 0.35, 1);
-    const color = DIRT.clone().lerp(DIRT_WORN, rut * 0.6 + (n - 0.5) * 0.4);
-    if (hash2(x * 3.1, z * 3.1, 2) > 0.8) color.lerp(GRAVEL, 0.45);
-    color.lerp(DIRT_EDGE, Math.max(0, 1 - edge / 0.35) * 0.55);
-    const dy = (hash2(x, z, 3) - 0.5) * BUMP - rut * BUMP * 0.5;
-    return { color, dy };
-  };
+/** The road's bounds, stretched at the end nearer the town centre so it runs in under the square. */
+function towardsPlaza(road: TownRoad, alongX: boolean): Bounds {
+  const b = roadBounds(road);
+  if (alongX) {
+    if (Math.abs(b.minX) < Math.abs(b.maxX)) b.minX -= OVERLAP;
+    else b.maxX += OVERLAP;
+  } else if (Math.abs(b.minZ) < Math.abs(b.maxZ)) b.minZ -= OVERLAP;
+  else b.maxZ += OVERLAP;
+  return b;
 }
 
-/** Worn cobbles: per-stone tint, darker joints, a trodden darker band through the middle. */
-function cobble(x: number, z: number, u: number, v: number) {
-  const cell = 0.45;
-  const sx = Math.floor(x / cell + (Math.floor(z / cell) % 2) * 0.5);
-  const sz = Math.floor(z / cell);
-  const stone = hash2(sx, sz, 4);
-  const color = COBBLE.clone().lerp(stone > 0.7 ? COBBLE_OCHRE : COBBLE_DARK, Math.abs(stone - 0.5) * 0.9);
-  const joint = hash2(x * 5.3, z * 5.3, 5) > 0.65;
-  if (joint) color.lerp(COBBLE_DARK, 0.5);
-  const worn = Math.max(0, 1 - Math.min(Math.abs(u - 0.5), Math.abs(v - 0.5)) / 0.12);
-  color.lerp(COBBLE_DARK, worn * 0.25 + (valueNoise2(x * 0.3, z * 0.3, 6) - 0.5) * 0.3);
-  const edge = Math.min(u, 1 - u, v, 1 - v);
-  if (edge < 0.02) color.lerp(COBBLE_DARK, 0.4);
-  return { color, dy: joint ? -BUMP * 0.6 : (stone - 0.5) * BUMP };
+function groundMaterial(kind: SurfaceKind, surfaces?: SurfaceStyler): THREE.Material {
+  const material = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1 });
+  surfaces?.apply(material, kind);
+  applyVerge(material);
+  return material;
+}
+
+function mesh(geometry: THREE.BufferGeometry, material: THREE.Material): THREE.Mesh {
+  const result = new THREE.Mesh(geometry, material);
+  result.receiveShadow = true;
+  return result;
 }

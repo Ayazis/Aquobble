@@ -1,4 +1,5 @@
 import type { ExclusionZone } from '@vegetation';
+import type { GrassBlocker } from './GrassBlocker';
 
 /** Where grass and flowers may grow. */
 export interface GroundRules {
@@ -8,4 +9,10 @@ export interface GroundRules {
   /** Max slope as rise over run (1 = 45 degrees). */
   maxSlope: number;
   exclude?: readonly ExclusionZone[];
+  /** Footprints, roads, ponds: no grass on them, thinner and shorter grass near them. */
+  blockers?: readonly GrassBlocker[];
+  /** Width (m) of the thinning band around each blocker that sets no `feather` of its own. */
+  feather?: number;
+  /** Mown ground (yards, verges, the foot of the wall): tufts are scaled down here. */
+  lawns?: readonly ExclusionZone[];
 }
