@@ -5,6 +5,7 @@ import type {} from '@rendering';
 import { DEFAULT_PLAYER } from './Player';
 import { idleInput } from './PlayerInput';
 import type { CharacterAnimation } from './CharacterAnimation';
+import type { LanternFactory } from './LanternFactory';
 
 const HALF_HEIGHT = 0.5;
 const RADIUS = 0.4;
@@ -21,6 +22,7 @@ export class PlayerSpawner {
     private readonly world: GameWorld,
     private readonly physics: PhysicsEngine,
     private readonly visuals: PlayerVisualFactory,
+    private readonly lanterns?: LanternFactory,
   ) {}
 
   spawn(x: number, z: number): void {
@@ -36,6 +38,8 @@ export class PlayerSpawner {
       snapToGround: 0.4,
     });
     const visual = this.visuals.create(HALF_HEIGHT, RADIUS);
+    // Hung on the node that turns with the character, so it stays at the same side.
+    const lantern = this.lanterns?.create(visual.animation?.facing ?? visual.object);
     this.world.add({
       player: { ...DEFAULT_PLAYER },
       playerInput: idleInput(),
@@ -45,6 +49,7 @@ export class PlayerSpawner {
       transform: { position: { ...position }, rotation: identityQuat() },
       renderObject: { object: visual.object },
       ...(visual.animation ? { characterAnimation: visual.animation } : {}),
+      ...(lantern ? { lantern } : {}),
     });
   }
 }

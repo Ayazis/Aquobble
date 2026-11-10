@@ -1,6 +1,6 @@
 export { createTownsfolk, type Townsfolk } from './Townsfolk';
-export type { WanderArea } from './WanderArea';
-export { pickWanderTarget, wanderStep } from './wanderStep';
+export { wanderStep } from './wanderStep';
+export { avoidNeighbours } from './avoidNeighbours';
 export { TownsfolkMovementSystem } from './TownsfolkMovementSystem';
 export { TownsfolkAnimationSystem } from './TownsfolkAnimationSystem';
 export { TownsfolkModelFactory } from './TownsfolkModelFactory';

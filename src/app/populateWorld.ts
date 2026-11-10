@@ -7,10 +7,10 @@ import { RockMeshFactory, RockScatterFactory, RockScatterPlacer, RockScatterSpaw
 import { ForestSpawner, TreeInstancesFactory, TreePlacer } from '@vegetation';
 import { FlowerInstancesFactory, GrassInstancesFactory, GrassSpawner } from '@grass';
 import type { GameConfig } from './GameConfig';
-import { populateTown } from './populateTown';
+import { populateTown, type TownGround } from './populateTown';
 import { populateWater } from './populateWater';
 
-/** Creates the static world: terrain (levelled for the town, ponds carved), sea and ponds, town and forest. */
+/** Creates the static world: terrain (levelled for the town, ponds carved), sea and ponds, town and forest. Returns the town's ground. */
 export function populateWorld(
   world: GameWorld,
   physics: PhysicsEngine,
@@ -18,10 +18,11 @@ export function populateWorld(
   config: GameConfig,
   townModels: ReadonlyMap<string, Object3D>,
   surfaces: SurfaceStyler,
-): void {
+): TownGround {
   const noise = new FractalNoise(new ValueNoise(random));
   const terrain = new TerrainGenerator(noise, config.terrain).generate();
-  const townArea = populateTown(world, physics, terrain, config.town, townModels, surfaces);
+  const town = populateTown(world, physics, terrain, config.town, townModels, surfaces);
+  const townArea = town.area;
 
   const pondAreas = populateWater(world, terrain, random, config, [townArea]);
   new TerrainSpawner(world, physics, new TerrainMeshFactory()).spawn(terrain);
@@ -38,4 +39,5 @@ export function populateWorld(
     waterLevel: config.waterLevel,
     exclude: [...(config.rockScatter.exclude ?? []), townArea, ...pondAreas],
   });
+  return town;
 }

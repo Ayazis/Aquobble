@@ -13,6 +13,7 @@ export const SLICES = [
   'diagnostics',
   'player',
   'town',
+  'navigation',
   'townsfolk',
   'wildlife',
   'audio',
