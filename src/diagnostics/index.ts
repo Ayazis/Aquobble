@@ -6,3 +6,8 @@ export { DebugTools, type DebugApi, type DebugKeys } from './DebugTools';
 export type { DebugClock } from './DebugClock';
 export type { RenderStatsSource } from './RenderStatsSource';
 export { isDebugMode } from './isDebugMode';
+export { isScaleMode } from './isScaleMode';
+export { ScaleOverlayFactory } from './ScaleOverlayFactory';
+export { ScaleOverlaySystem } from './ScaleOverlaySystem';
+export { createScaleOverlay } from './createScaleOverlay';
+export { CHARACTER_HEIGHT, TARGET_DOOR_HEIGHT, MEASURED_DOOR_HEIGHTS } from './scaleReference';

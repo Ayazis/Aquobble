@@ -35,7 +35,8 @@ export const DEFAULT_STREET_LIGHTS: StreetLightOptions = {
   poolLift: 0.12,
   // Warm but not orange: a saturated amber added to green grass reads as neon yellow-green.
   poolColor: 0xffc690,
-  poolStrength: 0.22,
+  // Lower so the lamp pool on the town lawn stays warm, not neon (0.8).
+  poolStrength: 0.18,
   lightCount: 4,
   lightColor: 0xffc590,
   lightIntensity: 9,

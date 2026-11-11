@@ -1,124 +1,146 @@
-import { AnimationFrameScheduler, createGameWorld, GameLoop, SeededRandom, type GameWorld } from '@core';
+import { AnimationFrameScheduler, createGameWorld, GameLoop, SeededRandom } from '@core';
 import { PhysicsBodyCleanup, PhysicsPoseSystem, PhysicsStepSystem, RapierPhysicsEngine } from '@physics';
 import {
-  PointerLookInput,
-  GltfModelLoader,
-  ModelMaterialStyler,
-  SurfaceDetailLibrary,
   PostProcessing,
   RenderContext,
   RenderSystem,
   SceneMembership,
-  SmoothZoom,
-  DEFAULT_SMOOTH_ZOOM,
   ThirdPersonCameraSystem,
   TransformSyncSystem,
   ViewportResizer,
-  WheelZoomInput,
 } from '@rendering';
-import {
-  CharacterMovementSystem,
-  KeyboardState,
-  LanternButton,
-  LanternFactory,
-  LanternSystem,
-  PlayerAnimationSystem,
-  PlayerInputSystem,
-  PlayerMeshFactory,
-  PlayerModelFactory,
-  PlayerSpawner,
-  TouchControls,
-  type AnimatedModel,
-} from '@player';
+import { CharacterMovementSystem, LanternSystem, PlayerAnimationSystem, PlayerInputSystem } from '@player';
 import { TownsfolkAnimationSystem, TownsfolkMovementSystem } from '@townsfolk';
-import { AmbientAudio, MuteButton } from '@audio';
-import { isDebugMode } from '@diagnostics';
-import { BirdMeshFactory, BirdRenderSystem, DEFAULT_WILDLIFE, FlockSpawner, FlockSystem } from '@wildlife';
+import { SailSystem } from '@town'; // lane A2: windmill sails
+import { MuteButton } from '@audio';
+import { createScaleOverlay, isDebugMode, isScaleMode } from '@diagnostics';
+import { BirdRenderSystem, FlockSystem } from '@wildlife';
 import { RockRecycleSystem, RockSpawner } from '@rocks';
-import { WaterAnimationSystem } from '@water';
-import { GrassBendSystem, WindSwaySystem } from '@grass';
-import type { Object3D } from 'three';
+import { TideSystem, WaterAnimationSystem, WaterContactSystem } from '@water'; // lane C: water, tides
+import { GrassWatchdogSystem } from '@grass';
+import { applyQualitySettings, type LoadingProgress, NO_PROGRESS, SettingsStore } from '@menu';
+import { loadAllModels } from './loadAllModels';
+import { loadingStage } from './loadingStage';
+import { compileShaders } from './compileShaders';
+import { installGrassPhysics } from './installGrassPhysics'; // lane B2: grass physics
 import { spawnChimneySmoke } from './spawnChimneySmoke';
+import { styleModels } from './styleModels';
 import { createDebug } from './createDebug';
 import { installEnvironment } from './installEnvironment';
 import { Game } from './Game';
 import { DEFAULT_CONFIG, type GameConfig } from './GameConfig';
 import { forDevice, isMobileDevice } from './forDevice';
 import { installStreetLighting } from './installStreetLighting';
-import { loadCharacterModel } from './loadCharacterModel';
-import { loadForestModels } from './loadForestModels';
-import { loadTownModels } from './loadTownModels';
+import { bakeModelAo, installLight } from './installLight'; // lane D: light
+import { installWind } from './installWind'; // lane W0-b: contracts
 import { populateWorld } from './populateWorld';
 import { rockFactory } from './rockFactory';
+import { spawnPlayer } from './spawnPlayer';
+import { spawnLivingDetails } from './spawnLivingDetails'; // lane F: living details
 import { spawnTownsfolk } from './spawnTownsfolk';
+import { waterPhysicsSystems } from './waterPhysicsSystems'; // lane C: water
+import { installWaterReactions } from './installWaterReactions'; // lane C2
+import { spawnWildlife } from './spawnWildlife';
+import { installInput } from './installInput';
+import { installMenu } from './installMenu';
+import { createWeather, installWeather, OVERCAST_WIND_BOOST } from './installWeather'; // lane G: weather
 
 /** Composition root: the only place that knows concrete classes and wires them together. */
-export async function bootstrap(container: HTMLElement, baseConfig: GameConfig = DEFAULT_CONFIG): Promise<Game> {
+export async function bootstrap(
+  container: HTMLElement,
+  progress: LoadingProgress = NO_PROGRESS,
+  baseConfig: GameConfig = DEFAULT_CONFIG,
+): Promise<Game> {
   const mobile = isMobileDevice();
-  const { config, quality } = forDevice(baseConfig, mobile);
+  const settings = new SettingsStore();
+  const device = forDevice(baseConfig, mobile);
+  const config = device.config;
+  const quality = applyQualitySettings(device.quality, settings.settings);
   const world = createGameWorld();
   const random = new SeededRandom(config.seed);
+  await loadingStage(progress, 'Starting physics', 0.02);
   const physics = await RapierPhysicsEngine.create();
 
   const render = new RenderContext(container, quality);
   const post = new PostProcessing(render);
-  const dayNight = installEnvironment(config, render, post);
+  const env = installEnvironment(config, render, post); // lane D: light
+  // lane W0-b: contracts. Shared wind (CPU field + shader uniforms); consumers read wind.wind / wind.uniforms.
+  const weather = createWeather(random); // lane G: weather
+  const boost = () => 1 + OVERCAST_WIND_BOOST * weather.weather.mix.overcast; // lane G: weather
+  const wind = installWind(random, () => env.dayNight.timeOfDay, boost);
 
-  const loader = new GltfModelLoader();
-  const [townModels, characterModel, forestPack] = await Promise.all([
-    loadTownModels(loader),
-    loadCharacterModel(loader),
-    loadForestModels(loader),
-  ]);
-  const playerVisuals = characterModel ? new PlayerModelFactory(characterModel) : new PlayerMeshFactory();
+  const { loader, townModels, characterModel, forestPack } = await loadAllModels(progress, 0.08, 0.6);
+  await loadingStage(progress, 'Building the island', 0.62);
   const surfaces = styleModels(townModels, characterModel, quality.surfaceDetail);
-  const town = populateWorld(world, physics, random, config, townModels, surfaces, forestPack);
-  const streetLights = installStreetLighting(world, townModels, dayNight, config.streetLights);
+  bakeModelAo(quality, [...townModels.values(), forestPack]); // lane D: light
+  // lane B grass quality, lane C prevailing wind for the waves
+  const heading = wind.wind.direction(0);
+  const town = populateWorld(world, physics, random, config, townModels, surfaces, forestPack, quality, heading);
+  const streetLights = installStreetLighting(world, townModels, env.dayNight, config.streetLights, quality.lampShadows); // lane D2
   const { birdMeshes, ambience } = spawnWildlife(world, config.seed);
   const rocks = new RockSpawner(world, physics, await rockFactory(loader, random, config));
-  new PlayerSpawner(world, physics, playerVisuals, new LanternFactory()).spawn(config.town.x, config.town.z + 8);
+  const build = spawnPlayer(world, physics, config, characterModel);
+  await loadingStage(progress, 'Growing grass', 0.8);
+  const grassPhysics = installGrassPhysics(world, render.renderer, quality, wind, random, build.bendRadius); // lane B2
   // Own seed stream so townsfolk never shift the rest of the world's random draws.
   const folkRandom = new SeededRandom(config.seed + 1);
-  const folk = config.townsfolk;
+  const folk = { ...config.townsfolk, ...config.scale };
   const navigator = spawnTownsfolk(world, physics, folkRandom, config.town, town.obstacles, folk, characterModel);
-  const keys = new KeyboardState();
-  const look = new PointerLookInput(render.canvas);
-  const zoom = new SmoothZoom({ ...DEFAULT_SMOOTH_ZOOM, minDistance: 2, maxDistance: 25 });
-  const wheel = new WheelZoomInput(render.canvas, zoom);
-  const debug = createDebug(isDebugMode(), container, render, dayNight, keys, physics);
-  const lanternButton = new LanternButton(container);
-  const touch = mobile ? new TouchControls(container) : undefined;
+  const { keys, look, zoom, wheel, lanternButton, touch } = installInput(container, render, build, mobile);
+  const debug = createDebug(isDebugMode(), container, render, env.dayNight, keys, physics);
+  // lane W0-a: tools
+  const scale = createScaleOverlay(isScaleMode(), world, render.scene, render.camera, physics);
+  // end lane W0-a
+  const waterFx = installWaterReactions(world, render, town.ripple, random, mobile); // lane C2
+  const weatherSystems = installWeather(weather, {
+    ...{ world, render, env, waterFx, random, mobile },
+    ...{ water: town.water, wind: wind.wind, characterHeight: config.scale.playerHeight },
+  }); // lane G: weather
 
   const loop = new GameLoop(new AnimationFrameScheduler(), {
     fixedSystems: [
       new PlayerInputSystem(world, keys, touch),
+      new WaterContactSystem(world, town.water), // lane C: water
       new CharacterMovementSystem(world, physics),
       new TownsfolkMovementSystem(world, physics, navigator, folkRandom),
       ...(config.fallingRocks ? [new RockRecycleSystem(world, rocks, random, config.rocks)] : []),
+      ...waterPhysicsSystems(world, physics, town.water), // lane C: water
       new PhysicsStepSystem(physics),
       new PhysicsPoseSystem(world, physics),
+      ...waterFx.fixedSystems, // lane C2
       new FlockSystem(world),
     ],
     frameSystems: [
+      wind.system, // lane W0-b: contracts
       new TransformSyncSystem(world),
-      new WaterAnimationSystem(world, 0.6, () => dayNight.nightAmount),
-      new WindSwaySystem(world),
-      new GrassBendSystem(world),
+      new WaterAnimationSystem(world, 0.6, () => env.dayNight.nightAmount),
+      new TideSystem(town.tide, () => env.dayNight.timeOfDay), // tides
+      ...grassPhysics, // lane B2: grass physics (wind sway clock, bend map, rustle)
+      new SailSystem(world, wind.uniforms), // lane A2: windmill sails
+      new GrassWatchdogSystem(world), // lane B: grass
       new PlayerAnimationSystem(world),
       new LanternSystem(world, keys, lanternButton),
       new TownsfolkAnimationSystem(world),
+      ...waterFx.frameSystems, // lane C2
       spawnChimneySmoke(world, config.seed),
       new ThirdPersonCameraSystem(world, render.camera, physics, look, zoom),
       ...debug.afterCamera,
+      ...scale, // lane W0-a: tools
       new BirdRenderSystem(world, birdMeshes.clock),
+      ...spawnLivingDetails(world, random.fork('living'), config.waterLevel, town.nature, wind, env.dayNight), // lane F
       ambience,
-      dayNight,
+      env.dayNight,
+      ...weatherSystems, // lane G: weather
       streetLights,
+      installLight(world, physics, env, town.area), // lane D: light
       new RenderSystem(post, render),
       ...debug.afterRender,
     ],
   });
 
+  const targets = { loop, dayNight: env.dayNight, weather: weather.weather, audio: ambience, post, render };
+  const menu = installMenu(container, settings, targets);
+  await compileShaders(render, progress, 0.9);
   return new Game(loop, [
     new SceneMembership(world, render.scene),
     new PhysicsBodyCleanup(world, physics),
@@ -131,27 +153,6 @@ export async function bootstrap(container: HTMLElement, baseConfig: GameConfig =
     new MuteButton(container, ambience),
     lanternButton,
     ...(touch ? [touch] : []),
+    menu,
   ]);
-}
-
-/** One shared look for every model: matte materials, plus surface detail on the static town models where affordable. */
-function styleModels(
-  town: ReadonlyMap<string, Object3D>,
-  character: AnimatedModel | null,
-  detail: boolean,
-): SurfaceDetailLibrary {
-  // With no sources the library leaves every material flat: cheaper shaders for phones.
-  const surfaces = new SurfaceDetailLibrary(detail ? undefined : {});
-  const styler = new ModelMaterialStyler(surfaces);
-  for (const model of town.values()) styler.style(model, true);
-  if (character) styler.style(character.scene, false);
-  surfaces.load();
-  return surfaces;
-}
-
-/** Birds and ambient sound, each on its own seeded stream so they never shift the world's random sequence. */
-function spawnWildlife(world: GameWorld, seed: number): { birdMeshes: BirdMeshFactory; ambience: AmbientAudio } {
-  const birdMeshes = new BirdMeshFactory();
-  new FlockSpawner(world, new SeededRandom(seed + 101), birdMeshes).spawn(DEFAULT_WILDLIFE);
-  return { birdMeshes, ambience: new AmbientAudio(new SeededRandom(seed + 202)) };
 }

@@ -1,3 +1,5 @@
+import { COLOUR_SCRIPT } from '@rendering'; // lane E: palette
+
 /** Colour bands by height for the flat-shaded low-poly look. Ordered by `below`. */
 export interface TerrainBand {
   below: number;
@@ -5,11 +7,11 @@ export interface TerrainBand {
 }
 
 export const DEFAULT_PALETTE: readonly TerrainBand[] = [
-  { below: 1, color: 0xead9a0 }, // sand
-  { below: 6, color: 0x7fc24a }, // grass
-  { below: 14, color: 0x4f9a3c }, // forest
-  { below: 22, color: 0x9a8f80 }, // rock
-  { below: Infinity, color: 0xf2f2f2 }, // snow
+  { below: 1, color: COLOUR_SCRIPT.biomes.sand }, // sand
+  { below: 6, color: COLOUR_SCRIPT.biomes.meadow }, // grass
+  { below: 14, color: COLOUR_SCRIPT.biomes.forest }, // forest
+  { below: 22, color: COLOUR_SCRIPT.biomes.rock }, // rock
+  { below: Infinity, color: COLOUR_SCRIPT.biomes.snow }, // snow
 ];
 
 export function colorForHeight(height: number, palette: readonly TerrainBand[] = DEFAULT_PALETTE): number {

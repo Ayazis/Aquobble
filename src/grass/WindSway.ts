@@ -1,18 +1,21 @@
-/** Max characters that can bend grass at once (size of the shader's bender array). */
-export const MAX_GRASS_BENDERS = 16;
+import { createWindUniforms, type WindUniforms } from '@wind';
+import { createBendUniforms, type BendUniforms } from './BendUniforms';
 
 /**
- * Shared shader uniforms for swaying plants. `WindSwaySystem` advances the time; `GrassBendSystem`
- * packs nearby characters into `benders` as (x, y, z, radius) quadruples (radius 0 = unused slot).
+ * Shader uniforms for swaying plants: the shared wind (`@wind`, kept current by `WindSystem`), the bend map
+ * (trampling, kept current by `GrassBendSystem`) and `time`, the ground fur's drift clock that
+ * `WindSwaySystem` advances. Plant materials read these objects when they compile, so swap in the shared
+ * ones (`linkGrassWind`) before the first frame.
  */
 export interface WindSway {
   time: { value: number };
-  benders: { value: Float32Array };
+  wind: WindUniforms;
+  bend: BendUniforms;
 }
 
-/** Fresh uniforms with no benders. */
+/** Fresh uniforms: still air and a blank bend map. */
 export function createWindSway(): WindSway {
-  return { time: { value: 0 }, benders: { value: new Float32Array(MAX_GRASS_BENDERS * 4) } };
+  return { time: { value: 0 }, wind: createWindUniforms(), bend: createBendUniforms() };
 }
 
 declare module '@core/ecs/Entity' {

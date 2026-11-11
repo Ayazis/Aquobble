@@ -5,6 +5,7 @@ import type { LightPools } from './LightPools';
 import type { LightSlot } from './LightSlot';
 import { nearestLamps } from './nearestLamps';
 import { nightFactor } from './nightFactor';
+import { setLampShadowActive } from './castLampShadow'; // lane D2
 import type {} from './StreetLamp';
 import type { StreetLightOptions } from './StreetLightOptions';
 
@@ -41,6 +42,7 @@ export class StreetLightSystem implements System {
     this.pools.object.visible = night > 0;
     if (this.lights.length === 0) return;
     if (night === 0) return this.switchOff();
+    if (this.dark) for (const light of this.lights) setLampShadowActive(light, true); // lane D2
     this.dark = false;
     const focus = this.focus();
     if (focus) nearestLamps(this.lamps, focus, this.options.lightBlend, this.slots);
@@ -50,12 +52,33 @@ export class StreetLightSystem implements System {
       light.intensity = lamp < 0 ? 0 : this.options.lightIntensity * night * weight;
       if (lamp >= 0) light.position.copy(this.lamps[lamp]);
     }
+    if (focus) this.fadeLampShadow(focus);
+  }
+
+  /**
+   * The shadow-casting light (the first) jumps to another lamp when that one becomes nearest. Its shadow
+   * fades out as the two nearest lamps draw level and back in after the swap, so it never pops.
+   */
+  private fadeLampShadow(focus: Vec3): void {
+    const light = this.lights[0];
+    if (!light.castShadow || this.slots.length < 2) return;
+    const [a, b] = this.slots;
+    const gap = b.lamp < 0 ? Infinity : this.distance(b.lamp, focus) - this.distance(a.lamp, focus);
+    light.shadow.intensity = Math.min(1, Math.max(0, gap / Math.max(this.options.lightBlend, 1e-3)));
+  }
+
+  private distance(lamp: number, focus: Vec3): number {
+    if (lamp < 0) return 0;
+    return Math.hypot(this.lamps[lamp].x - focus.x, this.lamps[lamp].z - focus.z);
   }
 
   /** By day the lights stay in the scene at zero strength; written once, not every frame. */
   private switchOff(): void {
     if (this.dark) return;
     this.dark = true;
-    for (const light of this.lights) light.intensity = 0;
+    for (const light of this.lights) {
+      light.intensity = 0;
+      setLampShadowActive(light, false); // lane D2: no shadow redraws by day
+    }
   }
 }

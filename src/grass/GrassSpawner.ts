@@ -3,20 +3,26 @@ import type { HeightSampler } from '@terrain';
 import type { ExclusionZone } from '@vegetation';
 import type { Object3D } from 'three';
 import type {} from '@rendering';
+import { bakeGrassDensity } from './bakeGrassDensity';
+import type { DensityGrid } from './DensityGrid';
 import type { FlowerInstancesFactory } from './FlowerInstancesFactory';
+import type { GrassQuality } from './GrassBand';
+import { grassBands } from './grassBands';
 import type { GrassBlocker } from './GrassBlocker';
-import type { GrassInstancesFactory } from './GrassInstancesFactory';
+import type { GrassFieldComponent } from './GrassFieldComponent';
+import type { GrassDensityUniforms } from './GrassDensityUniforms';
+import { setGrassDensity } from './GrassDensityUniforms';
+import type { GrassFieldFactory } from './GrassFieldFactory';
 import type { GroundRules } from './GroundRules';
-import { GrassPlacer, type FlowerPlacerOptions, type GrassPlacerOptions } from './GrassPlacer';
+import { GrassPlacer, type FlowerPlacerOptions } from './GrassPlacer';
 import type { TallTuftInstancesFactory } from './TallTuftInstancesFactory';
 import { TallTuftPlacer, type TallTuftOptions } from './TallTuftPlacer';
 import { createWindSway, type WindSway } from './WindSway';
+import { tallGrassCover, type TallGrassCover } from './TallGrassCover';
 
 export interface GrassOptions {
-  /** Sparse, wide tufts of the far ring. */
-  grass: GrassPlacerOptions;
-  /** Dense, narrow tufts of the near ring (drawn only within about 20 m of the camera). */
-  nearGrass: GrassPlacerOptions;
+  /** The density map: world size it covers and texels per side. */
+  density: DensityGrid;
   flowers: FlowerPlacerOptions;
   /** Clumps of tall seed-head grass in thick meadow. */
   seedHeads: TallTuftOptions;
@@ -31,16 +37,22 @@ export interface GrassOptions {
   maxSlope: number;
 }
 
-/** What the spawner is told about the ground besides its height: blockers, lawns, and the ponds for reeds. */
-export type GrassGround = Pick<GroundRules, 'blockers' | 'feather' | 'lawns'> & { ponds?: readonly GrassBlocker[] };
+/** What the spawner is told about the ground besides its height: blockers, lawns, tree cover, ponds for reeds. */
+export type GrassGround = Pick<GroundRules, 'blockers' | 'feather' | 'lawns' | 'canopyAt'> & {
+  ponds?: readonly GrassBlocker[];
+};
 
-/** Places grass, tall tufts and flowers and adds each as a swaying render entity. */
+/**
+ * Bakes the density map, adds the grass field (tufts placed on the GPU round the camera) and places the
+ * flowers and tall tufts; each is a swaying render entity. Placements draw from `random.fork('grass')`.
+ */
 export class GrassSpawner {
   constructor(
     private readonly world: GameWorld,
     private readonly ground: HeightSampler,
     private readonly random: Random,
-    private readonly grass: GrassInstancesFactory,
+    private readonly density: GrassDensityUniforms,
+    private readonly field: GrassFieldFactory,
     private readonly flowers: FlowerInstancesFactory,
     private readonly tall: TallTuftInstancesFactory,
   ) {}
@@ -48,6 +60,7 @@ export class GrassSpawner {
   spawn(
     options: GrassOptions,
     waterLevel: number,
+    quality: GrassQuality,
     exclude: readonly ExclusionZone[] = [],
     ground: GrassGround = {},
   ): void {
@@ -59,25 +72,30 @@ export class GrassSpawner {
       maxSlope: options.maxSlope,
       exclude,
     };
-    const placer = new GrassPlacer(this.ground, this.random, rules);
-    const windSway = createWindSway();
-    const grass = { near: placer.grass(options.nearGrass), far: placer.grass(options.grass) };
-    this.add(this.grass.create(grass, windSway), windSway);
+    setGrassDensity(this.density, bakeGrassDensity(this.ground, rules, options.density), options.density);
+    // The grass and the ground fur share one clock.
+    const windSway: WindSway = { ...createWindSway(), time: this.density.uGrassTime };
+    this.add(this.field.create(grassBands(quality), windSway), windSway, { keep: this.density.uGrassKeep });
+
+    const random = this.random.fork('grass');
+    const placer = new GrassPlacer(this.ground, random, rules);
     this.add(this.flowers.create(placer.flowers(options.flowers), windSway), windSway);
-    // Drawn from the shared random after the flowers, so adding them moves nothing placed before.
-    const tallPlacer = new TallTuftPlacer(this.ground, this.random, rules);
+    const tallPlacer = new TallTuftPlacer(this.ground, random, rules);
     const tall = {
       seedHeads: tallPlacer.seedHeads(options.seedHeads),
       reeds: tallPlacer.reeds(options.pondReeds, options.shoreReeds, ponds, waterLevel),
     };
-    this.add(this.tall.create(tall, windSway), windSway);
+    const tallGrass = tallGrassCover([...tall.seedHeads, ...tall.reeds]);
+    this.add(this.tall.create(tall, windSway), windSway, undefined, tallGrass);
   }
 
-  private add(object: Object3D, windSway: WindSway): void {
+  private add(object: Object3D, windSway: WindSway, grassField?: GrassFieldComponent, tallGrass?: TallGrassCover) {
     this.world.add({
       transform: { position: vec3(), rotation: identityQuat() },
       renderObject: { object },
       windSway,
+      ...(grassField ? { grassField } : {}),
+      ...(tallGrass ? { tallGrass } : {}),
     });
   }
 }

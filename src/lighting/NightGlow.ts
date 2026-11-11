@@ -38,6 +38,9 @@ export class NightGlow {
 
   /** Runs after any patch already on the material (surface detail), so both apply. */
   private patch(material: THREE.Material, mask: string, light: string): void {
+    // Shared materials (window panes, several models on one palette) must be patched once, or the uniform repeats.
+    if (material.userData.nightGlow) return;
+    material.userData.nightGlow = true;
     const before = material.onBeforeCompile;
     const beforeKey = material.customProgramCacheKey;
     const add = `\ttotalEmissiveRadiance += uNightGlow * nightMask * ${light};`;

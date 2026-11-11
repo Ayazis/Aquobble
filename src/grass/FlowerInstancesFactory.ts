@@ -1,4 +1,6 @@
 import * as THREE from 'three';
+import { lushGroundColor } from '@terrain';
+import { grassTipColor } from './grassTipColor';
 import type { GrassPlacement } from './GrassPlacement';
 import type { WindSway } from './WindSway';
 import { applyWindSway } from './applyWindSway';
@@ -30,10 +32,13 @@ export class FlowerInstancesFactory {
   }
 }
 
-/** Joins stem (a mid green close to the grass tips) and head (white, so the instance colour shows). */
+/** Stems take the colour of a mid-tint grass tip on typical meadow ground (linear RGB). */
+const STEM = grassTipColor(lushGroundColor(4), 0.5);
+
+/** Joins stem (the grass-tip colour) and head (white, so the instance colour shows). */
 function mergeColoured(stem: THREE.BufferGeometry, head: THREE.BufferGeometry): THREE.BufferGeometry {
   const parts = [stem.toNonIndexed(), head.toNonIndexed()];
-  const tints = [new THREE.Color(0x6a9a3c), new THREE.Color(0xffffff)];
+  const tints = [new THREE.Color().setRGB(...STEM), new THREE.Color(0xffffff)];
   const positions: number[] = [];
   const normals: number[] = [];
   const colours: number[] = [];

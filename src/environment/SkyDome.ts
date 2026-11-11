@@ -1,27 +1,40 @@
 import * as THREE from 'three';
-import { Sky } from 'three/addons/objects/Sky.js';
 import type { Vec3 } from '@core';
+import { paintedSkyShader } from './paintedSkyShader';
 
-/** Physically based sky, plus an environment map baked from it so the sky lights the scene. */
+/**
+ * Stylised hand-painted sky: a banded gradient from horizon to zenith with a warm wash around the sun,
+ * coloured from the colour script. An environment map is baked from it so the sky lights the scene.
+ */
 export class SkyDome {
-  readonly sky = new Sky();
+  readonly sky: THREE.Mesh<THREE.SphereGeometry, THREE.ShaderMaterial>;
   private readonly envScene = new THREE.Scene();
   private pmrem?: THREE.PMREMGenerator;
   private envMap?: THREE.Texture;
 
   constructor() {
+    const material = new THREE.ShaderMaterial({
+      ...paintedSkyShader(),
+      side: THREE.BackSide,
+      depthWrite: false,
+      fog: false,
+    });
+    this.sky = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 16), material);
     this.sky.scale.setScalar(1000);
-    // The shader's disc is far brighter than the scene and bloom smears it over the frame; `SunDisc` draws ours.
-    this.sky.material.uniforms.showSunDisc.value = 0;
+    this.sky.frustumCulled = false;
+    this.sky.renderOrder = -1;
     // Mesh.clone shares the material, so the bake scene follows every uniform change.
     this.envScene.add(this.sky.clone());
   }
 
-  setSun(direction: Vec3, turbidity: number, rayleigh: number): void {
+  setColours(sun: Vec3, zenith: number, horizon: number, sunColor: number, exposure: number): void {
     const uniforms = this.sky.material.uniforms;
-    uniforms.sunPosition.value.set(direction.x, direction.y, direction.z);
-    uniforms.turbidity.value = turbidity;
-    uniforms.rayleigh.value = rayleigh;
+    (uniforms.sunDirection.value as THREE.Vector3).set(sun.x, sun.y, sun.z).normalize();
+    (uniforms.zenith.value as THREE.Color).setHex(zenith);
+    (uniforms.horizon.value as THREE.Color).setHex(horizon);
+    (uniforms.sunColor.value as THREE.Color).setHex(sunColor);
+    // Undo the exposure (plus a little for ACES) but stay well under white, so the sky shows its scripted colour.
+    uniforms.brightness.value = 1.05 / Math.max(exposure, 0.05);
   }
 
   /** Re-bakes the environment map from the current sky and disposes the previous one. */

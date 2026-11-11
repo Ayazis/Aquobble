@@ -15,4 +15,6 @@ export interface GroundRules {
   feather?: number;
   /** Mown ground (yards, verges, the foot of the wall): tufts are scaled down here. */
   lawns?: readonly ExclusionZone[];
+  /** Tree cover at (x, z) in [0, 1] (1 under a closed canopy): grass there is short, dark and sparse. */
+  canopyAt?: (x: number, z: number) => number;
 }

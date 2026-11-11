@@ -8,3 +8,6 @@ export { nearestLamps } from './nearestLamps';
 export { NightGlow } from './NightGlow';
 export { LightPoolFactory } from './LightPoolFactory';
 export { StreetLightSystem } from './StreetLightSystem';
+export { scaleToPost } from './scaleToPost';
+export { bakeStreetProbes, type RayCast, type StreetProbe } from './bakeStreetProbes';
+export { castLampShadow, setLampShadowActive } from './castLampShadow'; // lane D2

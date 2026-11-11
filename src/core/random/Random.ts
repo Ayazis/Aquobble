@@ -4,4 +4,9 @@ export interface Random {
   next(): number;
   /** Uniform float in [min, max). */
   range(min: number, max: number): number;
+  /**
+   * An independent stream named `name`, derived from this one's seed only (not from how many numbers
+   * were drawn), so adding draws to one feature never shifts another's. Same seed + name, same stream.
+   */
+  fork(name: string): Random;
 }

@@ -29,7 +29,11 @@ export class ModelMaterialStyler {
     const metal = isMetal(material.name);
     material.metalness = metal ? METAL.metalness : 0;
     material.roughness = metal ? METAL.roughness : ROUGHNESS;
-    const kind = surfaceKindOf(material.name);
-    if (detail && kind) this.surfaces.apply(material, kind);
+    // Palette textures carry their colour in the map, so only plain-coloured materials are judged by colour.
+    const kind = surfaceKindOf(material.name, material.map ? undefined : material.color.getHex());
+    if (!detail || !kind) return;
+    // A palette texture holds many colour regions; give each its own grain rather than plaster everywhere.
+    if (material.map && kind === 'plaster' && this.surfaces.applyPalette) this.surfaces.applyPalette(material);
+    else this.surfaces.apply(material, kind);
   }
 }

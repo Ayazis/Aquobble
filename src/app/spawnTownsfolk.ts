@@ -1,9 +1,10 @@
 import type { GameWorld, Random } from '@core';
 import { GridNavigator, NavGrid, type Navigator, type NavObstacle } from '@navigation';
 import type { PhysicsEngine } from '@physics';
-import { PlayerMeshFactory, type AnimatedModel } from '@player';
+import { characterBuild, PlayerMeshFactory, type AnimatedModel } from '@player';
 import { DEFAULT_TOWN_LAYOUT, type TownSite } from '@town';
 import { TownsfolkModelFactory, TownsfolkSpawner } from '@townsfolk';
+import type { CharacterScale } from './CharacterScale';
 
 /** How many townsfolk walk the streets, and how fast. */
 export interface TownsfolkConfig {
@@ -27,14 +28,19 @@ export function spawnTownsfolk(
   random: Random,
   site: TownSite,
   obstacles: readonly NavObstacle[],
-  config: TownsfolkConfig,
+  config: TownsfolkConfig & CharacterScale,
   model: AnimatedModel | null,
 ): Navigator {
   const half = DEFAULT_TOWN_LAYOUT.wall.halfSize;
   const ground = { minX: site.x - half, maxX: site.x + half, minZ: site.z - half, maxZ: site.z + half };
   const navigator = new GridNavigator(new NavGrid(ground, CELL, obstacles, CLEARANCE));
-  const visuals = model ? new TownsfolkModelFactory(model, random) : new PlayerMeshFactory();
+  const visuals = model
+    ? new TownsfolkModelFactory(model, random, { min: config.villagerMinHeight, max: config.villagerMaxHeight })
+    : new PlayerMeshFactory();
   const count = Math.floor(random.range(config.minCount, config.maxCount + 1));
-  new TownsfolkSpawner(world, physics, visuals, random).spawn(count, navigator, config.walkSpeed);
+  const mean = (config.villagerMinHeight + config.villagerMaxHeight) / 2;
+  // Slightly slimmer collider than the player's, so crowds pass in the lanes.
+  const build = characterBuild(mean, 0.9);
+  new TownsfolkSpawner(world, physics, visuals, random, build).spawn(count, navigator, config.walkSpeed);
   return navigator;
 }

@@ -12,6 +12,12 @@ export interface EdgeBushOptions {
 }
 
 /**
+ * Scale ranges per bush model, so every edge bush stands above a 1.6 m person (1.7 to 2.3 m): the forest
+ * pack's bush is about 1.58 m tall at scale 1, the town bush 1.2 m.
+ */
+const BUSH_SCALE = { bush: [1.08, 1.45], townBush: [1.42, 1.9] } as const;
+
+/**
  * Puts bushes at the forest edge: around trees with few neighbours, on the side facing out of the forest.
  * Two bush models alternate, so the edge is not one shape repeated. Pure logic.
  */
@@ -42,13 +48,15 @@ export class EdgeBushPlacer {
         const r = this.random.range(2, 4.5);
         const x = t.x + Math.cos(angle) * r;
         const z = t.z + Math.sin(angle) * r;
+        const kind = this.random.next() < 0.5 ? 'bush' : 'townBush';
+        const [lo, hi] = BUSH_SCALE[kind];
         out.push({
-          kind: this.random.next() < 0.5 ? 'bush' : 'townBush',
+          kind,
           x,
           y: this.ground.heightAt(x, z) - 0.05,
           z,
           yaw: this.random.range(0, Math.PI * 2),
-          scale: this.random.range(0.8, 1.4),
+          scale: this.random.range(lo, hi),
           tint: this.random.next(),
         });
       }

@@ -16,6 +16,8 @@ export interface PhysicsEngine {
   /** Copies the body's current pose into `out` (no allocation). */
   readPose(handle: BodyHandle, out: Transform): void;
   applyImpulse(handle: BodyHandle, impulse: Vec3): void;
+  /** Applies an impulse at a world point, so it also spins the body (e.g. buoyancy at a body's corners). */
+  applyImpulseAt(handle: BodyHandle, impulse: Vec3, point: Vec3): void;
   /** Applies a force for the next step only (e.g. buoyancy, wind). */
   addForce(handle: BodyHandle, force: Vec3): void;
   /** Creates a kinematic capsule body with a character controller (autostep, slope limit, snap to ground). */

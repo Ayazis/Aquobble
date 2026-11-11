@@ -9,32 +9,60 @@ import type { ColorGrade } from './ColorGrade';
 import { ColorGradeShader } from './ColorGradeShader';
 import type { RenderContext } from './RenderContext';
 import { SceneDepthAoPass } from './SceneDepthAoPass';
+import { GodRayPass } from './GodRayPass'; // lane D2
+import type { LightShafts } from './LightShafts'; // lane D2
+import type { Vec3 } from '@core'; // lane D2
+import { InkOutlinePass } from './outline/InkOutlinePass';
+import { outlinesEnabled } from './outline/outlinesEnabled';
+import { RefractionRenderPass } from './refraction/RefractionRenderPass'; // lane H
+import { REFRACTIVE_LAYER } from './refraction/SceneColour'; // lane H
 
 /**
- * Post-processing chain: scene → ambient occlusion → bloom → tone mapping/colour output → grade, and on
+ * Post-processing chain: scene → ambient occlusion → ink outlines → bloom → tone mapping/colour output → grade, and on
  * devices without a multisampled buffer (phones) a final FXAA pass to smooth stair-stepped edges.
  */
-export class PostProcessing implements ColorGrade {
+export class PostProcessing implements ColorGrade, LightShafts {
   private readonly composer: EffectComposer;
   private readonly grade = new ShaderPass(ColorGradeShader);
   private readonly fxaa?: ShaderPass;
+  private readonly shafts?: GodRayPass; // lane D2
+  private readonly outlinePass?: InkOutlinePass;
   private readonly renderer: THREE.WebGLRenderer;
 
-  constructor(context: RenderContext) {
+  constructor(context: RenderContext, outlines = outlinesEnabled(globalThis.location?.search ?? '')) {
     this.renderer = context.renderer;
     const size = context.renderer.getSize(new THREE.Vector2());
-    // The scene pass keeps its depth in a texture so ambient occlusion can read it instead of redrawing.
+    // The scene pass keeps its depth in a texture so ambient occlusion and outlines can read it.
     const pixels = size.clone().multiplyScalar(context.renderer.getPixelRatio());
     const target = new THREE.WebGLRenderTarget(pixels.x, pixels.y, {
       type: THREE.HalfFloatType,
       samples: context.quality.antialias ? 4 : 0,
     });
-    if (context.quality.postEffects) target.depthTexture = new THREE.DepthTexture(pixels.x, pixels.y);
+    const post = context.quality.postEffects;
+    if (post || outlines) target.depthTexture = new THREE.DepthTexture(pixels.x, pixels.y);
     this.composer = new EffectComposer(context.renderer, target);
     this.composer.setSize(size.x, size.y);
-    this.composer.addPass(new RenderPass(context.scene, context.camera));
-    if (context.quality.postEffects) {
-      this.composer.addPass(this.createAmbientOcclusion(context, size, target.depthTexture));
+    // lane H: refraction. Water sits on its own layer; desktop draws it after a copy of the opaque scene.
+    context.camera.layers.enable(REFRACTIVE_LAYER);
+    const refract = post && context.quality.refraction && target.depthTexture;
+    const scenePass = refract ? new RefractionRenderPass(context.scene, context.camera) : undefined;
+    this.composer.addPass(scenePass ?? new RenderPass(context.scene, context.camera));
+    // end lane H
+    const ao = post ? this.createAmbientOcclusion(context, size, target.depthTexture) : undefined;
+    if (ao) this.composer.addPass(ao);
+    if (outlines) {
+      // After AO, which tracks this frame's scene depth; phones sample every second pixel (half resolution).
+      const stride = post ? 1 : 2;
+      this.outlinePass = new InkOutlinePass(context.camera, stride, ao && (() => ao.depthTexture));
+      this.composer.addPass(this.outlinePass);
+    }
+    // lane D2: god rays from the sky mask, desktop only.
+    if (post && context.quality.godRays) {
+      this.shafts = new GodRayPass(context.camera, ao && (() => ao.depthTexture));
+      this.composer.addPass(this.shafts);
+    }
+    // end lane D2
+    if (post) {
       // Threshold 6 keeps bloom to the lamps; the drawn sun stays below it and brings its own glow.
       this.composer.addPass(new UnrealBloomPass(size, 0.06, 0.3, 6));
     }
@@ -54,6 +82,15 @@ export class PostProcessing implements ColorGrade {
     uniforms.saturation.value = saturation;
     uniforms.contrast.value = contrast;
     uniforms.lift.value = lift;
+  }
+
+  setLightShafts(direction: Vec3, color: number, strength: number): void {
+    this.shafts?.setLightShafts(direction, color, strength); // lane D2
+  }
+
+  /** Turns the ink outlines on or off at runtime (no effect when they were left out at start). */
+  setOutlines(on: boolean): void {
+    if (this.outlinePass) this.outlinePass.enabled = on;
   }
 
   render(): void {

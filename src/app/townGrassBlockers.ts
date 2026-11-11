@@ -1,5 +1,5 @@
 import type { GrassBlocker } from '@grass';
-import { roadBounds, type Bounds, type PlacedTown, type TownObstacle } from '@town';
+import { doorPaths, roadBounds, type Bounds, type PlacedTown, type TownObstacle } from '@town';
 
 /**
  * Roads and the square block grass this far inside their edge, so the lawn grows into their frayed strip.
@@ -7,7 +7,7 @@ import { roadBounds, type Bounds, type PlacedTown, type TownObstacle } from '@to
  */
 const FRAY_INSET = 0.7;
 /** Width (m) of the thinning band beside a road or the square: short, so no bald band shows along the fray. */
-const PAVING_FEATHER = 0.4;
+const PAVING_FEATHER = 0.15;
 
 /** Ground in the town where grass cannot grow: building, prop and wall footprints, roads and the plaza. */
 export function townGrassBlockers(town: PlacedTown, obstacles: readonly TownObstacle[]): GrassBlocker[] {
@@ -26,6 +26,15 @@ export function townGrassBlockers(town: PlacedTown, obstacles: readonly TownObst
     ...obstacles.map((o): GrassBlocker => ({ kind: 'rect', ...o })),
     ...layout.roads.map((road) => paving(roadCore(roadBounds(road), road.from.z === road.to.z))),
     paving({ minX: -p, maxX: p, minZ: -p, maxZ: p }),
+    // lane A2: worn dirt tracks from each door to the street (bare ground, a soft frayed edge)
+    ...doorPaths(layout).map((r): GrassBlocker => ({
+      kind: 'rect',
+      ...r,
+      x: origin.x + r.x,
+      z: origin.z + r.z,
+      feather: 0.6,
+    })),
+    // end lane A2
   ];
 }
 

@@ -1,8 +1,16 @@
 import type { GameWorld, System } from '@core';
-import { LightPoolFactory, NightGlow, StreetLightSystem, type DayClock, type StreetLightOptions } from '@lighting';
+import {
+  castLampShadow, // lane D2
+  LightPoolFactory,
+  NightGlow,
+  scaleToPost,
+  StreetLightSystem,
+  type DayClock,
+  type StreetLightOptions,
+} from '@lighting';
 import type {} from '@player';
 import type {} from '@rendering';
-import { DEFAULT_TOWN_LAYOUT } from '@town';
+import { DEFAULT_TOWN_LAYOUT, TOWN_ASSET_SIZES } from '@town';
 import * as THREE from 'three';
 import { LAMP_ASSET } from './spawnStreetLamps';
 
@@ -15,8 +23,10 @@ export function installStreetLighting(
   world: GameWorld,
   models: ReadonlyMap<string, THREE.Object3D>,
   clock: DayClock,
-  options: StreetLightOptions,
+  tuned: StreetLightOptions,
+  lampShadows = false, // lane D2
 ): System {
+  const options = scaleToPost(tuned, TOWN_ASSET_SIZES[LAMP_ASSET].height);
   const glow = new NightGlow();
   for (const material of materialsOf(models.get(LAMP_ASSET))) glow.lamp(material, options.lampGlow);
   for (const id of new Set(DEFAULT_TOWN_LAYOUT.buildings.map((plot) => plot.assetId))) {
@@ -38,6 +48,7 @@ export function installStreetLighting(
     light.position.copy(lamps[i].glass);
     return light;
   });
+  if (lampShadows && lights.length > 0) castLampShadow(lights[0]); // lane D2: nearest lamp only
   if (lights.length > 0) world.add({ renderObject: { object: new THREE.Group().add(...lights) } });
 
   const players = world.with('player', 'transform');

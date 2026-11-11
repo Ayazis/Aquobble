@@ -1,26 +1,50 @@
 import { HEIGHT_MAP_GLSL } from '@terrain';
+import { gerstnerGlsl } from './gerstnerGlsl';
+import { RIPPLE_FRAGMENT_PARS } from './rippleGlsl';
+import { WATER_FOAM_PARS, WATER_FRAGMENT_FOAM } from './waterFoamGlsl';
 
 /**
  * GLSL injected into MeshStandardMaterial by `WaterMeshFactory`. The water knows the ground under it from
  * the terrain's height texture, so it has a shoreline: pale clear shallows, darker deep water and a foam
  * line that laps at the beach. `uWaterCalm` is 0 for the sea and 1 for a pond.
  */
-export const WATER_VERTEX_PARS = /* glsl */ `
+/** Vertex declarations: the shared Gerstner sum reads the ground under the water for shoaling. */
+export function waterVertexPars(waveCount: number): string {
+  return /* glsl */ `
 uniform float uWaterTime;
 uniform float uWaterSwell;
+uniform float uWaterTide;
 varying vec3 vWaterPos;
+varying vec2 vWaveRest;
+varying vec2 vWaveShoal;
+${HEIGHT_MAP_GLSL}
+${gerstnerGlsl(waveCount)}
 `;
+}
 
-/** The mesh is a plane built in XY and laid flat, so local z is up. The swell fades out before the mesh gets coarse. */
+/**
+ * The mesh is a plane built in XY and laid flat, so local (x, y, z) is world (x, -z, y). The Gerstner sum
+ * (same numbers as the CPU `GerstnerWaveField`) moves each vertex; the mesh's height is its still level.
+ */
 export const WATER_VERTEX_MAIN = /* glsl */ `
 vec3 waterWorld = (modelMatrix * vec4(transformed, 1.0)).xyz;
-if (uWaterSwell > 0.0) {
-  float swell = sin(waterWorld.x * 0.11 + uWaterTime * 1.5) * 0.6
-    + sin(waterWorld.z * 0.17 - waterWorld.x * 0.05 + uWaterTime * 2.1) * 0.4;
-  swell *= uWaterSwell * (1.0 - smoothstep(110.0, 150.0, length(waterWorld.xz)));
-  transformed.z += swell;
-  waterWorld.y += swell;
+// The tide lifts the sea (uWaterSwell is 0 for ponds, which keep their level).
+float waterTide = uWaterTide * uWaterSwell;
+transformed.z += waterTide;
+waterWorld.y += waterTide;
+vWaveRest = waterWorld.xz;
+vWaveShoal = waveShoal(waterWorld.xz, modelMatrix[3].y + waterTide) * vec2(1.0, uWaterSwell);
+if (vWaveShoal.y > 0.0) {
+  vec3 wave = gerstnerOffset(waterWorld.xz, uWaterTime, vWaveShoal);
+  transformed += vec3(wave.x, -wave.z, wave.y);
+  waterWorld += wave;
 }
+// Swash: the water's edge slides a little up the beach and back (visual only, under 0.15 m).
+float swashDepth = waterWorld.y - groundHeightAt(waterWorld.xz);
+float swash = uWaterSwell * (1.0 - smoothstep(0.0, 1.2, swashDepth))
+  * (0.5 + 0.5 * sin(uWaterTime * 1.3 + dot(waterWorld.xz, vec2(0.11, 0.07)))) * 0.14;
+transformed.z += swash;
+waterWorld.y += swash;
 vWaterPos = waterWorld;
 `;
 
@@ -31,7 +55,11 @@ uniform float uWaterCalm;
 uniform float uWaterNight;
 uniform vec3 uWaterShallow;
 varying vec3 vWaterPos;
+varying vec2 vWaveRest;
+varying vec2 vWaveShoal;
 ${HEIGHT_MAP_GLSL}
+${RIPPLE_FRAGMENT_PARS}
+${WATER_FOAM_PARS}
 `;
 
 export const WATER_FRAGMENT_COLOR = /* glsl */ `
@@ -52,30 +80,35 @@ export const WATER_FRAGMENT_COLOR = /* glsl */ `
   float b = texture2D(uWaterNormals, s * vec2(0.043, 0.12) - uWaterTime * vec2(0.007, 0.006)).g;
   float near = 1.0 - smoothstep(60.0, 220.0, distance(vWaterPos, cameraPosition));
   float fleck = smoothstep(0.8, 0.84, a * b * 2.0) * near * (1.0 - uWaterCalm) * (1.0 - shallow);
-  // Shore foam: a thin solid edge at the waterline and bands that travel in towards it.
-  float lap = sin(depth * 22.0 + uWaterTime * 2.2 + a * 5.0);
-  float foam = (1.0 - smoothstep(0.08, 0.32, depth)) * smoothstep(0.55, 0.8, lap) * 0.75;
-  foam = max(foam, 1.0 - smoothstep(0.02, 0.06 + 0.06 * b, depth));
-  foam *= mix(1.0, 0.3, uWaterCalm);
+${WATER_FRAGMENT_FOAM}
   fleck *= mix(1.0, 0.35, uWaterNight);
-  diffuseColor.rgb = mix(diffuseColor.rgb, vec3(mix(1.0, 0.55, uWaterNight)), max(fleck * 0.6, foam));
+  diffuseColor.rgb = mix(diffuseColor.rgb, vec3(mix(1.0, 0.75, uWaterNight)), max(fleck * 0.6, foam));
   diffuseColor.a = mix(diffuseColor.a, 1.0, max(fleck, foam));
 }
 `;
 
-/** The surface is close to a flat horizontal plane, so the ripple normal is built in world space directly. */
+/** Analytic Gerstner normal (vertex varyings, per pixel) tilted by the scrolling ripple texture, in world space. */
 export const WATER_FRAGMENT_NORMAL = /* glsl */ `
 {
   vec2 p = vWaterPos.xz;
   vec3 n1 = texture2D(uWaterNormals, p * 0.06 + uWaterTime * vec2(0.02, 0.012)).xyz * 2.0 - 1.0;
   vec3 n2 = texture2D(uWaterNormals, p * 0.021 - uWaterTime * vec2(0.008, 0.014)).xyz * 2.0 - 1.0;
   vec2 ripple = (n1.xy + n2.xy) * 0.35 * mix(1.0, 0.4, uWaterCalm);
-  normal = normalize((viewMatrix * vec4(normalize(vec3(ripple.x, 1.0, ripple.y)), 0.0)).xyz);
+  vec3 swell = vWaveShoal.y > 0.0 ? gerstnerNormal(vWaveRest, uWaterTime, vWaveShoal) : vec3(0.0, 1.0, 0.0);
+  ripple += rippleAt(p).xy;
+  vec3 world = normalize(vec3(swell.x + ripple.x, swell.y, swell.z + ripple.y));
+  normal = normalize((viewMatrix * vec4(world, 0.0)).xyz);
 }
 `;
 
 /** A broken path of glints towards the sun (or moon): ripples that mirror it straight at the viewer flash its colour. */
 export const WATER_FRAGMENT_GLITTER = /* glsl */ `
+{
+  // Ripple crests catch a bright rim, and foam is lifted so it stays white by moonlight (dimmer at night).
+  float crest = smoothstep(0.012, 0.05, rippleHeightAt(vWaterPos.xz));
+  totalEmissiveRadiance += vec3(0.85, 0.95, 1.0) * crest * 0.4 * (1.0 - uWaterNight * 0.6);
+  totalEmissiveRadiance += vec3(waterFoam) * mix(0.18, 0.1, uWaterNight);
+}
 #if NUM_DIR_LIGHTS > 0
 {
   vec3 halfway = normalize(directionalLights[0].direction + normalize(vViewPosition));

@@ -1,6 +1,8 @@
 import type * as THREE from 'three';
 import type { System, Vec3 } from '@core';
-import type { ColorGrade } from '@rendering';
+import type { ColorGrade, LightShafts } from '@rendering';
+import { HeightFog } from './HeightFog'; // lane D2
+import { lightShaftStrength } from './lightShaftStrength'; // lane D2
 import type { CloudLayer } from './CloudLayer';
 import type { NightSky } from './NightSky';
 import type { DayKeyframe } from './DayKeyframe';
@@ -20,6 +22,10 @@ export class DayNightSystem implements System {
   private sinceBake = Infinity;
   /** True stops the clock (debug and screenshots); the lighting still follows `setTimeOfDay`. */
   paused = false;
+  /** Lane D2: live fog controls (weather sets `heightFog.mist`). */
+  readonly heightFog = new HeightFog();
+  /** Lane G: weather. 0..1 grey sky: dims the sun and washes the colours out. */
+  overcast = 0;
 
   constructor(
     private readonly renderer: THREE.WebGLRenderer,
@@ -33,7 +39,7 @@ export class DayNightSystem implements System {
     private readonly camera: THREE.Camera,
     private readonly clouds: CloudLayer,
     private readonly sunDisc: SunDisc,
-    private readonly grade?: ColorGrade,
+    private readonly grade?: ColorGrade & Partial<LightShafts>,
   ) {
     this.time = config.startTimeOfDay;
   }
@@ -77,16 +83,21 @@ export class DayNightSystem implements System {
     this.light.follow(this.camera);
     this.light.follow(this.camera);
     this.light.sun.color.setHex(lighting.sunColor);
-    this.light.sun.intensity = lighting.sunIntensity * fade;
+    this.light.sun.intensity = lighting.sunIntensity * fade * (1 - 0.6 * this.overcast); // lane G
     this.light.fill.color.setHex(lighting.hemisphereSky);
     this.light.fill.groundColor.setHex(lighting.hemisphereGround);
     this.light.fill.intensity = lighting.hemisphereIntensity;
     this.fog.color.setHex(lighting.fogColor);
-    this.fog.density = lighting.fogDensity;
+    this.fog.density = this.heightFog.densityFor(lighting.fogDensity); // lane D2
     this.renderer.toneMappingExposure = lighting.exposure;
     this.scene.environmentIntensity = lighting.environmentIntensity;
-    this.sky.setSun(sun, lighting.turbidity, lighting.rayleigh);
-    this.grade?.setGrade(lighting.gradeSaturation, lighting.gradeContrast, lighting.gradeLift);
+    this.sky.setColours(sun, lighting.skyZenith, lighting.skyHorizon, lighting.sunColor, lighting.exposure);
+    this.grade?.setGrade(
+      lighting.gradeSaturation * (1 - 0.25 * this.overcast), // lane G
+      lighting.gradeContrast,
+      lighting.gradeLift,
+    );
+    this.grade?.setLightShafts?.(sun, lighting.sunColor, lightShaftStrength(sun.y)); // lane D2
     this.sunDisc.update(sun, lighting.sunColor, this.camera.position);
     const darkness = Math.min(1, Math.max(0, -sun.y / 0.15 + 0.15));
     this.darkness = darkness;

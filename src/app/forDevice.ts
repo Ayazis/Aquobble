@@ -11,6 +11,18 @@ export const MOBILE_QUALITY: RenderQuality = {
   shadowBoxSize: 40,
   shadowInterval: 2,
   surfaceDetail: false,
+  // lane D: light
+  shadowCascades: 1,
+  farShadowBoxSize: 120,
+  cloudShadows: true,
+  vertexAo: true,
+  // end lane D
+  lampShadows: false, // lane D2
+  godRays: false, // lane D2
+  grassDensity: 0.35, // lane B: grass
+  grassMidDistance: 30, // lane B: grass
+  grassBendMapSize: 64, // lane B2: grass physics
+  refraction: false, // lane H
 };
 
 /** True on touch-first devices, where the GPU budget is a fraction of a desktop's. */
@@ -25,11 +37,9 @@ export function forDevice(config: GameConfig, mobile: boolean): { config: GameCo
     quality: MOBILE_QUALITY,
     config: {
       ...config,
-      // Near tufts are only drawn within 20 m, so phones keep more of them than of the far ring.
+      // lane B: grass. The grass field itself thins through `grassDensity`; the density map stays the same.
       grass: {
         ...config.grass,
-        grass: { ...config.grass.grass, count: Math.round(config.grass.grass.count / 2) },
-        nearGrass: { ...config.grass.nearGrass, count: Math.round(config.grass.nearGrass.count / 2) },
         seedHeads: { ...config.grass.seedHeads, clumps: Math.round(config.grass.seedHeads.clumps / 2) },
         shoreReeds: { ...config.grass.shoreReeds, clumps: Math.round(config.grass.shoreReeds.clumps / 2) },
       },

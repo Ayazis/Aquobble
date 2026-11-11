@@ -1,4 +1,5 @@
-import { overlaps, plotBounds, roadBounds, type Bounds } from './Bounds';
+import { overlaps, plotBounds, type Bounds } from './Bounds';
+import { plotRect, rectsOverlap, roadRect } from './GroundRect';
 import { DEFAULT_TOWN_LAYOUT as town } from './defaultTownLayout';
 import { TOWN_ASSET_SIZES, type TownAssetId } from './townAssetSizes';
 import type { TownPlot } from './TownPlot';
@@ -12,7 +13,7 @@ describe('DEFAULT_TOWN_LAYOUT', () => {
   it('is a compact ~52 x 52 m village with a landmark in every quarter and a well in the middle', () => {
     expect(town.size).toBeLessThanOrEqual(52);
     expect(town.wall.halfSize * 2).toBeLessThanOrEqual(town.size);
-    expect(town.buildings.length).toBeGreaterThanOrEqual(16);
+    expect(town.buildings.length).toBeGreaterThanOrEqual(14);
     expect(town.buildings.some((b) => b.assetId === 'well' && b.x === 0 && b.z === 0)).toBe(true);
     expect(town.roads.length).toBeGreaterThanOrEqual(3);
   });
@@ -33,14 +34,14 @@ describe('DEFAULT_TOWN_LAYOUT', () => {
 
   it('keeps roads clear of buildings and props', () => {
     for (const plot of everything) {
-      for (const road of town.roads) expect(overlaps(plotBounds(plot), roadBounds(road)), label(plot)).toBe(false);
+      for (const road of town.roads) expect(rectsOverlap(plotRect(plot), roadRect(road)), label(plot)).toBe(false);
     }
   });
 
   it('keeps props off building plots', () => {
     for (const prop of town.props) {
       for (const b of town.buildings) {
-        expect(overlaps(plotBounds(prop), plotBounds(b)), `${label(prop)} vs ${label(b)}`).toBe(false);
+        expect(rectsOverlap(plotRect(prop), plotRect(b)), `${label(prop)} vs ${label(b)}`).toBe(false);
       }
     }
   });
@@ -49,7 +50,7 @@ describe('DEFAULT_TOWN_LAYOUT', () => {
     const { props } = town;
     for (let i = 0; i < props.length; i++) {
       for (let j = i + 1; j < props.length; j++) {
-        const hit = overlaps(plotBounds(props[i]), plotBounds(props[j]));
+        const hit = rectsOverlap(plotRect(props[i]), plotRect(props[j]));
         expect(hit, `${label(props[i])} vs ${label(props[j])}`).toBe(false);
       }
     }

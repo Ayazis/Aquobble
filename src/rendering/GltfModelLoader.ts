@@ -1,10 +1,17 @@
-import type * as THREE from 'three';
+import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 
 /** Loads optimised glTF models from public/assets/ (meshopt-compressed by `npm run assets:use`). */
 export class GltfModelLoader {
-  private readonly loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
+  private readonly loader: GLTFLoader;
+
+  /** onProgress gets the count of finished and requested files, for a loading screen. */
+  constructor(onProgress?: (loaded: number, total: number) => void) {
+    const manager = new THREE.LoadingManager();
+    if (onProgress) manager.onProgress = (_url, loaded, total) => onProgress(loaded, total);
+    this.loader = new GLTFLoader(manager).setMeshoptDecoder(MeshoptDecoder);
+  }
 
   /** `path` is relative to the site root, e.g. "assets/models/cookie.glb". */
   async load(path: string): Promise<THREE.Group> {

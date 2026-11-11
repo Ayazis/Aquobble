@@ -1,5 +1,6 @@
 import * as THREE from 'three';
-import type { CloudShadow, ColorGrade, RenderContext } from '@rendering';
+import type { CloudShadow, ColorGrade, LightShafts, RenderContext } from '@rendering';
+import { installHeightFog } from './heightFogChunk'; // lane D2
 import { CloudLayer } from './CloudLayer';
 import { DayNightSystem } from './DayNightSystem';
 import type { DayKeyframe } from './DayKeyframe';
@@ -13,6 +14,9 @@ import { SunLight } from './SunLight';
 
 /** Installs sky, sun, moon, stars, fog and image-based lighting into the scene. */
 export class Environment {
+  /** The sun/moon and its fill light, once `install` has run (lane D: light). */
+  sunLight?: SunLight;
+
   constructor(
     private readonly config: EnvironmentConfig,
     private readonly keyframes: readonly DayKeyframe[] = DEFAULT_DAY_KEYFRAMES,
@@ -23,17 +27,27 @@ export class Environment {
    * `grade`, when given, follows the hour too (calmer colour at night). `cloudShadow`, from
    * `installToonLighting`, lets the drifting clouds shade the ground.
    */
-  install(context: RenderContext, random: Random, grade?: ColorGrade, cloudShadow?: CloudShadow): DayNightSystem {
+  install(
+    context: RenderContext,
+    random: Random,
+    grade?: ColorGrade & Partial<LightShafts>,
+    cloudShadow?: CloudShadow,
+  ): DayNightSystem {
     const { scene, renderer, camera } = context;
     const night = new NightSky(random);
     const sky = new SkyDome();
     const clouds = new CloudLayer(cloudShadow);
     const sunDisc = new SunDisc();
-    const { shadows, shadowMapSize, shadowBoxSize } = context.quality;
-    const light = new SunLight(shadowBoxSize, shadows ? shadowMapSize : 512);
+    // lane D: light. Cascaded sun shadows (two boxes on desktop, one on phones).
+    const { shadows, shadowMapSize, shadowBoxSize, farShadowBoxSize, shadowCascades } = context.quality;
+    const mapSize = shadows ? shadowMapSize : 512;
+    const light = new SunLight({ nearBox: shadowBoxSize, farBox: farShadowBoxSize, mapSize, cascades: shadowCascades });
+    this.sunLight = light;
+    // end lane D
+    installHeightFog(); // lane D2: fog pools in valleys and over the sea
     const fog = new THREE.FogExp2(0xffffff, 0);
 
-    scene.add(sky.sky, sunDisc.group, night.group, clouds.mesh, light.sun, light.fill);
+    scene.add(sky.sky, sunDisc.group, night.group, clouds.mesh, ...light.objects);
     scene.fog = fog;
     const dayNight = new DayNightSystem(
       renderer,
