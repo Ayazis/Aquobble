@@ -1,10 +1,8 @@
 import { AnimationFrameScheduler, createGameWorld, GameLoop, SeededRandom, type GameWorld } from '@core';
-import { Environment } from '@environment';
 import { PhysicsBodyCleanup, PhysicsPoseSystem, PhysicsStepSystem, RapierPhysicsEngine } from '@physics';
 import {
   PointerLookInput,
   GltfModelLoader,
-  installToonLighting,
   ModelMaterialStyler,
   SurfaceDetailLibrary,
   PostProcessing,
@@ -42,16 +40,17 @@ import { GrassBendSystem, WindSwaySystem } from '@grass';
 import type { Object3D } from 'three';
 import { spawnChimneySmoke } from './spawnChimneySmoke';
 import { createDebug } from './createDebug';
+import { installEnvironment } from './installEnvironment';
 import { Game } from './Game';
 import { DEFAULT_CONFIG, type GameConfig } from './GameConfig';
 import { forDevice, isMobileDevice } from './forDevice';
 import { installStreetLighting } from './installStreetLighting';
+import { loadCharacterModel } from './loadCharacterModel';
+import { loadForestModels } from './loadForestModels';
 import { loadTownModels } from './loadTownModels';
 import { populateWorld } from './populateWorld';
 import { rockFactory } from './rockFactory';
 import { spawnTownsfolk } from './spawnTownsfolk';
-
-const CHARACTER_MODEL = 'assets/models/town/character.glb';
 
 /** Composition root: the only place that knows concrete classes and wires them together. */
 export async function bootstrap(container: HTMLElement, baseConfig: GameConfig = DEFAULT_CONFIG): Promise<Game> {
@@ -61,16 +60,19 @@ export async function bootstrap(container: HTMLElement, baseConfig: GameConfig =
   const random = new SeededRandom(config.seed);
   const physics = await RapierPhysicsEngine.create();
 
-  installToonLighting();
   const render = new RenderContext(container, quality);
   const post = new PostProcessing(render);
-  const dayNight = new Environment(config.environment).install(render, new SeededRandom(config.seed + 303));
+  const dayNight = installEnvironment(config, render, post);
 
   const loader = new GltfModelLoader();
-  const [townModels, characterModel] = await Promise.all([loadTownModels(loader), loadCharacter(loader)]);
+  const [townModels, characterModel, forestPack] = await Promise.all([
+    loadTownModels(loader),
+    loadCharacterModel(loader),
+    loadForestModels(loader),
+  ]);
   const playerVisuals = characterModel ? new PlayerModelFactory(characterModel) : new PlayerMeshFactory();
   const surfaces = styleModels(townModels, characterModel, quality.surfaceDetail);
-  const town = populateWorld(world, physics, random, config, townModels, surfaces);
+  const town = populateWorld(world, physics, random, config, townModels, surfaces, forestPack);
   const streetLights = installStreetLighting(world, townModels, dayNight, config.streetLights);
   const { birdMeshes, ambience } = spawnWildlife(world, config.seed);
   const rocks = new RockSpawner(world, physics, await rockFactory(loader, random, config));
@@ -99,7 +101,7 @@ export async function bootstrap(container: HTMLElement, baseConfig: GameConfig =
     ],
     frameSystems: [
       new TransformSyncSystem(world),
-      new WaterAnimationSystem(world),
+      new WaterAnimationSystem(world, 0.6, () => dayNight.nightAmount),
       new WindSwaySystem(world),
       new GrassBendSystem(world),
       new PlayerAnimationSystem(world),
@@ -152,14 +154,4 @@ function spawnWildlife(world: GameWorld, seed: number): { birdMeshes: BirdMeshFa
   const birdMeshes = new BirdMeshFactory();
   new FlockSpawner(world, new SeededRandom(seed + 101), birdMeshes).spawn(DEFAULT_WILDLIFE);
   return { birdMeshes, ambience: new AmbientAudio(new SeededRandom(seed + 202)) };
-}
-
-/** The rigged character, or null (capsules) if it fails to load. */
-async function loadCharacter(loader: GltfModelLoader): Promise<AnimatedModel | null> {
-  try {
-    return await loader.loadAnimated(CHARACTER_MODEL);
-  } catch (error) {
-    console.warn('Character model failed to load; using the capsule.', error);
-    return null;
-  }
 }

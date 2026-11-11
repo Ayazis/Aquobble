@@ -85,12 +85,35 @@ Step 5, first pass, rendered the same way, so colour and shape were checked on s
 - 2.5 in part: the canopy channel browns and darkens the ground under crowns. No leaf litter.
 - 5.2 (trunks flare into roots and lean up to 4 degrees; the collider stays an upright cylinder), 5.3 (crowns
   sway on the same gust front as the grass) and 5.4 (dark undersides and inner faces, a tint per clump; no lit rim).
-- Not done: 5.1 and 5.5. Both need the tree models, and the asset search had no API key in the cloud session
-  (`POLYPIZZA_API_KEY`), so no candidates could be shown.
 
 Cost per frame, all devices: one more texture read per terrain pixel; one vertex texture read per grass-blade
 vertex and per rock vertex; 371 rocks instead of 256, drawn as one instanced mesh per shape per 50 m cell so
 off-screen cells are skipped. Not measured on a device.
+
+Step 5, second pass, tested and built but never rendered, so every size, colour and distance is a first guess:
+
+- 5.1: trees are Quaternius models (CC0, Poly Pizza): two pines, two oaks and a dead tree, merged into one file,
+  `models/forest.glb` (542 KB, nine 512 px WebP textures, the shared bark stored once). Pines take over from oaks
+  on the upper half of the forest's height band, 3% are dead trunks and 12% of the living trees are saplings at a
+  third to under half size. Two bush models (the pack's and the town's) grow on the outer side of trees with few
+  neighbours. No birch: the pack has none. Leaves are alpha-tested, sway on the gust front (5.3), stamp the ground
+  shade (1.8, canopy channel; dead trunks stamp contact only) and drop leaf litter; colliders are sized per species.
+- 5.4, the rest: crowns (models and stand-ins) get a lit rim on the key light's side, tinted by the leaf colour,
+  strong by day and faint under the moon.
+- 5.5: ferns, Plant Big, mushrooms, mossy and bare logs and mossy stumps (about 750 on desktop) are scattered under
+  grown trees by the same seeded random, mushrooms near trunks and logs further out. The untextured logs and stump
+  are merged into one vertex-coloured mesh each, re-tinted towards the bark and moss, with the shared bark detail,
+  and leave a contact patch. No colliders on them.
+- Far level: each 40 m tree cell is a `THREE.LOD`; past 75 m (40 m on phones) from the cell centre the models give
+  way to the old procedural tree (about 210 triangles), shaped and tinted per species. Floor cells (25 m) are
+  hidden past 45 m (26 m on phones).
+
+Cost per frame, estimated from the seeded placement, not measured: the models average 3,100 triangles (1.6k to
+6.5k), 1.06 M for all 340 trees and 0.4 M for the whole floor at full detail. With the LOD and frustum culling
+about 80 near trees (about 250k triangles) and 50k for the floor on desktop, and about 20 near trees (65k) plus 40k
+of stand-ins on phones; the shadow pass roughly doubles it. Draws: up to nine per near tree cell (one per species
+per part), two per far cell, up to eight per floor cell; ferns, plants and mushrooms cast no shadow. Download:
++542 KB.
 
 Step 6, first pass, rendered the same way (desktop and phone profile at noon, desktop at sunset and night):
 
@@ -150,6 +173,30 @@ Step 7, second pass, tested and built but never rendered, so every colour and si
 Cost per frame: grass roughly 350k to 375k triangles instead of about 500k (estimated), plus 25 to 40 more draws
 for near cells, and about 16 MB of grass instance data; the wall is 2 draws (about 3,300 triangles) instead of 1;
 smoke is 1 draw of 70 instances. Villager palettes cost only at spawn. Not measured on a device.
+
+Leftovers pass, tested and built, loaded once in Chromium with no shader errors, never looked at:
+
+- 1.1: our own sun, an additive disc (3.5 before tone mapping) and a drawn halo, so phones get the glow too.
+- 1.2: FXAA after the grade when the device has no antialiasing (phones).
+- 1.3 in part: wall and placeholder building colours darker. The square and roads are not retuned. `npm run
+  shots` now prints 5th, 50th and 95th brightness percentiles and a 10-bin histogram.
+- 1.4: each keyframe carries saturation, contrast and a blue lift; night is 0.88, 0.97 and 0.07. Lamp light is
+  warmer and weaker, against the neon lawn. Night sea at half colour, a third of the flecks, grey foam.
+- 1.9: cloud shadows on every standard and physical material (not the water), sharing the sky's cloud pattern,
+  strength 0.38 times daylight. About 120 to 150 ALU per lit pixel by day on all devices; no phone switch yet.
+- 1.10: the shadow box follows the camera (60 m desktop, 40 m phone), snapped to texels, and the sun shadow
+  fades out over the outer fifth of the box, which should remove the sunset wedge.
+- 6.5: a painted moon face with seeded seas and craters, drawn over the stars.
+- 3.3, the rest: seed-head grass in thick meadow, reeds round ponds and along the shore, dry tips on high ground.
+  No ferns here (5.5 has them). Also fixed: near and far grass rings shared one compiled program.
+- 3.5, the rest: glow through the upper blades when looking towards a low, warm key light.
+- 2.2, puddles: four on the default seed, on roads and the square, with a damp ring.
+- 1.8, the rest: buildings, props and the wall stamp the contact channel, and the roads and square read it.
+- 4.4, the rest: stepping stones across about 60% of ponds, no colliders.
+- 2.4, beaches: pebble clusters were rejected because beach sand is steep; now about 200 instead of 18.
+- Still open: 2.6, the square and road colours (1.3), and a phone switch for cloud shadows if they cost too much.
+
+Every rock, tuft and flower moved compared with earlier shots: the shared random is drawn in a new order.
 
 ## Tools first
 

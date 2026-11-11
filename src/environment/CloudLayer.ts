@@ -1,8 +1,11 @@
 import * as THREE from 'three';
 import type { Vec3 } from '@core';
+import { CLOUD_PATTERN, type CloudShadow } from '@rendering';
 import { CLOUD_FRAGMENT, CLOUD_VERTEX } from './cloudShader';
 
-const ALTITUDE = 240;
+const ALTITUDE = CLOUD_PATTERN.altitude;
+/** How much of the sun a full cloud blocks on the ground, at full daylight. */
+const SHADOW_STRENGTH = 0.38;
 const SIZE = 5000;
 
 /** A high sheet of soft, drifting noise clouds, tinted by the time of day. */
@@ -12,7 +15,8 @@ export class CloudLayer {
   private readonly glow = new THREE.Color();
   private elapsed = 0;
 
-  constructor() {
+  /** `shadow`, when given, receives the clock and sun so lit materials darken under the clouds. */
+  constructor(private readonly shadow?: CloudShadow) {
     const material = new THREE.ShaderMaterial({
       uniforms: {
         time: { value: 0 },
@@ -49,5 +53,7 @@ export class CloudLayer {
     (uniforms.glow.value as THREE.Color).setHex(light).multiplyScalar(0.2 + 1.6 * brightness);
     (uniforms.sunDir.value as THREE.Vector3).set(sun.x, sun.y, sun.z);
     this.mesh.position.set(center.x, ALTITUDE, center.z);
+    // Fades out with the daylight, so there are no cloud shadows at night.
+    this.shadow?.set(this.elapsed, sun, SHADOW_STRENGTH * brightness);
   }
 }

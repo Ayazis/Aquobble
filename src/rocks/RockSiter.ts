@@ -23,6 +23,13 @@ export type RockRole = 'lead' | 'companion' | 'outcrop' | 'scree' | 'beach';
 export const SHORE_BAND = 1.5;
 /** Pebbles lie flat, so they keep to ground gentler than this (rise over run). */
 const PEBBLE_MAX_SLOPE = 0.35;
+/**
+ * Beaches here are steep (half the band above the waterline is steeper than 0.6 over a metre), so beach
+ * pebbles accept far steeper ground than loose pebbles inland, and sink into it by the slope instead.
+ */
+const BEACH_PEBBLE_MAX_SLOPE = 1.2;
+/** Share of a pebble cluster's size it sinks per unit of slope, so its downhill side does not float. */
+const PEBBLE_SLOPE_SINK = 0.4;
 /** Rocks smaller than this use the cheap `stone` shape. */
 const STONE_BELOW = 0.9;
 /** Share of the (squashed) unit shape's size that goes below ground. */
@@ -56,14 +63,15 @@ export class RockSiter {
   rockAt(x: number, z: number, role: RockRole, rules: RockSiteRules): RockPlacement | null {
     if (!this.allowed(x, z, rules)) return null;
     const ground = this.ground.heightAt(x, z);
-    const flat = this.slope(x, z) < PEBBLE_MAX_SLOPE;
+    const slope = this.slope(x, z);
+    const flat = slope < (role === 'beach' ? BEACH_PEBBLE_MAX_SLOPE : PEBBLE_MAX_SLOPE);
     const shore = ground - rules.waterLevel < SHORE_BAND;
     const scale = this.scaleFor(role, rules);
     const family = this.familyFor(role, scale, flat, shore);
     const pebbles = family === 'pebbles';
     const squash = pebbles ? 1 : this.random.range(0.7, 1);
     const size = pebbles ? this.random.range(0.7, 1.3) : scale;
-    const sink = SINK[family] * (role === 'outcrop' ? 1.6 : 1);
+    const sink = SINK[family] * (role === 'outcrop' ? 1.6 : 1) + (pebbles ? slope * PEBBLE_SLOPE_SINK : 0);
     return {
       x,
       // Embedded, not dropped: part of every rock is below the ground.

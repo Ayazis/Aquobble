@@ -1,6 +1,7 @@
 export type { RenderObject } from './RenderObject';
 export { RenderContext } from './RenderContext';
 export { PostProcessing } from './PostProcessing';
+export type { ColorGrade } from './ColorGrade';
 export { RenderSystem } from './RenderSystem';
 export { TransformSyncSystem } from './TransformSyncSystem';
 export { SceneMembership } from './SceneMembership';
@@ -23,4 +24,7 @@ export { DEFAULT_SURFACE_DETAILS, type SurfaceDetailSources } from './surface/Su
 export { SurfaceDetailLibrary } from './surface/SurfaceDetailLibrary';
 export { ModelMaterialStyler } from './surface/ModelMaterialStyler';
 export { installToonLighting } from './installToonLighting';
+export { CloudShadow } from './CloudShadow';
+export { CLOUD_PATTERN } from './cloudPattern';
+export { cloudPatternDefines } from './cloudPatternDefines';
 export { applyCharacterRim } from './applyCharacterRim';

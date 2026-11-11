@@ -8,6 +8,8 @@ import type { WindSway } from './WindSway';
 import { applyGroundBlend } from './applyGroundBlend';
 import { applyWindSway } from './applyWindSway';
 import { composeInstance } from './composeInstance';
+import { dryTipColor } from './dryTipColor';
+import { dryness } from './dryness';
 import { grassTipColor } from './grassTipColor';
 import { grassTuftGeometry } from './grassTuftGeometry';
 
@@ -74,7 +76,8 @@ export class GrassInstancesFactory {
       cell.forEach((p, i) => {
         mesh.setMatrixAt(i, composeInstance(p));
         // The tip colour; the shader blends it up from the ground colour at the root.
-        mesh.setColorAt(i, color.setRGB(...grassTipColor(lushGroundColor(p.y), p.tint)));
+        const tip = grassTipColor(lushGroundColor(p.y), p.tint);
+        mesh.setColorAt(i, color.setRGB(...dryTipColor(tip, dryness(p.x, p.z, p.y))));
       });
       mesh.computeBoundingSphere();
       if (mesh.boundingSphere) mesh.boundingSphere.radius += SWAY_MARGIN;

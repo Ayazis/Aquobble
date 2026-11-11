@@ -53,20 +53,31 @@ async function shoot(page: Page, view: ShotView, time: number, file: string) {
     const bitmap = await createImageBitmap(await (await fetch(`data:image/png;base64,${b64}`)).blob());
     const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
     const ctx = canvas.getContext('2d');
-    if (!ctx) return { mean: 0, white: 0, black: 0 };
+    if (!ctx) return { mean: 0, white: 0, black: 0, bins: [] as number[], p: [0, 0, 0] };
     ctx.drawImage(bitmap, 0, 0);
     const { data } = ctx.getImageData(0, 0, bitmap.width, bitmap.height);
     let sum = 0;
     let white = 0;
     let black = 0;
+    // 256 levels for the percentiles; the printed histogram folds them into 10 bins.
+    const levels = new Array<number>(256).fill(0);
     for (let i = 0; i < data.length; i += 4) {
       const luma = (0.2126 * data[i] + 0.7152 * data[i + 1] + 0.0722 * data[i + 2]) / 255;
       sum += luma;
+      levels[Math.min(255, Math.round(luma * 255))]++;
       if (luma > 0.92) white++;
       if (luma < 0.03) black++;
     }
     const pixels = data.length / 4;
-    return { mean: sum / pixels, white: white / pixels, black: black / pixels };
+    const bins = new Array<number>(10).fill(0);
+    levels.forEach((n, level) => (bins[Math.min(9, Math.floor(level / 25.6))] += n / pixels));
+    const at = (q: number) => {
+      let seen = 0;
+      for (let level = 0; level < 256; level++) if ((seen += levels[level]) >= q * pixels) return level / 255;
+      return 1;
+    };
+    const p = [at(0.05), at(0.5), at(0.95)];
+    return { mean: sum / pixels, white: white / pixels, black: black / pixels, bins, p };
   }, png.toString('base64'));
 }
 
@@ -82,6 +93,9 @@ for (const [device, options] of pick(DEVICES, flags.devices)) {
       const name = `${device}-${view.name}-${timeName}`;
       const stats = await shoot(page, view, time, path.join(outDir, `${name}.png`));
       console.log(`${name.padEnd(28)} mean ${pct(stats.mean)}  white ${pct(stats.white)}  black ${pct(stats.black)}`);
+      // Brightness percentiles (5/50/95) and a 10-bin histogram, darkest bin first: midday stone belongs mid-row.
+      const [p5, p50, p95] = stats.p.map(pct);
+      console.log(`${''.padEnd(28)} p5 ${p5}  p50 ${p50}  p95 ${p95}  hist ${stats.bins.map((b) => pct(b)).join('')}`);
     }
   }
   await page.context().close();

@@ -1,8 +1,9 @@
 import type { Random } from '@core';
-import type { HeightSampler } from '@terrain';
+import type { HeightSampler, Pond } from '@terrain';
 import { placeOutcrops } from './placeOutcrops';
 import type { RockPlacement } from './RockPlacement';
 import { RockSiter, SHORE_BAND, type RockSiteRules } from './RockSiter';
+import { placeSteppingStones } from './placeSteppingStones';
 
 export interface RockScatterOptions extends RockSiteRules {
   /** Number of clusters; each holds 1..clusterSize rocks. */
@@ -14,11 +15,16 @@ export interface RockScatterOptions extends RockSiteRules {
   outcrops?: number;
   /** Pebble clusters (and the odd stone) strewn along the beaches; none if unset. */
   beachPebbles?: number;
+  /** Ponds that may get a line of stepping stones across them; none if unset. */
+  ponds?: readonly Pond[];
 }
 
 const CLUSTER_RADIUS = 4;
 /** Beach pebbles lie between the waterline and this far (m) above it. */
 const BEACH_BAND = 0.9;
+/** Each beach spot gets up to this many more pebble clusters around it, within `BEACH_SPREAD` metres. */
+const BEACH_GROUP = 3;
+const BEACH_SPREAD = 1.8;
 
 /**
  * Scatters clustered rocks, preferring slopes and shorelines, and sets outcrops on the steepest ground.
@@ -35,6 +41,17 @@ export class RockScatterPlacer {
   }
 
   place(options: RockScatterOptions): RockPlacement[] {
+    const placements = this.clusters(options);
+    if (options.outcrops) {
+      placements.push(...placeOutcrops(this.siter, this.random, { ...options, outcrops: options.outcrops }));
+    }
+    placements.push(...this.beach(options));
+    placements.push(...placeSteppingStones(this.ground, this.random, options.ponds ?? [], options.variants));
+    return placements;
+  }
+
+  /** Clusters of a lead rock and its companions, preferring slopes and shorelines. */
+  private clusters(options: RockScatterOptions): RockPlacement[] {
     const placements: RockPlacement[] = [];
     let centres = 0;
     for (let tries = 0; centres < options.clusters && tries < options.clusters * 30; tries++) {
@@ -52,25 +69,35 @@ export class RockScatterPlacer {
         if (rock) placements.push(rock);
       }
     }
-    if (options.outcrops) {
-      placements.push(...placeOutcrops(this.siter, this.random, { ...options, outcrops: options.outcrops }));
-    }
-    placements.push(...this.beach(options));
     return placements;
   }
 
+  /** `beachPebbles` spots in the band just above the sea, each a small group of pebble clusters (or the odd stone). */
   private beach(options: RockScatterOptions): RockPlacement[] {
     const pebbles: RockPlacement[] = [];
     const wanted = options.beachPebbles ?? 0;
-    for (let tries = 0; pebbles.length < wanted && tries < wanted * 60; tries++) {
+    let spots = 0;
+    for (let tries = 0; spots < wanted && tries < wanted * 60; tries++) {
       const x = this.random.range(-options.extent, options.extent);
       const z = this.random.range(-options.extent, options.extent);
-      const above = this.ground.heightAt(x, z) - options.waterLevel;
-      if (above < 0.03 || above > BEACH_BAND) continue;
-      const rock = this.siter.rockAt(x, z, 'beach', options);
-      if (rock) pebbles.push(rock);
+      const rock = this.onBeach(x, z, options);
+      if (!rock) continue;
+      spots++;
+      pebbles.push(rock);
+      const more = Math.floor(this.random.next() * (BEACH_GROUP + 1));
+      for (let i = 0; i < more; i++) {
+        const angle = this.random.range(0, Math.PI * 2);
+        const r = this.random.range(0.8, BEACH_SPREAD);
+        const near = this.onBeach(x + Math.cos(angle) * r, z + Math.sin(angle) * r, options);
+        if (near) pebbles.push(near);
+      }
     }
     return pebbles;
+  }
+
+  private onBeach(x: number, z: number, options: RockScatterOptions): RockPlacement | null {
+    const above = this.ground.heightAt(x, z) - options.waterLevel;
+    return above < 0.03 || above > BEACH_BAND ? null : this.siter.rockAt(x, z, 'beach', options);
   }
 
   /** Acceptance chance in [0.1, 1]: steeper ground and the shoreline score higher. */

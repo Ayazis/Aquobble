@@ -19,3 +19,4 @@ export { createGroundShadeUniforms, type GroundShadeUniforms } from './GroundSha
 export { GROUND_SHADE_GLSL } from './groundShadeGlsl';
 export { createHeightMapUniforms, type HeightMapUniforms } from './HeightMapUniforms';
 export { HEIGHT_MAP_GLSL } from './heightMapGlsl';
+export { stampRectangle, type ShadeRectangle } from './stampRectangle';

@@ -14,6 +14,9 @@ export interface WindSwayLook {
 
 /** Patches a material's vertex shader so its plants sway in the wind and bend away from characters. */
 export function applyWindSway(material: THREE.Material, wind: WindSway, look: WindSwayLook): void {
+  // Each look compiles its own program; without a key, materials with different fades would share one.
+  const key = `aquobble-wind-${look.strength}-${look.fadeStart}-${look.fadeEnd}-${look.fadeIn?.join(',') ?? ''}`;
+  material.customProgramCacheKey = () => key;
   material.onBeforeCompile = (shader) => {
     shader.uniforms.uWindTime = wind.time;
     shader.uniforms.uBenders = wind.benders;

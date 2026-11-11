@@ -1,11 +1,11 @@
 /** Placeholder colours per asset id, so grey boxes are told apart until real models arrive. */
 const COLORS: Record<string, number> = {
-  house_a: 0xc9b48f,
+  house_a: 0xb3a07e,
   house_b: 0xb9a07a,
-  house_c: 0xd3c4a5,
+  house_c: 0xb5a88b,
   tavern: 0x9c6b3f,
   blacksmith: 0x5e5550,
-  chapel: 0xe2ddd2,
+  chapel: 0xbdb7ab,
   watchtower: 0x7d756c,
   well: 0x8f8a84,
   market_stall: 0xb5523b,

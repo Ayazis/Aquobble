@@ -13,6 +13,11 @@ export interface DayLighting {
   turbidity: number;
   rayleigh: number;
   exposure: number;
+  /** Colour grade after tone mapping: saturation and contrast (1 = unchanged). */
+  gradeSaturation: number;
+  gradeContrast: number;
+  /** How far blacks lift towards a dark blue (0 = none), so unlit shade reads as night, not as a hole. */
+  gradeLift: number;
 }
 
 /** A `DayLighting` pinned to a time of day in [0, 1): 0 = midnight, 0.5 = noon. */

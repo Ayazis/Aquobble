@@ -11,7 +11,7 @@ export class SkyDome {
 
   constructor() {
     this.sky.scale.setScalar(1000);
-    // The shader's disc is far brighter than the scene and bloom smears it over the frame.
+    // The shader's disc is far brighter than the scene and bloom smears it over the frame; `SunDisc` draws ours.
     this.sky.material.uniforms.showSunDisc.value = 0;
     // Mesh.clone shares the material, so the bake scene follows every uniform change.
     this.envScene.add(this.sky.clone());

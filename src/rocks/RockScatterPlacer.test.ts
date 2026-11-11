@@ -70,12 +70,21 @@ describe('RockScatterPlacer', () => {
   it('strews pebbles along the beach only', () => {
     const shore = { heightAt: (x: number) => x / 10 };
     const rocks = new RockScatterPlacer(shore, new SeededRandom(6)).place({ ...base, clusters: 0, beachPebbles: 20 });
-    expect(rocks).toHaveLength(20);
+    expect(rocks.length).toBeGreaterThan(30);
     for (const r of rocks) {
       expect(r.x / 10).toBeGreaterThan(0);
       expect(r.x / 10).toBeLessThan(0.9);
     }
     expect(rocks.filter((r) => r.family === 'pebbles').length).toBeGreaterThan(10);
+  });
+
+  it('lays pebbles on steep beaches too', () => {
+    // A beach rising 0.7 m per metre, like most of the island's.
+    const steep = { heightAt: (x: number) => x * 0.7 };
+    const rocks = new RockScatterPlacer(steep, new SeededRandom(8)).place({ ...base, clusters: 0, beachPebbles: 30 });
+    const pebbles = rocks.filter((r) => r.family === 'pebbles');
+    expect(pebbles.length).toBeGreaterThan(rocks.length * 0.6);
+    for (const r of pebbles) expect(r.y).toBeLessThan(steep.heightAt(r.x));
   });
 
   it('is reproducible for a seed', () => {

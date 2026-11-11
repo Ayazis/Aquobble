@@ -24,5 +24,10 @@ describe('applyGroundBlend', () => {
     expect(shader.vertexShader).toContain('shadedGround(lushGroundColor(grassRoot.y), grassRoot.xz)');
     expect(shader.uniforms.uGroundShadeMap).toBe(shade.uGroundShadeMap);
     expect(shader.fragmentShader).toContain('normal *= faceDirection;\n#endif');
+    expect(shader.fragmentShader).toContain('varying float vGrassTip;');
+    expect(shader.fragmentShader.indexOf('glowFacing')).toBeLessThan(
+      shader.fragmentShader.indexOf('#include <opaque_fragment>'),
+    );
+    expect(shader.fragmentShader.indexOf('glowFacing')).toBeGreaterThan(0);
   });
 });

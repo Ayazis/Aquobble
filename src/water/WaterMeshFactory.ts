@@ -47,6 +47,7 @@ export class WaterMeshFactory {
 
   private build(geometry: THREE.BufferGeometry, calm: boolean): WaterMesh {
     const time = { value: 0 };
+    const night = { value: 0 };
     const material = new THREE.MeshStandardMaterial({
       color: this.look.waterColor,
       // Rough enough that the sky's reflection tints the water instead of whitening it.
@@ -61,6 +62,7 @@ export class WaterMeshFactory {
       Object.assign(shader.uniforms, this.ground, {
         uWaterNormals: { value: this.normals },
         uWaterTime: time,
+        uWaterNight: night,
         uWaterCalm: { value: calm ? 1 : 0 },
         uWaterSwell: { value: calm ? 0 : SWELL },
         uWaterShallow: { value: new THREE.Color(this.look.shallowColor) },
@@ -80,6 +82,6 @@ export class WaterMeshFactory {
     water.rotation.x = -Math.PI / 2;
     water.receiveShadow = true;
     const object: THREE.Object3D = new THREE.Group().add(water);
-    return { object, surface: { time } };
+    return { object, surface: { time, night } };
   }
 }

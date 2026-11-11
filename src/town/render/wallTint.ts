@@ -1,10 +1,11 @@
 /** The wall's materials, each with its own base colour. */
 export type WallPart = 'stone' | 'cap' | 'plinth' | 'wood' | 'iron';
 
+/** Stone and cap sit in the mid-tones so the sunlit wall does not bleach at noon (polish plan 1.3). */
 const BASE: Record<WallPart, number> = {
-  stone: 0xb3a68e,
-  cap: 0xc9bfa8,
-  plinth: 0x8c806c,
+  stone: 0x9a8e78,
+  cap: 0xaba18c,
+  plinth: 0x7d7262,
   wood: 0x7a5232,
   iron: 0x3b3734,
 };

@@ -28,6 +28,7 @@ export const WATER_FRAGMENT_PARS = /* glsl */ `
 uniform sampler2D uWaterNormals;
 uniform float uWaterTime;
 uniform float uWaterCalm;
+uniform float uWaterNight;
 uniform vec3 uWaterShallow;
 varying vec3 vWaterPos;
 ${HEIGHT_MAP_GLSL}
@@ -42,6 +43,8 @@ export const WATER_FRAGMENT_COLOR = /* glsl */ `
   // Pale and clear over the shallows, darker and more solid over deep water; ponds are darker throughout.
   diffuseColor.rgb = mix(diffuseColor.rgb, uWaterShallow, shallow * 0.6) * mix(1.0, 0.7, deep);
   diffuseColor.rgb *= mix(1.0, 0.6, uWaterCalm);
+  // At night the bright cyan would outshine the moonlit land: darken it and calm the flecks and foam.
+  diffuseColor.rgb *= mix(1.0, 0.5, uWaterNight);
   diffuseColor.a = mix(mix(diffuseColor.a, 0.4, shallow), 1.0, deep * 0.5);
   // Foam flecks on the open sea: streaks along the wind, where two drifting layers line up, fading with distance.
   vec2 s = vec2(dot(p, vec2(0.94, 0.33)), dot(p, vec2(-0.33, 0.94)));
@@ -54,7 +57,8 @@ export const WATER_FRAGMENT_COLOR = /* glsl */ `
   float foam = (1.0 - smoothstep(0.08, 0.32, depth)) * smoothstep(0.55, 0.8, lap) * 0.75;
   foam = max(foam, 1.0 - smoothstep(0.02, 0.06 + 0.06 * b, depth));
   foam *= mix(1.0, 0.3, uWaterCalm);
-  diffuseColor.rgb = mix(diffuseColor.rgb, vec3(1.0), max(fleck * 0.6, foam));
+  fleck *= mix(1.0, 0.35, uWaterNight);
+  diffuseColor.rgb = mix(diffuseColor.rgb, vec3(mix(1.0, 0.55, uWaterNight)), max(fleck * 0.6, foam));
   diffuseColor.a = mix(diffuseColor.a, 1.0, max(fleck, foam));
 }
 `;
@@ -81,7 +85,8 @@ export const WATER_FRAGMENT_GLITTER = /* glsl */ `
   float tips = texture2D(uWaterNormals, g * 0.37 + uWaterTime * vec2(0.05, 0.03)).r
     * texture2D(uWaterNormals, g * 0.53 - uWaterTime * vec2(0.04, 0.06)).g;
   float glint = path * smoothstep(0.3, 0.36, tips);
-  totalEmissiveRadiance += directionalLights[0].color * glint * 0.3 * (1.0 - uWaterCalm * 0.6);
+  totalEmissiveRadiance += directionalLights[0].color * glint * 0.3 * (1.0 - uWaterCalm * 0.6)
+    * (1.0 - uWaterNight * 0.5);
 }
 #endif
 `;
