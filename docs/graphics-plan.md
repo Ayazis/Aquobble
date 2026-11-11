@@ -130,9 +130,32 @@ a little big, the lanterns far too small, and several houses too small next to t
 Order inside this step: 6.1, then 6.2 and 6.3 together, then 6.4 to 6.6. Do it first: every later shot and
 every distance in this plan (grass bands, bend radius, shadow box) is measured against the character.
 
+## 7. Village layout
+
+Today every lantern, bench, barrel and crate is a hand-typed coordinate (`town/layout/squareProps.ts`,
+`yardProps.ts`), written before the roads, the scale and the building sizes settled. They float in odd spots:
+lanterns in the middle of nowhere or half on the road, benches facing walls, crates far from any door. The
+buildings themselves sit on plots that ignore which way the road runs.
+
+Rule for the new layout: **everything is placed relative to a road or a building**, by code, from the road
+network in `TownLayout`, so moving a road or resizing a house (6.4) moves its street furniture with it.
+
+| #   | Change                                                                                                                                                                                                                                                                                                                                                                                                        | Where                                 | Size |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- | ---- |
+| 7.1 | **Road network as data.** Roads become polylines with a width and a kind (main street, lane, path to a gate), plus the square as a polygon. Helpers: point at distance along a road, left/right verge offset, junctions, road ends at gates. Tested.                                                                                                                                                          | `town/layout`                         | M    |
+| 7.2 | **Buildings front the road.** Each building plot is placed along a road edge with its door facing the road (door side read per model), a small set-back and a seeded gap between neighbours, so streets read as rows of houses. Landmarks (tavern, chapel) take the square; workshops (blacksmith, sawmill, stable) the edge of town by a gate; the windmill and watchtower stand on open ground or the wall. | `town/layout`, `TownPlanner`          | M    |
+| 7.3 | **Lanterns along the roads.** A `StreetFurniturePlacer` walks every road and puts a lantern on the verge every 12 to 16 m, alternating sides on wide roads, always at junctions, at both sides of each gate and at the square's corners, facing the road, 0.4 m off the paving edge and never in front of a door. Lamp light pools then fall on the road, where people walk.                                  | `town/layout`, `lighting`             | M    |
+| 7.4 | **Benches and seating on the verge.** Benches stand beside the road or round the square's edge, back to a wall or fence, facing the road or the well; a few under a tree or at a viewpoint near the gates. Never blocking a path.                                                                                                                                                                             | `town/layout`                         | S    |
+| 7.5 | **Props belong to something.** Barrels, crates and hay bales cluster by the building that uses them (tavern, blacksmith, stable, market stalls), against its wall, in groups of 2 to 5. Carts stand at the road edge by a stall or the stable. Market stalls line the square facing inward. Signposts at junctions and inside each gate, pointing along the road. Fences close back yards, not front doors.   | `town/layout`                         | M    |
+| 7.6 | **Checks in tests.** Layout tests assert: every lantern and bench is within 1.5 m of a road edge and not on it; no prop blocks a road, a door or the nav grid's path between gates; no two props overlap; every building's door faces a road. Same seed gives the same town.                                                                                                                                  | `town/layout/*.test.ts`, `navigation` | S    |
+| 7.7 | **Verges and yards.** A strip of short lawn, flowers and the odd planter between road and house front, worn dirt where paths meet doors, so the furniture sits on a believable edge.                                                                                                                                                                                                                          | `grass`, `terrain`                    | S    |
+
+Cost: layout only, at load. Lamp count may change a little (more along long roads, fewer floating ones); the
+lighting budget (four real lights on desktop) is unchanged.
+
 ## Order
 
-1. **Measure and fix scale first**: 0.1, step 6 (scale), then the cheap leftovers 0.3 to 0.6 and 0.8.
+1. **Measure and fix scale first**: 0.1, step 6 (scale) and step 7 (village layout, after scale since sizes change), then the cheap leftovers 0.3 to 0.6 and 0.8.
 2. **Grass everywhere** (3.1 to 3.5): the new grass system is the base the grass physics build on.
 3. **Grass physics** (1.1 to 1.3), then the shared wind field (1.4), which water uses next.
 4. **Water** (2.1, 2.2 first; then 2.3, 2.4, 2.7; then 2.5, 2.8 to 2.12; then 2.6, 2.13).
