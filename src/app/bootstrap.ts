@@ -32,7 +32,7 @@ import {
 } from '@player';
 import { TownsfolkAnimationSystem, TownsfolkMovementSystem } from '@townsfolk';
 import { AmbientAudio, MuteButton } from '@audio';
-import { isDebugMode } from '@diagnostics';
+import { createScaleOverlay, isDebugMode, isScaleMode } from '@diagnostics';
 import { BirdMeshFactory, BirdRenderSystem, DEFAULT_WILDLIFE, FlockSpawner, FlockSystem } from '@wildlife';
 import { RockRecycleSystem, RockSpawner } from '@rocks';
 import { WaterAnimationSystem } from '@water';
@@ -86,6 +86,9 @@ export async function bootstrap(container: HTMLElement, baseConfig: GameConfig =
   const zoom = new SmoothZoom({ ...DEFAULT_SMOOTH_ZOOM, minDistance: 2, maxDistance: 25 });
   const wheel = new WheelZoomInput(render.canvas, zoom);
   const debug = createDebug(isDebugMode(), container, render, dayNight, keys, physics);
+  // lane W0-a: tools
+  const scale = createScaleOverlay(isScaleMode(), world, render.scene, render.camera, physics);
+  // end lane W0-a
   const lanternButton = new LanternButton(container);
   const touch = mobile ? new TouchControls(container) : undefined;
 
@@ -110,6 +113,7 @@ export async function bootstrap(container: HTMLElement, baseConfig: GameConfig =
       spawnChimneySmoke(world, config.seed),
       new ThirdPersonCameraSystem(world, render.camera, physics, look, zoom),
       ...debug.afterCamera,
+      ...scale, // lane W0-a: tools
       new BirdRenderSystem(world, birdMeshes.clock),
       ambience,
       dayNight,
