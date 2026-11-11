@@ -24,6 +24,12 @@ export interface RenderQuality {
   /** Bake vertex ambient occlusion into models at load (stands in for the depth AO pass on phones). */
   vertexAo: boolean;
   // end lane D
+  // lane D2: night shadows and sky
+  /** The nearest lit street lamp casts a small cube shadow at night. */
+  lampShadows: boolean;
+  /** Light shafts around the low sun and through the canopy (needs `postEffects`). */
+  godRays: boolean;
+  // end lane D2
   // lane B: grass
   /** Grass tufts per square metre as a share of the desktop count. */
   grassDensity: number;
@@ -47,6 +53,8 @@ export const HIGH_QUALITY: RenderQuality = {
   cloudShadows: true,
   vertexAo: false,
   // end lane D
+  lampShadows: true, // lane D2
+  godRays: true, // lane D2
   grassDensity: 1, // lane B: grass
   grassMidDistance: 45, // lane B: grass
 };

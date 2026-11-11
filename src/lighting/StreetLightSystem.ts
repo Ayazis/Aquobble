@@ -5,6 +5,7 @@ import type { LightPools } from './LightPools';
 import type { LightSlot } from './LightSlot';
 import { nearestLamps } from './nearestLamps';
 import { nightFactor } from './nightFactor';
+import { setLampShadowActive } from './castLampShadow'; // lane D2
 import type {} from './StreetLamp';
 import type { StreetLightOptions } from './StreetLightOptions';
 
@@ -41,6 +42,7 @@ export class StreetLightSystem implements System {
     this.pools.object.visible = night > 0;
     if (this.lights.length === 0) return;
     if (night === 0) return this.switchOff();
+    if (this.dark) for (const light of this.lights) setLampShadowActive(light, true); // lane D2
     this.dark = false;
     const focus = this.focus();
     if (focus) nearestLamps(this.lamps, focus, this.options.lightBlend, this.slots);
@@ -56,6 +58,9 @@ export class StreetLightSystem implements System {
   private switchOff(): void {
     if (this.dark) return;
     this.dark = true;
-    for (const light of this.lights) light.intensity = 0;
+    for (const light of this.lights) {
+      light.intensity = 0;
+      setLampShadowActive(light, false); // lane D2: no shadow redraws by day
+    }
   }
 }

@@ -45,7 +45,7 @@ const DAY: Hour = {
   gradeLift: 0,
 };
 
-const LOW_SUN = { sunIntensity: 1.1, hemisphereIntensity: 0.45, environmentIntensity: 0.4, fogDensity: 0.0042 };
+const LOW_SUN = { sunIntensity: 1.1, hemisphereIntensity: 0.45, environmentIntensity: 0.4, fogDensity: 0.0048 };
 
 /** Night → dawn → morning → noon → evening → dusk → night, sorted by time. Colours: `COLOUR_SCRIPT`. */
 export const DEFAULT_DAY_KEYFRAMES: readonly DayKeyframe[] = [

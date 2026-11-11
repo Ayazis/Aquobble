@@ -75,8 +75,18 @@ export async function bootstrap(container: HTMLElement, baseConfig: GameConfig =
   const surfaces = styleModels(townModels, characterModel, quality.surfaceDetail);
   bakeModelAo(quality, [...townModels.values(), forestPack]); // lane D: light
   // lane B grass quality, lane C prevailing wind for the waves
-  const town = populateWorld(world, physics, random, config, townModels, surfaces, forestPack, quality, wind.wind.direction(0));
-  const streetLights = installStreetLighting(world, townModels, env.dayNight, config.streetLights);
+  const town = populateWorld(
+    world,
+    physics,
+    random,
+    config,
+    townModels,
+    surfaces,
+    forestPack,
+    quality,
+    wind.wind.direction(0),
+  );
+  const streetLights = installStreetLighting(world, townModels, env.dayNight, config.streetLights, quality.lampShadows); // lane D2
   const { birdMeshes, ambience } = spawnWildlife(world, config.seed);
   const rocks = new RockSpawner(world, physics, await rockFactory(loader, random, config));
   const build = spawnPlayer(world, physics, config, characterModel);
