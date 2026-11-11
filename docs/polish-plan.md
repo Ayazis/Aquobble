@@ -122,9 +122,14 @@ Step 7, first pass on grass, rendered at noon (software Chromium, meadow and for
   18 gather in drifts around about 50 centres, most of a drift in one colour.
 - 3.5 in part: a lighter, warmer band runs across the blade tips with each gust (same gust formula as the sway,
   now one shared GLSL function). No glow when looking towards a low sun.
-- Not done in step 7: 3.6, 2.3, 2.5 (leaf litter), 7.1, 7.2.
+- 2.5, leaf litter: nine patches of seven flat leaves per tree (more for bigger trees), most near the trunk, in
+  greens through browns, one instanced mesh per 25 m cell. Under long grass only a few flecks show; thinning
+  the grass under crowns would show more. The litter draws from the shared seeded random after the trees, so
+  rocks, grass and flowers moved compared with earlier shots.
+- Not done in step 7: 3.6, 2.3, 7.1, 7.2.
 
-Cost per frame: no new texture reads or draws; a few more ALU ops per grass vertex. Flowers go from about 315 to
+Cost per frame: a few more ALU ops per grass vertex; leaf litter adds about 3,000 small instances (42 triangles
+each) in one draw per visible 25 m cell. Flowers go from about 315 to
 several thousand instances in one draw. Not measured on a device.
 
 ## Tools first
