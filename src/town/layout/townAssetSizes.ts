@@ -14,7 +14,7 @@ const size = (width: number, depth: number, height: number): Footprint => ({ wid
 export const TOWN_ASSET_SIZES = {
   house_a: size(5.54, 6.86, 8.75),
   house_b: size(6.4, 9.86, 9.38),
-  house_c: size(11.73, 12.86, 6.5),
+  house_c: size(13.49, 14.79, 7.48),
   tavern: size(16.62, 16.59, 14.4),
   blacksmith: size(11.11, 9.38, 8.58),
   chapel: size(8.78, 10.12, 21.6),

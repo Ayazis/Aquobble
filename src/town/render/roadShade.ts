@@ -2,9 +2,9 @@ import * as THREE from 'three';
 import type { GroundShade } from './groundPatch';
 import { valueNoise2 } from './valueNoise2';
 
-const DIRT = new THREE.Color(0x7a6450);
-const DIRT_WORN = new THREE.Color(0x5e4b3b);
-const DIRT_EDGE = new THREE.Color(0x6f7048);
+const DIRT = new THREE.Color(0x6f5e4f);
+const DIRT_WORN = new THREE.Color(0x564739);
+const DIRT_EDGE = new THREE.Color(0x666650);
 
 /**
  * Packed dirt for a road `width` metres wide: broad worn patches, a grassy tint and falling cover over the
