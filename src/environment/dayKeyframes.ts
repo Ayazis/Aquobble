@@ -4,9 +4,10 @@ const NIGHT: Omit<DayKeyframe, 'time'> = {
   // The "sun" at night is the moon: bright enough to read the town and cast clear shadows.
   sunColor: 0xb4c6f2,
   sunIntensity: 1.15,
-  hemisphereSky: 0x34466e,
-  hemisphereGround: 0x1c2640,
-  hemisphereIntensity: 0.9,
+  // lane D 0.8: a touch more sky fill so buildings away from the lamps read as dark blue, not black.
+  hemisphereSky: 0x3c5080,
+  hemisphereGround: 0x222c48,
+  hemisphereIntensity: 1.05,
   environmentIntensity: 0.2,
   fogColor: 0x1b2333,
   fogDensity: 0.0035,

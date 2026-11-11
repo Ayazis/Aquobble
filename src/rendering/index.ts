@@ -28,3 +28,7 @@ export { CloudShadow } from './CloudShadow';
 export { CLOUD_PATTERN } from './cloudPattern';
 export { cloudPatternDefines } from './cloudPatternDefines';
 export { applyCharacterRim } from './applyCharacterRim';
+export type { ToonLighting } from './installToonLighting';
+export { ToonLightUniforms, MAX_TOON_PROBES, type ToonProbe } from './ToonLightUniforms';
+export { ToonLightSystem } from './ToonLightSystem';
+export { bakeVertexAo } from './bakeVertexAo';

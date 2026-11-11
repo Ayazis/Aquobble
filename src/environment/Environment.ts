@@ -13,6 +13,9 @@ import { SunLight } from './SunLight';
 
 /** Installs sky, sun, moon, stars, fog and image-based lighting into the scene. */
 export class Environment {
+  /** The sun/moon and its fill light, once `install` has run (lane D: light). */
+  sunLight?: SunLight;
+
   constructor(
     private readonly config: EnvironmentConfig,
     private readonly keyframes: readonly DayKeyframe[] = DEFAULT_DAY_KEYFRAMES,
@@ -29,11 +32,15 @@ export class Environment {
     const sky = new SkyDome();
     const clouds = new CloudLayer(cloudShadow);
     const sunDisc = new SunDisc();
-    const { shadows, shadowMapSize, shadowBoxSize } = context.quality;
-    const light = new SunLight(shadowBoxSize, shadows ? shadowMapSize : 512);
+    // lane D: light. Cascaded sun shadows (two boxes on desktop, one on phones).
+    const { shadows, shadowMapSize, shadowBoxSize, farShadowBoxSize, shadowCascades } = context.quality;
+    const mapSize = shadows ? shadowMapSize : 512;
+    const light = new SunLight({ nearBox: shadowBoxSize, farBox: farShadowBoxSize, mapSize, cascades: shadowCascades });
+    this.sunLight = light;
+    // end lane D
     const fog = new THREE.FogExp2(0xffffff, 0);
 
-    scene.add(sky.sky, sunDisc.group, night.group, clouds.mesh, light.sun, light.fill);
+    scene.add(sky.sky, sunDisc.group, night.group, clouds.mesh, ...light.objects);
     scene.fog = fog;
     const dayNight = new DayNightSystem(
       renderer,
