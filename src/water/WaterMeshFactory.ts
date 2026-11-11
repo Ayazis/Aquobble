@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 import type { HeightMapUniforms } from '@terrain';
+import { markRefractive, SCENE_COLOUR_UNIFORMS } from '@rendering'; // lane H
+import { WATER_FRAGMENT_REFRACTION, WATER_REFRACTION_PARS } from './waterRefractionChunk'; // lane H
 import { gerstnerGlsl } from './gerstnerGlsl';
 import { gerstnerUniforms } from './gerstnerUniforms';
 import type { GerstnerTerm } from './GerstnerWaveField';
@@ -89,12 +91,19 @@ export class WaterMeshFactory {
         .replace('#include <color_fragment>', `#include <color_fragment>\n${WATER_FRAGMENT_COLOR}`)
         .replace('#include <normal_fragment_maps>', WATER_FRAGMENT_NORMAL)
         .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>\n${WATER_FRAGMENT_GLITTER}`);
+      // lane H: refraction
+      Object.assign(shader.uniforms, SCENE_COLOUR_UNIFORMS);
+      shader.fragmentShader = shader.fragmentShader
+        .replace('#include <common>', `#include <common>\n${WATER_REFRACTION_PARS}`)
+        .replace(WATER_FRAGMENT_GLITTER, `${WATER_FRAGMENT_GLITTER}\n${WATER_FRAGMENT_REFRACTION}`);
+      // end lane H
     };
     material.customProgramCacheKey = () => 'aquobble-water';
     const water = new THREE.Mesh(geometry, material);
     // Planes and discs are built in XY; lay them flat inside a group that TransformSyncSystem is free to move.
     water.rotation.x = -Math.PI / 2;
     water.receiveShadow = true;
+    markRefractive(water); // lane H
     const object: THREE.Object3D = new THREE.Group().add(water);
     return { object, surface: { time, night } };
   }
