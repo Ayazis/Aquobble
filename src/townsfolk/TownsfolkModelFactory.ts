@@ -16,7 +16,8 @@ export class TownsfolkModelFactory implements PlayerVisualFactory {
   constructor(
     private readonly model: AnimatedModel,
     private readonly random: Random,
-    private readonly height = 1.75,
+    /** Villager heights are drawn uniformly from this range (metres). */
+    private readonly heights = { min: 1.5, max: 1.68 },
   ) {}
 
   create(halfHeight: number, radius: number) {
@@ -38,7 +39,7 @@ export class TownsfolkModelFactory implements PlayerVisualFactory {
     scene.traverse((o) => {
       if (o instanceof THREE.Mesh) o.material = Array.isArray(o.material) ? o.material.map(reskin) : reskin(o.material);
     });
-    const height = this.height * this.random.range(0.92, 1.05);
+    const height = this.random.range(this.heights.min, this.heights.max);
     return new PlayerModelFactory({ scene, animations: this.model.animations }, height).create(halfHeight, radius);
   }
 

@@ -8,3 +8,4 @@ export { nearestLamps } from './nearestLamps';
 export { NightGlow } from './NightGlow';
 export { LightPoolFactory } from './LightPoolFactory';
 export { StreetLightSystem } from './StreetLightSystem';
+export { scaleToPost } from './scaleToPost';
