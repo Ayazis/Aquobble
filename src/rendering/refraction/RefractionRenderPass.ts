@@ -15,6 +15,7 @@ export class RefractionRenderPass extends Pass {
     uniforms: THREE.UniformsUtils.clone(SceneColourCopyShader.uniforms),
   });
   private readonly quad = new FullScreenQuad(this.copy);
+  private frames = 0;
 
   constructor(
     private readonly scene: THREE.Scene,
@@ -58,6 +59,8 @@ export class RefractionRenderPass extends Pass {
     renderer.autoClear = false;
     renderer.shadowMap.autoUpdate = false;
     renderer.shadowMap.needsUpdate = false;
+    // three.js drops lights that are not on the camera's layers: the water pass would be unlit (black sea).
+    if (this.frames++ % 30 === 0) this.lightWaterLayer();
     camera.layers.set(REFRACTIVE_LAYER);
     renderer.setRenderTarget(read);
     renderer.render(this.scene, camera);
@@ -66,6 +69,13 @@ export class RefractionRenderPass extends Pass {
     renderer.shadowMap.needsUpdate = needsUpdate;
     renderer.autoClear = autoClear;
     this.scene.background = background;
+  }
+
+  /** Puts every light on the refractive layer too (lamps can be added after start, so it re-runs now and then). */
+  private lightWaterLayer(): void {
+    this.scene.traverse((o) => {
+      if ((o as THREE.Light).isLight) o.layers.enable(REFRACTIVE_LAYER);
+    });
   }
 
   dispose(): void {
