@@ -6,3 +6,4 @@ export { SmokeSystem } from './SmokeSystem';
 export { SmokeSpawner } from './SmokeSpawner';
 export * from './living'; // lane F: living details
 export { RustleSpawner } from './RustleSpawner'; // lane B2: grass physics
+export { DropletPool, SplashSystem, DripSystem, WetLookSystem } from './waterEffects'; // lane C2

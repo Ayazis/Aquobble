@@ -7,6 +7,7 @@ import type { LilyPadFactory } from './LilyPadFactory';
 import { seaGeometry } from './seaGeometry';
 import type { WaterLook } from './WaterLook';
 import type { WaterMesh } from './WaterMesh';
+import type { RippleUniforms } from './RippleUniforms';
 import {
   WATER_FRAGMENT_COLOR,
   WATER_FRAGMENT_GLITTER,
@@ -29,6 +30,12 @@ const SEA_SEGMENTS = 200;
 export class WaterMeshFactory {
   /** Water time shared by every surface (and by CPU wave queries): `WaterAnimationSystem` advances it once. */
   readonly time = { value: 0 };
+  /** Ripple map round the player (2.5), shared by every surface; `RippleSimulation` fills it. Off until then. */
+  readonly ripple: RippleUniforms = {
+    uRippleMap: { value: null },
+    uRippleBox: { value: new THREE.Vector3() },
+    uRippleTexel: { value: 0 },
+  };
 
   constructor(
     private readonly normals: THREE.Texture,
@@ -66,7 +73,7 @@ export class WaterMeshFactory {
     });
     const waveCount = Math.max(1, this.waves.length);
     material.onBeforeCompile = (shader) => {
-      Object.assign(shader.uniforms, this.ground, gerstnerUniforms(this.waves), {
+      Object.assign(shader.uniforms, this.ground, gerstnerUniforms(this.waves), this.ripple, {
         uWaterNormals: { value: this.normals },
         uWaterTime: time,
         uWaterNight: night,

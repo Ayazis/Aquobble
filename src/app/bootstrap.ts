@@ -3,8 +3,6 @@ import { PhysicsBodyCleanup, PhysicsPoseSystem, PhysicsStepSystem, RapierPhysics
 import {
   PointerLookInput,
   GltfModelLoader,
-  ModelMaterialStyler,
-  SurfaceDetailLibrary,
   PostProcessing,
   RenderContext,
   RenderSystem,
@@ -24,7 +22,6 @@ import {
   PlayerAnimationSystem,
   PlayerInputSystem,
   TouchControls,
-  type AnimatedModel,
 } from '@player';
 import { TownsfolkAnimationSystem, TownsfolkMovementSystem } from '@townsfolk';
 import { SailSystem } from '@town'; // lane A2: windmill sails
@@ -35,8 +32,8 @@ import { RockRecycleSystem, RockSpawner } from '@rocks';
 import { WaterAnimationSystem, WaterContactSystem } from '@water'; // lane C: water
 import { GrassWatchdogSystem } from '@grass';
 import { installGrassPhysics } from './installGrassPhysics'; // lane B2: grass physics
-import type { Object3D } from 'three';
 import { spawnChimneySmoke } from './spawnChimneySmoke';
+import { styleModels } from './styleModels';
 import { createDebug } from './createDebug';
 import { installEnvironment } from './installEnvironment';
 import { Game } from './Game';
@@ -54,6 +51,7 @@ import { spawnPlayer } from './spawnPlayer';
 import { spawnLivingDetails } from './spawnLivingDetails'; // lane F: living details
 import { spawnTownsfolk } from './spawnTownsfolk';
 import { waterPhysicsSystems } from './waterPhysicsSystems'; // lane C: water
+import { installWaterReactions } from './installWaterReactions'; // lane C2
 
 /** Composition root: the only place that knows concrete classes and wires them together. */
 export async function bootstrap(container: HTMLElement, baseConfig: GameConfig = DEFAULT_CONFIG): Promise<Game> {
@@ -78,17 +76,8 @@ export async function bootstrap(container: HTMLElement, baseConfig: GameConfig =
   const surfaces = styleModels(townModels, characterModel, quality.surfaceDetail);
   bakeModelAo(quality, [...townModels.values(), forestPack]); // lane D: light
   // lane B grass quality, lane C prevailing wind for the waves
-  const town = populateWorld(
-    world,
-    physics,
-    random,
-    config,
-    townModels,
-    surfaces,
-    forestPack,
-    quality,
-    wind.wind.direction(0),
-  );
+  const heading = wind.wind.direction(0);
+  const town = populateWorld(world, physics, random, config, townModels, surfaces, forestPack, quality, heading);
   const streetLights = installStreetLighting(world, townModels, env.dayNight, config.streetLights, quality.lampShadows); // lane D2
   const { birdMeshes, ambience } = spawnWildlife(world, config.seed);
   const rocks = new RockSpawner(world, physics, await rockFactory(loader, random, config));
@@ -107,6 +96,7 @@ export async function bootstrap(container: HTMLElement, baseConfig: GameConfig =
   // lane W0-a: tools
   const scale = createScaleOverlay(isScaleMode(), world, render.scene, render.camera, physics);
   // end lane W0-a
+  const waterFx = installWaterReactions(world, render, town.ripple, random, mobile); // lane C2
   const lanternButton = new LanternButton(container);
   const touch = mobile ? new TouchControls(container) : undefined;
 
@@ -120,6 +110,7 @@ export async function bootstrap(container: HTMLElement, baseConfig: GameConfig =
       ...waterPhysicsSystems(world, physics, town.water), // lane C: water
       new PhysicsStepSystem(physics),
       new PhysicsPoseSystem(world, physics),
+      ...waterFx.fixedSystems, // lane C2
       new FlockSystem(world),
     ],
     frameSystems: [
@@ -132,6 +123,7 @@ export async function bootstrap(container: HTMLElement, baseConfig: GameConfig =
       new PlayerAnimationSystem(world),
       new LanternSystem(world, keys, lanternButton),
       new TownsfolkAnimationSystem(world),
+      ...waterFx.frameSystems, // lane C2
       spawnChimneySmoke(world, config.seed),
       new ThirdPersonCameraSystem(world, render.camera, physics, look, zoom),
       ...debug.afterCamera,
@@ -160,21 +152,6 @@ export async function bootstrap(container: HTMLElement, baseConfig: GameConfig =
     lanternButton,
     ...(touch ? [touch] : []),
   ]);
-}
-
-/** One shared look for every model: matte materials, plus surface detail on the static town models where affordable. */
-function styleModels(
-  town: ReadonlyMap<string, Object3D>,
-  character: AnimatedModel | null,
-  detail: boolean,
-): SurfaceDetailLibrary {
-  // With no sources the library leaves every material flat: cheaper shaders for phones.
-  const surfaces = new SurfaceDetailLibrary(detail ? undefined : {});
-  const styler = new ModelMaterialStyler(surfaces);
-  for (const model of town.values()) styler.style(model, true);
-  if (character) styler.style(character.scene, false);
-  surfaces.load();
-  return surfaces;
 }
 
 /** Birds and ambient sound, each on its own seeded stream so they never shift the world's random sequence. */
