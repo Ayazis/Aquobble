@@ -99,7 +99,7 @@ export function populateWorld(
     {
       blockers: [...town.grassBlockers, ...pondAreas.map(pondCircle), ...rockGround],
       ponds: pondAreas.map(pondCircle),
-      feather: 1.5,
+      feather: 0.5,
       lawns: [townArea],
       canopyAt: (x, z) => shade.at(x, z, 'canopy'),
     },

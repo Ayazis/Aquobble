@@ -53,9 +53,12 @@ float grassYaw = grassHash(grassXZ + 4.2) * 6.2832;
 float grassC = cos(grassYaw);
 float grassS = sin(grassYaw);
 vec3 grassLocal = vec3(grassC * transformed.x + grassS * transformed.z, transformed.y, grassC * transformed.z - grassS * transformed.x) * grassSize;
-transformed = grassSize > 0.001
-  ? plantDisplace(grassRoot, grassRoot + grassLocal, max(grassLocal.y, 0.0), ${f(BEND)})
-  : grassRoot;
+// Collapsed tufts (outside the band, or no grass here) skip the sway maths: most of the grid is outside.
+if (grassSize > 0.001) {
+  transformed = plantDisplace(grassRoot, grassRoot + grassLocal, max(grassLocal.y, 0.0), ${f(BEND)});
+} else {
+  transformed = grassRoot;
+}
 
 #ifdef USE_COLOR
   vec3 grassGround = shadedGround(lushGroundColor(grassRoot.y), grassXZ);

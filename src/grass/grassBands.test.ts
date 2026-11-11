@@ -7,10 +7,10 @@ describe('grassBands', () => {
 
   it('hands each band over where the one before it shrinks away', () => {
     for (let i = 1; i < desktop.length; i++) expect(desktop[i].fadeIn).toEqual(desktop[i - 1].fadeOut);
-    expect(desktop[0].fadeOut[1]).toBeLessThanOrEqual(23);
+    expect(desktop[0].fadeOut[1]).toBeLessThanOrEqual(27);
     expect(desktop[1].fadeOut[1]).toBe(45);
-    expect(phone[1].fadeOut[1]).toBe(30);
-    expect(desktop[2].fadeOut[1]).toBe(90);
+    expect(phone[1].fadeOut[1]).toBe(33);
+    expect(desktop[2].fadeOut[1]).toBe(130);
   });
 
   it('covers each band with its grid of tiles', () => {

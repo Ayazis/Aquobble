@@ -7,7 +7,7 @@ import { doorPaths, roadBounds, type Bounds, type PlacedTown, type TownObstacle 
  */
 const FRAY_INSET = 0.7;
 /** Width (m) of the thinning band beside a road or the square: short, so no bald band shows along the fray. */
-const PAVING_FEATHER = 0.4;
+const PAVING_FEATHER = 0.15;
 
 /** Ground in the town where grass cannot grow: building, prop and wall footprints, roads and the plaza. */
 export function townGrassBlockers(town: PlacedTown, obstacles: readonly TownObstacle[]): GrassBlocker[] {

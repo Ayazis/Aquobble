@@ -19,7 +19,7 @@ export const MOBILE_QUALITY: RenderQuality = {
   // end lane D
   lampShadows: false, // lane D2
   godRays: false, // lane D2
-  grassDensity: 0.5, // lane B: grass
+  grassDensity: 0.35, // lane B: grass
   grassMidDistance: 30, // lane B: grass
   grassBendMapSize: 64, // lane B2: grass physics
   refraction: false, // lane H
