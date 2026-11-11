@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { createGroundShadeUniforms, type GroundShadeUniforms } from './GroundShadeUniforms';
 import type { HeightField } from './HeightField';
 import { TerrainMaterialFactory } from './TerrainMaterialFactory';
 import { TerrainTextureLoader } from './TerrainTextureLoader';
@@ -11,6 +12,7 @@ export class TerrainMeshFactory {
   constructor(
     private readonly materials = new TerrainMaterialFactory(),
     private readonly textures: TerrainTextureLoader | null = new TerrainTextureLoader(),
+    private readonly shade: GroundShadeUniforms = createGroundShadeUniforms(),
   ) {}
 
   create(field: HeightField): THREE.Mesh {
@@ -25,7 +27,7 @@ export class TerrainMeshFactory {
     geometry.computeVertexNormals();
 
     const uniforms = createTerrainTextureUniforms();
-    const material = this.materials.create(uniforms);
+    const material = this.materials.create({ ...uniforms, ...this.shade });
     this.textures?.load(uniforms);
     const mesh = new THREE.Mesh(geometry, material);
     mesh.castShadow = true;

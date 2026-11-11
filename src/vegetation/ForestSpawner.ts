@@ -1,19 +1,26 @@
 import { identityQuat, vec3, type GameWorld } from '@core';
 import type { PhysicsEngine } from '@physics';
 import type {} from '@rendering';
-import { TRUNK, type TreeInstancesFactory } from './TreeInstancesFactory';
+import type { WindSway } from '@grass';
+import type { TreeInstancesFactory } from './TreeInstancesFactory';
+import type { TreePlacement } from './TreePlacement';
+import { TRUNK } from './treeTrunkGeometry';
 import type { TreePlacer, TreePlacerOptions } from './TreePlacer';
 
-/** Places a forest and adds it to the world as a single render entity. */
+/**
+ * Places a forest and adds it to the world as a single render entity; returns where the trees stand.
+ * Give it the wind the crowns were built with, so the entity's clock is advanced with the grass's.
+ */
 export class ForestSpawner {
   constructor(
     private readonly world: GameWorld,
     private readonly placer: TreePlacer,
     private readonly instances: TreeInstancesFactory,
     private readonly physics: PhysicsEngine,
+    private readonly wind?: WindSway,
   ) {}
 
-  spawn(options: TreePlacerOptions): void {
+  spawn(options: TreePlacerOptions): TreePlacement[] {
     const placements = this.placer.place(options);
     for (const p of placements) {
       // Trunk only, scaled per tree.
@@ -26,6 +33,8 @@ export class ForestSpawner {
     this.world.add({
       transform: { position: vec3(), rotation: identityQuat() },
       renderObject: { object: this.instances.create(placements) },
+      ...(this.wind ? { windSway: this.wind } : {}),
     });
+    return placements;
   }
 }

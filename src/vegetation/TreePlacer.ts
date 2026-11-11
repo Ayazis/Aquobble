@@ -34,6 +34,7 @@ export class TreePlacer {
         z,
         yaw: this.random.range(0, Math.PI * 2),
         scale: this.random.range(0.7, 1.5),
+        lean: this.random.range(0, 0.07),
         tint: this.random.next(),
       });
     }

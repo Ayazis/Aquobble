@@ -1,5 +1,6 @@
 import { DEFAULT_PALETTE } from './TerrainPalette';
 import { linearRgb } from './linearRgb';
+import { GROUND_SHADE_GLSL } from './groundShadeGlsl';
 import { LUSH_GROUND_GLSL } from './lushGroundGlsl';
 
 /** GLSL injected into MeshStandardMaterial by `TerrainMaterialFactory`. */
@@ -31,6 +32,7 @@ uniform float uTerrainDetail;
 varying vec3 vTerrainPos;
 varying vec3 vTerrainNormal;
 ${LUSH_GROUND_GLSL}
+${GROUND_SHADE_GLSL}
 // Texture colour divided by its own average, so the palette colour stays the overall tint.
 vec3 terrainDetail(sampler2D map, vec2 uv) {
   vec3 mean = max(textureLod(map, vec2(0.5), 16.0).rgb, vec3(0.04));
@@ -80,7 +82,8 @@ export const TERRAIN_FRAGMENT_MAIN = /* glsl */ `
   float grass = max(1.0 - rock - sand, 0.0);
 
   // Base colour: height bands blended across the noisy edge, steep faces go earth/rock.
-  vec3 lush = lushGroundColor(hn);
+  // Plants' ground is browner under tree crowns and darker where a trunk or rock stands on it.
+  vec3 lush = shadedGround(lushGroundColor(hn), vTerrainPos.xz);
   vec3 stone = mix(${EARTH}, ${ROCK}, smoothstep(6.0, 14.0, hn));
   float snow = smoothstep(21.0, 23.0, hn) * (1.0 - steep * 0.7);
   vec3 base = ${SAND} * sand + lush * grass + stone * rock;

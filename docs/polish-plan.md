@@ -64,14 +64,42 @@ desktop; house-c, barracks, watchtower and windmill have no window swatch and st
 at knee height in front of the player, intensity 14 to 4, reach 16 to 9) and 7.3 (fresnel rim on player and
 townsfolk materials, keyed on the key light's brightness so it is strong at dusk and night and faint by day).
 
+Step 4 was rendered for the first time on 2026-11-11 (software Chromium, 1x): lamp glass, windows and the pools
+of light all come on at night and read well. Two things to fix under 1.4: the town lawn turns neon yellow-green
+in lamplight, and buildings away from a lamp are nearly black (36.7% of the `plaza` night frame is black).
+
+Step 5, first pass, rendered the same way, so colour and shape were checked on screen and frame cost was not:
+
+- 4.1: rocks are chiselled, a subdivided sphere bent by layered waves and sliced by flat cuts. Four shapes
+  (boulder and slab at 320 triangles, small stone at 80, pebble cluster at 80 to 100), three of each, in warm
+  and cool greys that neighbours share. The falling-rock demo keeps the old lump.
+- 4.2: the base is darkened in the vertex colours, and grass keeps off the middle of a rock and thins at its edge.
+- 4.3: moss on upward faces under tree crowns, lichen flecks from 8 m up, a dark wet band up to 0.3 m above the
+  sea. No foam ring; that comes with 6.2.
+- 4.4: nine outcrops of two to four large blocks on the steepest ground, with scree below, and pebbles on flat
+  ground (more at the shore). All nine land on the eastern hill, where the steepest ground is. Only 18 pebble
+  clusters come out, so beaches are still bare. No stepping stones in ponds.
+- 1.8 for trees and rocks: a new ground shade map (1024 px over the island, one channel for contact patches and
+  one for canopy), stamped as things are placed and read by the terrain, the grass roots and the rocks. Town
+  props, buildings and the wall do not stamp it yet, and the roads and square do not read it.
+- 2.5 in part: the canopy channel browns and darkens the ground under crowns. No leaf litter.
+- 5.2 (trunks flare into roots and lean up to 4 degrees; the collider stays an upright cylinder), 5.3 (crowns
+  sway on the same gust front as the grass) and 5.4 (dark undersides and inner faces, a tint per clump; no lit rim).
+- Not done: 5.1 and 5.5. Both need the tree models, and the asset search had no API key in the cloud session
+  (`POLYPIZZA_API_KEY`), so no candidates could be shown.
+
+Cost per frame, all devices: one more texture read per terrain pixel; one vertex texture read per grass-blade
+vertex and per rock vertex; 371 rocks instead of 256, drawn as one instanced mesh per shape per 50 m cell so
+off-screen cells are skipped. Not measured on a device.
+
 ## Tools first
 
 Taking these screenshots meant reaching into private fields. Two small tools make every later item checkable.
 
-| #   | Change                                                                                                                                                                                            | Where                                   | Size |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- | ---- |
-| 0.1 | Debug mode behind `?debug`: set the time of day, free the camera, show draw calls and triangles. The FPS counter moves here.                                                                      | `diagnostics`, `Game`, `DayNightSystem` | M    |
-| 0.2 | `npm run shots`: saves a fixed set of views (plaza, lane, gate, meadow, forest, pond, coast, a rock, a tree) at noon, sunset and night, desktop and phone. Every item below is judged against it. | `scripts/shots/` (output is gitignored) | M    |
+| #   | Change                                                                                                                                                                                                             | Where                                   | Size |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------- | ---- |
+| 0.1 | Debug mode behind `?debug`: set the time of day, free the camera, show draw calls and triangles. The FPS counter moves here.                                                                                       | `diagnostics`, `Game`, `DayNightSystem` | M    |
+| 0.2 | `npm run shots`: saves a fixed set of views (plaza, lane, gate, meadow, forest, pond, coast, a rock, an outcrop, shore rocks) at noon, sunset and night, desktop and phone. Every item below is judged against it. | `scripts/shots/` (output is gitignored) | M    |
 
 ## 1. Lighting and image
 

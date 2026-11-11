@@ -14,3 +14,6 @@ export { lushGroundColor } from './lushGroundColor';
 export { LUSH_GROUND_GLSL } from './lushGroundGlsl';
 export { TerrainMeshFactory } from './TerrainMeshFactory';
 export { TerrainSpawner } from './TerrainSpawner';
+export { GroundShade, type GroundShadeChannel } from './GroundShade';
+export { createGroundShadeUniforms, type GroundShadeUniforms } from './GroundShadeUniforms';
+export { GROUND_SHADE_GLSL } from './groundShadeGlsl';

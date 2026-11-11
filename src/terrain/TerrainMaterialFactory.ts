@@ -5,6 +5,7 @@ import {
   TERRAIN_VERTEX_MAIN,
   TERRAIN_VERTEX_PARS,
 } from './terrainShaderChunks';
+import type { GroundShadeUniforms } from './GroundShadeUniforms';
 import type { TerrainTextureUniforms } from './TerrainTextureUniforms';
 
 /**
@@ -12,7 +13,7 @@ import type { TerrainTextureUniforms } from './TerrainTextureUniforms';
  * blended by height and slope in world space (triplanar for rock) via a standard-material shader patch.
  */
 export class TerrainMaterialFactory {
-  create(uniforms: TerrainTextureUniforms): THREE.MeshStandardMaterial {
+  create(uniforms: TerrainTextureUniforms & GroundShadeUniforms): THREE.MeshStandardMaterial {
     const material = new THREE.MeshStandardMaterial({ flatShading: true, roughness: 0.95 });
     material.onBeforeCompile = (shader) => {
       Object.assign(shader.uniforms, uniforms);

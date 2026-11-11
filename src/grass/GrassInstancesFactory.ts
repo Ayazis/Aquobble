@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { groupByCell } from '@core';
-import { lushGroundColor } from '@terrain';
+import { createGroundShadeUniforms, lushGroundColor, type GroundShadeUniforms } from '@terrain';
 import type { GrassPlacement } from './GrassPlacement';
 import type { WindSway } from './WindSway';
 import { applyGroundBlend } from './applyGroundBlend';
@@ -24,10 +24,16 @@ const TIP_FADE_LENGTH = 20;
  * root and its own tint at the tip.
  */
 export class GrassInstancesFactory {
+  constructor(private readonly shade: GroundShadeUniforms = createGroundShadeUniforms()) {}
+
   create(placements: readonly GrassPlacement[], wind: WindSway): THREE.Group {
     const material = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.9, side: THREE.DoubleSide });
     applyWindSway(material, wind, { strength: 0.55, fadeStart: FADE.start, fadeEnd: FADE.end });
-    applyGroundBlend(material, { tipFadeStart: FADE.start - TIP_FADE_LENGTH, tipFadeEnd: FADE.start });
+    applyGroundBlend(material, {
+      tipFadeStart: FADE.start - TIP_FADE_LENGTH,
+      tipFadeEnd: FADE.start,
+      shade: this.shade,
+    });
     const geometry = grassTuftGeometry();
 
     const group = new THREE.Group();
