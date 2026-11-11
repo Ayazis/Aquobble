@@ -45,6 +45,7 @@ import { Game } from './Game';
 import { DEFAULT_CONFIG, type GameConfig } from './GameConfig';
 import { forDevice, isMobileDevice } from './forDevice';
 import { installStreetLighting } from './installStreetLighting';
+import { installWind } from './installWind'; // lane W0-b: contracts
 import { loadCharacterModel } from './loadCharacterModel';
 import { loadForestModels } from './loadForestModels';
 import { loadTownModels } from './loadTownModels';
@@ -63,6 +64,8 @@ export async function bootstrap(container: HTMLElement, baseConfig: GameConfig =
   const render = new RenderContext(container, quality);
   const post = new PostProcessing(render);
   const dayNight = installEnvironment(config, render, post);
+  // lane W0-b: contracts. Shared wind (CPU field + shader uniforms); consumers read wind.wind / wind.uniforms.
+  const wind = installWind(random, () => dayNight.timeOfDay);
 
   const loader = new GltfModelLoader();
   const [townModels, characterModel, forestPack] = await Promise.all([
@@ -100,6 +103,7 @@ export async function bootstrap(container: HTMLElement, baseConfig: GameConfig =
       new FlockSystem(world),
     ],
     frameSystems: [
+      wind.system, // lane W0-b: contracts
       new TransformSyncSystem(world),
       new WaterAnimationSystem(world, 0.6, () => dayNight.nightAmount),
       new WindSwaySystem(world),

@@ -6,3 +6,7 @@ export { WaterNormalsFactory } from './WaterNormalsFactory';
 export { WaterAnimationSystem } from './WaterAnimationSystem';
 export type { WaterSurface } from './WaterSurface';
 export { LilyPadFactory } from './LilyPadFactory';
+export type { WaveField } from './WaveField';
+export type { GerstnerWave } from './GerstnerWave';
+export { GerstnerWaveField } from './GerstnerWaveField';
+export { gerstnerWavesFromWind } from './gerstnerWavesFromWind';
