@@ -23,7 +23,8 @@ const DAY: Omit<DayKeyframe, 'time'> = {
   hemisphereGround: 0x6f8a5c,
   hemisphereIntensity: 1.25,
   environmentIntensity: 0.35,
-  fogColor: 0xbfe0f5,
+  // Sky blue rather than white, so far land and the horizon sink into blue haze.
+  fogColor: 0xa6cff0,
   fogDensity: 0.0022,
   turbidity: 2.5,
   rayleigh: 1.3,

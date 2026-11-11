@@ -13,6 +13,8 @@ export class TerrainMeshFactory {
     private readonly materials = new TerrainMaterialFactory(),
     private readonly textures: TerrainTextureLoader | null = new TerrainTextureLoader(),
     private readonly shade: GroundShadeUniforms = createGroundShadeUniforms(),
+    /** World height of the sea, for the wet band on the sand; none if unset. */
+    private readonly waterLevel?: number,
   ) {}
 
   create(field: HeightField): THREE.Mesh {
@@ -26,7 +28,7 @@ export class TerrainMeshFactory {
     indexed.dispose();
     geometry.computeVertexNormals();
 
-    const uniforms = createTerrainTextureUniforms();
+    const uniforms = createTerrainTextureUniforms(this.waterLevel);
     const material = this.materials.create({ ...uniforms, ...this.shade });
     this.textures?.load(uniforms);
     const mesh = new THREE.Mesh(geometry, material);

@@ -29,6 +29,7 @@ uniform sampler2D uGrassMap;
 uniform sampler2D uRockMap;
 uniform sampler2D uSandMap;
 uniform float uTerrainDetail;
+uniform float uTerrainWaterLevel;
 varying vec3 vTerrainPos;
 varying vec3 vTerrainNormal;
 ${LUSH_GROUND_GLSL}
@@ -86,7 +87,9 @@ export const TERRAIN_FRAGMENT_MAIN = /* glsl */ `
   vec3 lush = shadedGround(lushGroundColor(hn), vTerrainPos.xz);
   vec3 stone = mix(${EARTH}, ${ROCK}, smoothstep(6.0, 14.0, hn));
   float snow = smoothstep(21.0, 23.0, hn) * (1.0 - steep * 0.7);
-  vec3 base = ${SAND} * sand + lush * grass + stone * rock;
+  // Sand is dark and wet where the sea laps over it, with a ragged upper edge.
+  float wet = 1.0 - smoothstep(0.12, 0.42, h - uTerrainWaterLevel + edge * 0.25);
+  vec3 base = ${SAND} * mix(1.0, 0.62, wet) * sand + lush * grass + stone * rock;
   diffuseColor.rgb = mix(base, ${SNOW}, snow);
 
   vec3 detail = vec3(0.0);

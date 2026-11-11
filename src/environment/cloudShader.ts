@@ -48,7 +48,8 @@ export const CLOUD_FRAGMENT = /* glsl */ `
     float density = smoothstep(0.5, 0.58, shape);
 
     vec3 toCamera = cameraPosition - vWorld;
-    float edge = 1.0 - smoothstep(fadeRadius * 0.35, fadeRadius, length(toCamera.xz));
+    // Thins out well before the horizon, so the far sky is clear haze instead of a white band.
+    float edge = 1.0 - smoothstep(fadeRadius * 0.12, fadeRadius * 0.7, length(toCamera.xz));
 
     // Denser cores are shaded; the side towards the sun picks up its colour.
     vec3 view = normalize(-toCamera);

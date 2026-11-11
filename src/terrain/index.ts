@@ -17,3 +17,5 @@ export { TerrainSpawner } from './TerrainSpawner';
 export { GroundShade, type GroundShadeChannel } from './GroundShade';
 export { createGroundShadeUniforms, type GroundShadeUniforms } from './GroundShadeUniforms';
 export { GROUND_SHADE_GLSL } from './groundShadeGlsl';
+export { createHeightMapUniforms, type HeightMapUniforms } from './HeightMapUniforms';
+export { HEIGHT_MAP_GLSL } from './heightMapGlsl';

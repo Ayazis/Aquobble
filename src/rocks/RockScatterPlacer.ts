@@ -12,9 +12,13 @@ export interface RockScatterOptions extends RockSiteRules {
   extent: number;
   /** Rock faces with scree on the steepest ground; none if unset. */
   outcrops?: number;
+  /** Pebble clusters (and the odd stone) strewn along the beaches; none if unset. */
+  beachPebbles?: number;
 }
 
 const CLUSTER_RADIUS = 4;
+/** Beach pebbles lie between the waterline and this far (m) above it. */
+const BEACH_BAND = 0.9;
 
 /**
  * Scatters clustered rocks, preferring slopes and shorelines, and sets outcrops on the steepest ground.
@@ -51,7 +55,22 @@ export class RockScatterPlacer {
     if (options.outcrops) {
       placements.push(...placeOutcrops(this.siter, this.random, { ...options, outcrops: options.outcrops }));
     }
+    placements.push(...this.beach(options));
     return placements;
+  }
+
+  private beach(options: RockScatterOptions): RockPlacement[] {
+    const pebbles: RockPlacement[] = [];
+    const wanted = options.beachPebbles ?? 0;
+    for (let tries = 0; pebbles.length < wanted && tries < wanted * 60; tries++) {
+      const x = this.random.range(-options.extent, options.extent);
+      const z = this.random.range(-options.extent, options.extent);
+      const above = this.ground.heightAt(x, z) - options.waterLevel;
+      if (above < 0.03 || above > BEACH_BAND) continue;
+      const rock = this.siter.rockAt(x, z, 'beach', options);
+      if (rock) pebbles.push(rock);
+    }
+    return pebbles;
   }
 
   /** Acceptance chance in [0.1, 1]: steeper ground and the shoreline score higher. */

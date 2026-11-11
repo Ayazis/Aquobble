@@ -92,6 +92,27 @@ Cost per frame, all devices: one more texture read per terrain pixel; one vertex
 vertex and per rock vertex; 371 rocks instead of 256, drawn as one instanced mesh per shape per 50 m cell so
 off-screen cells are skipped. Not measured on a device.
 
+Step 6, first pass, rendered the same way (desktop and phone profile at noon, desktop at sunset and night):
+
+- 6.2: the water reads the terrain's height from a texture (one read per pixel), so it has a shoreline: pale,
+  clearer shallows, darker and more solid deep water, a thin foam edge at the waterline and bands that lap in
+  towards it.
+- 6.1: flecks are streaks along the wind, about a third as many, gone over the shallows and past 220 m.
+- 6.3: a 6 cm swell out to 110 m from the island centre (the sea mesh went from 2 to 28,800 triangles, crowded
+  towards the middle), and wave tips that flash the sun's or moon's colour along the path towards it. The
+  sea is rougher and reflects the sky less, so it is blue where it was white.
+- 6.4: ponds are calm and a little darker, with four to ten lily pads each. No reeds (3.3). Ponds are shallow,
+  so most of a pond still gets the pale shallows colour.
+- 2.4: sand is dark and wet up to about 0.3 m above the sea, with a ragged edge, and 70 pebble clusters or
+  stones lie along the beaches.
+- 1.7 in part: day fog is sky blue instead of near white, and the cloud sheet thins out well before the
+  horizon. The horizon itself is still white at noon: that is the sky shader, not the fog.
+- Not done: 1.9 (cloud shadows). Every material would need the cloud uniforms; doing it for the terrain alone
+  is the cheap version.
+- Seen, not fixed: at night the sea and its flecks are far brighter than the land. At sunset a straight-edged
+  wedge of darker water shows near the island; it was there before this step and looks like the edge of the
+  fixed shadow box (1.10).
+
 ## Tools first
 
 Taking these screenshots meant reaching into private fields. Two small tools make every later item checkable.

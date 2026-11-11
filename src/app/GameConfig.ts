@@ -37,7 +37,7 @@ export interface GameConfig {
 export const DEFAULT_CONFIG: GameConfig = {
   seed: 1337,
   waterLevel: 0.2,
-  water: { waterColor: 0x1fa3c4, opacity: 0.8 },
+  water: { waterColor: 0x1fa3c4, shallowColor: 0x7fdccb, opacity: 0.8 },
   ponds: { count: 3, extent: 60, minRadius: 3.5, maxRadius: 6.5, depth: 1.6, minLevel: 1.2, freeboard: 0.25 },
   terrain: DEFAULT_TERRAIN,
   environment: DEFAULT_ENVIRONMENT,
@@ -59,6 +59,7 @@ export const DEFAULT_CONFIG: GameConfig = {
     maxScale: 2.2,
     variants: 3,
     outcrops: 9,
+    beachPebbles: 70,
     colliderMinScale: 0.9,
   },
   fallingRocks: false,

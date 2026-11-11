@@ -67,6 +67,17 @@ describe('RockScatterPlacer', () => {
     expect(flat.place({ ...base, clusters: 0, outcrops: 3 })).toEqual([]);
   });
 
+  it('strews pebbles along the beach only', () => {
+    const shore = { heightAt: (x: number) => x / 10 };
+    const rocks = new RockScatterPlacer(shore, new SeededRandom(6)).place({ ...base, clusters: 0, beachPebbles: 20 });
+    expect(rocks).toHaveLength(20);
+    for (const r of rocks) {
+      expect(r.x / 10).toBeGreaterThan(0);
+      expect(r.x / 10).toBeLessThan(0.9);
+    }
+    expect(rocks.filter((r) => r.family === 'pebbles').length).toBeGreaterThan(10);
+  });
+
   it('is reproducible for a seed', () => {
     const a = new RockScatterPlacer(ground, new SeededRandom(7)).place(base);
     const b = new RockScatterPlacer(ground, new SeededRandom(7)).place(base);

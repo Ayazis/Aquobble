@@ -17,7 +17,7 @@ export interface RockSiteRules {
 }
 
 /** What a rock is doing where it lies; decides its family and size. */
-export type RockRole = 'lead' | 'companion' | 'outcrop' | 'scree';
+export type RockRole = 'lead' | 'companion' | 'outcrop' | 'scree' | 'beach';
 
 /** Height above the water (m) that counts as shore. */
 export const SHORE_BAND = 1.5;
@@ -84,6 +84,7 @@ export class RockSiter {
     const t = this.random.next();
     if (role === 'outcrop') return maxScale * (0.9 + 0.8 * t);
     if (role === 'lead') return minScale + span * (0.4 + 0.6 * t);
+    if (role === 'beach') return minScale + span * 0.2 * t;
     return minScale + span * 0.4 * t;
   }
 
@@ -91,7 +92,13 @@ export class RockSiter {
     const pick = this.random.next();
     const solid: RockFamily = scale < STONE_BELOW ? 'stone' : 'boulder';
     if (role === 'outcrop') return pick < 0.45 ? 'slab' : 'boulder';
+    if (role === 'beach') return flat && pick < 0.85 ? 'pebbles' : 'stone';
     if (role === 'lead') return pick < 0.3 ? 'slab' : solid;
+    return this.looseFamily(pick, solid, flat, shore);
+  }
+
+  /** Companions and scree: pebbles where they can lie flat (more at the shore), the odd slab, else a solid rock. */
+  private looseFamily(pick: number, solid: RockFamily, flat: boolean, shore: boolean): RockFamily {
     if (flat && pick < (shore ? 0.6 : 0.4)) return 'pebbles';
     return pick > 0.85 ? 'slab' : solid;
   }

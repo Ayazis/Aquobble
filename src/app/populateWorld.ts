@@ -40,7 +40,11 @@ export function populateWorld(
   // Filled in as trees and rocks are placed; the ground and the grass read it once drawing starts.
   const shade = new GroundShade(config.terrain.size, SHADE_RESOLUTION);
   const shadeUniforms = createGroundShadeUniforms(shade);
-  new TerrainSpawner(world, physics, new TerrainMeshFactory(undefined, undefined, shadeUniforms)).spawn(terrain);
+  new TerrainSpawner(
+    world,
+    physics,
+    new TerrainMeshFactory(undefined, undefined, shadeUniforms, config.waterLevel),
+  ).spawn(terrain);
   const forest = { ...config.forest, exclude: [...(config.forest.exclude ?? []), townArea, ...pondAreas] };
   populateForest(world, physics, random, terrain, forest, surfaces, shade);
   const rocks = {
