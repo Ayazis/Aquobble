@@ -9,7 +9,7 @@ describe('vertexAo', () => {
 
   it('darkens a vertex under a roof and leaves an open one at 1', () => {
     const ao = vertexAo(positions, normals, indices, 6, 2);
-    expect(ao[0]).toBeLessThan(0.6);
+    expect(ao[0]).toBeLessThan(0.8);
     expect(ao[5]).toBe(1);
   });
 

@@ -3,8 +3,8 @@ import type { System, Vec3 } from '@core';
 import type { ToonLightUniforms } from './ToonLightUniforms';
 
 /** Shadow tint by day (cool blue) and at night (deep blue), as a linear share of the sun/moon light. */
-const DAY_TINT = [0.14, 0.18, 0.3] as const;
-const NIGHT_TINT = [0.05, 0.07, 0.17] as const;
+const DAY_TINT = [0.3, 0.34, 0.46] as const;
+const NIGHT_TINT = [0.1, 0.13, 0.26] as const;
 /** How much of the sky fill's ground colour takes the hue of the ground under the player. */
 const BOUNCE = 0.65;
 /** Per second: how fast the bounce colour follows the ground when walking from meadow onto a road. */

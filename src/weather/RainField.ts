@@ -24,11 +24,11 @@ export class RainField {
     private readonly capacity: number,
     private readonly random: Random,
   ) {
-    const geometry = new THREE.PlaneGeometry(0.02, STREAK_LENGTH);
+    const geometry = new THREE.PlaneGeometry(0.008, STREAK_LENGTH);
     const material = new THREE.MeshBasicMaterial({
-      color: 0xc8d4e0,
+      color: 0x9aa8b6,
       transparent: true,
-      opacity: 0.35,
+      opacity: 0.16,
       depthWrite: false,
       side: THREE.DoubleSide,
       fog: true,
