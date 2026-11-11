@@ -1,4 +1,4 @@
-import type { GameWorld, Random } from '@core';
+import { identityQuat, type GameWorld, type Random } from '@core';
 import type { Object3D } from 'three';
 import type { PhysicsEngine } from '@physics';
 import type { SurfaceStyler } from '@rendering';
@@ -15,6 +15,9 @@ import {
   TownSpawner,
   WindowPanes,
   WallFactory,
+  placeVergeBeds, // lane A2
+  splitSails, // lane A2
+  VergeBedFactory, // lane A2
   type TownObstacle,
   type TownSite,
 } from '@town';
@@ -53,6 +56,8 @@ export function populateTown(
 
   const town = planner.place(terrain, site);
   new WindowPanes().addTo(models);
+  const mill = models.get('windmill'); // lane A2: sails on their own node so SailSystem can turn them
+  if (mill) splitSails(mill);
   new TownSpawner(
     world,
     physics,
@@ -63,6 +68,15 @@ export function populateTown(
   new BuildingSpawner(plots).spawn(town);
   new PropSpawner(plots).spawn(town);
   spawnStreetLamps(world, town.props);
+  // lane A2: flowers and planters on the verges
+  if (ground) {
+    const beds = new VergeBedFactory().create(placeVergeBeds(town.layout, ground.random.fork('verge-beds')));
+    world.add({
+      transform: { position: { ...town.origin }, rotation: identityQuat() },
+      renderObject: { object: beds },
+    });
+  }
+  // end lane A2
 
   const half = region.halfSize + 2;
   const area = { minX: site.x - half, maxX: site.x + half, minZ: site.z - half, maxZ: site.z + half };

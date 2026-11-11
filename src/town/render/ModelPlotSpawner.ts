@@ -6,6 +6,8 @@ import type { PlacedPlot } from '../PlacedTown';
 import { extractCollisionMesh } from './extractCollisionMesh';
 import { fitScale } from './fitScale';
 import type { PlotSpawner } from './PlotSpawner';
+import { SAILS_NODE } from './splitSails';
+import type {} from '../WindmillSails';
 
 const yawQuat = (yaw: number): Quat => ({ x: 0, y: Math.sin(yaw / 2), z: 0, w: Math.cos(yaw / 2) });
 
@@ -50,9 +52,11 @@ export class ModelPlotSpawner implements PlotSpawner {
       y: (size.y * scale) / 2,
       z: (size.z * scale) / 2,
     });
+    const sails = root.getObjectByName(SAILS_NODE);
     this.world.add({
       transform: { position: { ...position }, rotation },
       renderObject: { object: root },
+      ...(sails ? { windmillSails: { object: sails, angle: 0 } } : {}),
     });
   }
 
