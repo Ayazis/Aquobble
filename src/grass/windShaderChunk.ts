@@ -13,10 +13,15 @@ float windGust(vec2 root) {
 
 /**
  * Replaces three's project_vertex: works in world space so wind and trampling push the same way
- * whatever the instance yaw. Bend grows with height above the base (local y); far plants shrink away.
+ * whatever the instance yaw. Bend grows with height above the base (local y); far plants shrink away, and
+ * with a `fadeIn` range (end above 0) near plants are shrunk away too (see `ringFade`).
  */
-export function windProjectVertex(strength: number, fadeStart: number, fadeEnd: number): string {
-  const f = (v: number) => v.toFixed(3);
+export function windProjectVertex(
+  strength: number,
+  fadeStart: number,
+  fadeEnd: number,
+  fadeIn: readonly number[] = [0, 0],
+): string {
   return `
 vec4 plantWorld = vec4(transformed, 1.0);
 #ifdef USE_INSTANCING
@@ -27,7 +32,7 @@ vec4 plantWorld = vec4(transformed, 1.0);
 #endif
 plantWorld = modelMatrix * plantWorld;
 float plantH = max(position.y, 0.0);
-float plantBend = plantH * plantH * ${f(strength)};
+float plantBend = plantH * plantH * ${strength.toFixed(3)};
 
 // Wind: a steady lean plus gusts rolling across the field, and per-plant flutter.
 vec2 windDir = WIND_DIR;
@@ -58,10 +63,19 @@ plantWorld.xz += push;
 // Keep blade length roughly constant: the further it leans, the lower the tip.
 plantWorld.y -= min(dot(push, push) * 0.6 / max(plantH, 0.05), plantH * 0.85) + trample * plantH * 0.25;
 
-float plantFade = 1.0 - smoothstep(${f(fadeStart)}, ${f(fadeEnd)}, distance(plantRoot, cameraPosition));
+${plantFadeGlsl(fadeStart, fadeEnd, fadeIn)}
 plantWorld.xyz = plantRoot + (plantWorld.xyz - plantRoot) * plantFade;
 
 vec4 mvPosition = viewMatrix * plantWorld;
 gl_Position = projectionMatrix * mvPosition;
 `;
+}
+
+/** GLSL for `plantFade`: the plant's size factor at its camera distance, as `ringFade` computes it. */
+function plantFadeGlsl(fadeStart: number, fadeEnd: number, fadeIn: readonly number[]): string {
+  const f = (v: number) => v.toFixed(3);
+  const grow = fadeIn[1] > 0 ? `plantFade *= smoothstep(${f(fadeIn[0])}, ${f(fadeIn[1])}, plantDist);` : '';
+  return `float plantDist = distance(plantRoot, cameraPosition);
+float plantFade = 1.0 - smoothstep(${f(fadeStart)}, ${f(fadeEnd)}, plantDist);
+${grow}`;
 }

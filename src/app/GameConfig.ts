@@ -43,7 +43,8 @@ export const DEFAULT_CONFIG: GameConfig = {
   environment: DEFAULT_ENVIRONMENT,
   forest: { count: 340, extent: 80, minHeight: 2, maxHeight: 11 },
   grass: {
-    grass: { count: 110000, extent: 80 },
+    grass: { count: 55000, extent: 80 },
+    nearGrass: { count: 160000, extent: 80 },
     flowers: { clusters: 420, perCluster: 18, radius: 2.2, variants: 5, extent: 80 },
     beachMargin: 0.8,
     maxHeight: 14,

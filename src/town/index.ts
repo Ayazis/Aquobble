@@ -17,3 +17,4 @@ export { townObstacles, type TownObstacle } from './townObstacles';
 export type { PlotSpawner } from './render/PlotSpawner';
 export { ModelPlotSpawner } from './render/ModelPlotSpawner';
 export { townAssetPath } from './render/townAssetPath';
+export { TOWN_CHIMNEYS } from './layout/townChimneys';

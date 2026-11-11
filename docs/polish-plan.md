@@ -126,11 +126,30 @@ Step 7, first pass on grass, rendered at noon (software Chromium, meadow and for
   greens through browns, one instanced mesh per 25 m cell. Under long grass only a few flecks show; thinning
   the grass under crowns would show more. The litter draws from the shared seeded random after the trees, so
   rocks, grass and flowers moved compared with earlier shots.
-- Not done in step 7: 3.6, 2.3, 7.1, 7.2.
+- Not done in step 7 (first pass): 3.6, 2.3, 7.1, 7.2.
 
 Cost per frame: a few more ALU ops per grass vertex; leaf litter adds about 3,000 small instances (42 triangles
 each) in one draw per visible 25 m cell. Flowers go from about 315 to
 several thousand instances in one draw. Not measured on a device.
+
+Step 7, second pass, tested and built but never rendered, so every colour and size is a first guess:
+
+- 3.6: two grass rings. Near: 5 blades per tuft, at most about 5 cm wide, 160,000 tufts in 10 m cells, full size
+  to 14 m and gone by 20 m, each cell a `THREE.LOD` that stops drawing past about 28 m. Far: 3 wider blades,
+  55,000 tufts in 20 m cells, growing in from 12 to 18 m. Phones get half of each ring (was a quarter).
+- 2.3: the wall has a plinth, an overhanging cap course, a dirt and moss gradient at the base in vertex colours,
+  darker mortar (masonry detail 0.5 to 0.68), and at each gate a flat stone arch and two open wooden doors.
+  Colliders are unchanged. No masonry normal map (none in the repository). The doors may overlap the gate posts.
+- 7.1: each villager gets its own 64x4 copy of the character palette with hair, skin and six clothing swatches
+  repainted from seeded lists; the player keeps the original colours, which no villager can draw. Which columns
+  are hair and skin was read from the texture, not seen.
+- 7.2 in part: new `effects` slice with chimney smoke from 10 buildings (house_a, house_b, tavern, blacksmith), 7
+  fading puffs per chimney in one instanced draw. house_b and tavern chimney positions are guesses. No windmill
+  sails or awnings: those models are single meshes.
+
+Cost per frame: grass roughly 350k to 375k triangles instead of about 500k (estimated), plus 25 to 40 more draws
+for near cells, and about 16 MB of grass instance data; the wall is 2 draws (about 3,300 triangles) instead of 1;
+smoke is 1 draw of 70 instances. Villager palettes cost only at spawn. Not measured on a device.
 
 ## Tools first
 
@@ -223,8 +242,8 @@ every facet is perfectly flat to the light (see Decisions).
 
 ## Order
 
-Each step ends with `npm run check` passing, the shots re-taken and compared, and a look at the pull request
-preview on a real phone and a desktop.
+Each step ends with `npm run check` passing and a look at the pull request preview on a real phone and a
+desktop. The shots tool is slow; run it only when asked.
 
 1. **Tools**: 0.1, 0.2.
 2. **Cheap fixes to the whole picture**: 1.1, 1.2, 1.3, 1.4, 1.11. All small, and they change every frame.

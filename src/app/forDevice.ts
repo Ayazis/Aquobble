@@ -24,7 +24,12 @@ export function forDevice(config: GameConfig, mobile: boolean): { config: GameCo
     quality: MOBILE_QUALITY,
     config: {
       ...config,
-      grass: { ...config.grass, grass: { ...config.grass.grass, count: Math.round(config.grass.grass.count / 4) } },
+      // Near tufts are only drawn within 20 m, so phones keep more of them than of the far ring.
+      grass: {
+        ...config.grass,
+        grass: { ...config.grass.grass, count: Math.round(config.grass.grass.count / 2) },
+        nearGrass: { ...config.grass.nearGrass, count: Math.round(config.grass.nearGrass.count / 2) },
+      },
       forest: { ...config.forest, count: Math.round(config.forest.count * 0.6) },
       // Each character is eight skinned draw calls, twice over with shadows.
       townsfolk: { ...config.townsfolk, minCount: 4, maxCount: 6 },

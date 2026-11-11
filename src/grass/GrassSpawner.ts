@@ -10,7 +10,10 @@ import { GrassPlacer, type FlowerPlacerOptions, type GrassPlacerOptions } from '
 import { createWindSway, type WindSway } from './WindSway';
 
 export interface GrassOptions {
+  /** Sparse, wide tufts of the far ring. */
   grass: GrassPlacerOptions;
+  /** Dense, narrow tufts of the near ring (drawn only within about 20 m of the camera). */
+  nearGrass: GrassPlacerOptions;
   flowers: FlowerPlacerOptions;
   /** Height above the water level where grass starts (keeps beaches bare). */
   beachMargin: number;
@@ -44,7 +47,8 @@ export class GrassSpawner {
     };
     const placer = new GrassPlacer(this.ground, this.random, rules);
     const windSway = createWindSway();
-    this.add(this.grass.create(placer.grass(options.grass), windSway), windSway);
+    const grass = { near: placer.grass(options.nearGrass), far: placer.grass(options.grass) };
+    this.add(this.grass.create(grass, windSway), windSway);
     this.add(this.flowers.create(placer.flowers(options.flowers), windSway), windSway);
   }
 

@@ -40,6 +40,7 @@ import { RockRecycleSystem, RockSpawner } from '@rocks';
 import { WaterAnimationSystem } from '@water';
 import { GrassBendSystem, WindSwaySystem } from '@grass';
 import type { Object3D } from 'three';
+import { spawnChimneySmoke } from './spawnChimneySmoke';
 import { createDebug } from './createDebug';
 import { Game } from './Game';
 import { DEFAULT_CONFIG, type GameConfig } from './GameConfig';
@@ -104,6 +105,7 @@ export async function bootstrap(container: HTMLElement, baseConfig: GameConfig =
       new PlayerAnimationSystem(world),
       new LanternSystem(world, keys, lanternButton),
       new TownsfolkAnimationSystem(world),
+      spawnChimneySmoke(world, config.seed),
       new ThirdPersonCameraSystem(world, render.camera, physics, look, zoom),
       ...debug.afterCamera,
       new BirdRenderSystem(world, birdMeshes.clock),

@@ -5,7 +5,7 @@ export { canGrow } from './canGrow';
 export type { GrassBlocker } from './GrassBlocker';
 export { growthAt, distanceTo } from './growthAt';
 export { GrassPlacer, type GrassPlacerOptions, type FlowerPlacerOptions } from './GrassPlacer';
-export { GrassInstancesFactory } from './GrassInstancesFactory';
+export { GrassInstancesFactory, type GrassRingPlacements } from './GrassInstancesFactory';
 export { FlowerInstancesFactory } from './FlowerInstancesFactory';
 export { GrassSpawner, type GrassOptions } from './GrassSpawner';
 export { WindSwaySystem } from './WindSwaySystem';

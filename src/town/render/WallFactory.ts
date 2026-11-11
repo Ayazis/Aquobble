@@ -3,27 +3,53 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { SurfaceStyler } from '@rendering';
 import type { TownWall } from '../layout/TownWall';
 import type { Box } from './Box';
+import { gateArchGeometries } from './gateArchGeometry';
+import { gateDoors } from './gateDoors';
+import { tint, tintedBox } from './tintedGeometry';
 import { wallBoxes } from './wallBoxes';
 import { wallMerlons } from './wallMerlons';
+import { wallTrim } from './wallTrim';
 
-/** Builds the low-poly stone wall (with gates and battlements) as a single mesh, town-local. */
+/**
+ * Builds the low-poly stone wall as two meshes, town-local: masonry (segments, towers, gatehouses, plinth, cap
+ * course, battlements and gate arches, vertex-coloured with dirt and moss at the foot) and the open wooden doors.
+ */
 export class WallFactory {
-  private readonly material = new THREE.MeshStandardMaterial({ color: 0xb3a68e, roughness: 1, flatShading: true });
+  private readonly stone = new THREE.MeshStandardMaterial({ roughness: 1, flatShading: true, vertexColors: true });
+  private readonly wood = new THREE.MeshStandardMaterial({ roughness: 1, flatShading: true, vertexColors: true });
 
   constructor(surfaces?: SurfaceStyler) {
-    surfaces?.apply(this.material, 'masonry');
+    surfaces?.apply(this.stone, 'masonry');
+    surfaces?.apply(this.wood, 'wood');
   }
 
-  /** `boxes` are the solid parts to collide with; the battlements on top are visual only. */
+  /** `boxes` are the solid parts to collide with; trim, battlements, arches and doors are visual only. */
   create(wall: TownWall): { object: THREE.Object3D; boxes: Box[] } {
     const boxes = wallBoxes(wall);
-    const parts = [...boxes, ...wallMerlons(wall)].map(({ center, half }) =>
-      new THREE.BoxGeometry(half.x * 2, half.y * 2, half.z * 2).translate(center.x, center.y, center.z),
+    const { plinths, caps } = wallTrim(boxes);
+    const doors = gateDoors(wall);
+    const object = new THREE.Group();
+    object.add(
+      this.mesh(this.stone, [
+        ...boxes.map((b) => tintedBox(b, 'stone')),
+        ...wallMerlons(wall).map((b) => tintedBox(b, 'stone')),
+        ...plinths.map((b) => tintedBox(b, 'plinth')),
+        ...caps.map((b) => tintedBox(b, 'cap')),
+        ...gateArchGeometries(wall).map((g) => tint(g, 'stone')),
+      ]),
+      this.mesh(this.wood, [
+        ...doors.wood.map((b) => tintedBox(b, 'wood')),
+        ...doors.iron.map((b) => tintedBox(b, 'iron')),
+      ]),
     );
-    const mesh = new THREE.Mesh(mergeGeometries(parts), this.material);
+    return { object, boxes };
+  }
+
+  private mesh(material: THREE.Material, parts: THREE.BufferGeometry[]): THREE.Mesh {
+    const mesh = new THREE.Mesh(mergeGeometries(parts), material);
     for (const part of parts) part.dispose();
     mesh.castShadow = true;
     mesh.receiveShadow = true;
-    return { object: mesh, boxes };
+    return mesh;
   }
 }

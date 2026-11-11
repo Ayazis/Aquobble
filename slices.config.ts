@@ -18,4 +18,5 @@ export const SLICES = [
   'townsfolk',
   'wildlife',
   'audio',
+  'effects',
 ] as const;
