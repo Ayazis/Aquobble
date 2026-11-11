@@ -38,3 +38,15 @@
 | Plaster 001 (buildings) | textures/plaster.webp | https://ambientcg.com/view?id=Plaster001 | ambientCG (Lennart Demes) | CC0 |
 | Bricks 066 (town wall) | textures/stone-blocks.webp | https://ambientcg.com/view?id=Bricks066 | ambientCG (Lennart Demes) | CC0 |
 | Moss 002 (tree crowns, bushes, hay) | textures/foliage.webp | https://ambientcg.com/view?id=Moss002 | ambientCG (Lennart Demes) | CC0 |
+| Pine | models/forest.glb | https://poly.pizza/m/igSu0cPoBz | Quaternius | CC0 1.0 |
+| Pine | models/forest.glb | https://poly.pizza/m/79gmlLnweB | Quaternius | CC0 1.0 |
+| Tree | models/forest.glb | https://poly.pizza/m/t9KbsfYdXz | Quaternius | CC0 1.0 |
+| Tree | models/forest.glb | https://poly.pizza/m/QVOop92WmG | Quaternius | CC0 1.0 |
+| Dead Tree | models/forest.glb | https://poly.pizza/m/Mcd2zYqyww | Quaternius | CC0 1.0 |
+| Bush | models/forest.glb | https://poly.pizza/m/EoTERLq3z2 | Quaternius | CC0 1.0 |
+| Fern | models/forest.glb | https://poly.pizza/m/jqcanvH7D6 | Quaternius | CC0 1.0 |
+| Plant Big | models/forest.glb | https://poly.pizza/m/MbhbP7JrTI | Quaternius | CC0 1.0 |
+| Mushroom | models/forest.glb | https://poly.pizza/m/aOW08oSrd4 | Quaternius | CC0 1.0 |
+| Wood Log with Moss | models/forest.glb | https://poly.pizza/m/nwsYvcI0bC | Quaternius | CC0 1.0 |
+| Wood Log | models/forest.glb | https://poly.pizza/m/L4E32Wee6C | Quaternius | CC0 1.0 |
+| Tree Stump with Moss | models/forest.glb | https://poly.pizza/m/nFvEbUX6LE | Quaternius | CC0 1.0 |
