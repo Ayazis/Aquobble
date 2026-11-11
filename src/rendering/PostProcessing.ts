@@ -14,6 +14,8 @@ import type { LightShafts } from './LightShafts'; // lane D2
 import type { Vec3 } from '@core'; // lane D2
 import { InkOutlinePass } from './outline/InkOutlinePass';
 import { outlinesEnabled } from './outline/outlinesEnabled';
+import { RefractionRenderPass } from './refraction/RefractionRenderPass'; // lane H
+import { REFRACTIVE_LAYER } from './refraction/SceneColour'; // lane H
 
 /**
  * Post-processing chain: scene → ambient occlusion → ink outlines → bloom → tone mapping/colour output → grade, and on
@@ -39,7 +41,12 @@ export class PostProcessing implements ColorGrade, LightShafts {
     if (post || outlines) target.depthTexture = new THREE.DepthTexture(pixels.x, pixels.y);
     this.composer = new EffectComposer(context.renderer, target);
     this.composer.setSize(size.x, size.y);
-    this.composer.addPass(new RenderPass(context.scene, context.camera));
+    // lane H: refraction. Water sits on its own layer; desktop draws it after a copy of the opaque scene.
+    context.camera.layers.enable(REFRACTIVE_LAYER);
+    const refract = post && context.quality.refraction && target.depthTexture;
+    const scenePass = refract ? new RefractionRenderPass(context.scene, context.camera) : undefined;
+    this.composer.addPass(scenePass ?? new RenderPass(context.scene, context.camera));
+    // end lane H
     const ao = post ? this.createAmbientOcclusion(context, size, target.depthTexture) : undefined;
     if (ao) this.composer.addPass(ao);
     if (outlines) {

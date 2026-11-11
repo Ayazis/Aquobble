@@ -35,3 +35,6 @@ export { ToonLightUniforms, MAX_TOON_PROBES, type ToonProbe } from './ToonLightU
 export { ToonLightSystem } from './ToonLightSystem';
 export { bakeVertexAo } from './bakeVertexAo';
 export type { LightShafts } from './LightShafts'; // lane D2
+// lane H: refraction
+export { SCENE_COLOUR_UNIFORMS, REFRACTIVE_LAYER, markRefractive } from './refraction/SceneColour';
+// end lane H

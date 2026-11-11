@@ -36,6 +36,10 @@ export interface RenderQuality {
   /** Where thinned grass blades end and far grass cards take over (m). */
   grassMidDistance: number;
   // end lane B
+  // lane H: refraction
+  /** Water looks through to the copied opaque scene (one full-screen copy); off keeps the opacity blend. */
+  refraction: boolean;
+  // end lane H
 }
 
 export const HIGH_QUALITY: RenderQuality = {
@@ -57,4 +61,5 @@ export const HIGH_QUALITY: RenderQuality = {
   godRays: true, // lane D2
   grassDensity: 1, // lane B: grass
   grassMidDistance: 45, // lane B: grass
+  refraction: true, // lane H
 };
