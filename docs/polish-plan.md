@@ -179,7 +179,7 @@ Leftovers pass, tested and built, loaded once in Chromium with no shader errors,
 - 1.1: our own sun, an additive disc (3.5 before tone mapping) and a drawn halo, so phones get the glow too.
 - 1.2: FXAA after the grade when the device has no antialiasing (phones).
 - 1.3 in part: wall and placeholder building colours darker. The square and roads are not retuned. `npm run
-  shots` now prints 5th, 50th and 95th brightness percentiles and a 10-bin histogram.
+shots` now prints 5th, 50th and 95th brightness percentiles and a 10-bin histogram.
 - 1.4: each keyframe carries saturation, contrast and a blue lift; night is 0.88, 0.97 and 0.07. Lamp light is
   warmer and weaker, against the neon lawn. Night sea at half colour, a third of the flecks, grey foam.
 - 1.9: cloud shadows on every standard and physical material (not the water), sharing the sky's cloud pattern,
