@@ -1,13 +1,15 @@
 /**
  * The blade spring the bend map runs on the GPU, with a CPU twin for tests. Natural frequency and damping
- * are picked so a released blade rises in about 1.3 s, overshoots once (about a quarter of its lean) and is
- * still after about 3 s.
+ * are picked so a released blade rises back over about 3 s with no visible overshoot.
  */
 export const BEND_SPRING = {
   /** Natural angular frequency (rad/s). */
-  omega: 1.25,
-  /** Damping ratio: below 1 so the blade wobbles past upright once. */
-  zeta: 0.4,
+  omega: 1.6,
+  /**
+   * Damping ratio: close to 1, so a blade rises back without swinging past upright. A lower ratio made the
+   * whole trail oscillate, which read as a ring of grass pulsing out from the player.
+   */
+  zeta: 0.9,
   /** How fast a stamped blade is pushed to its stamp target (per second). */
   press: 14,
 } as const;

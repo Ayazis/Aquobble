@@ -3,8 +3,8 @@ import { MAX_DRY, STRAW } from './dryTipColor';
 import type { GrassBand } from './GrassBand';
 import { COOL_TIP_GAIN, WARM_TIP_GAIN } from './grassTipColor';
 
-/** Tallest meadow tuft is about this share of its geometry: shin height on a 1.6 m character. */
-export const GRASS_HEIGHT = 0.7;
+/** Tuft scale before the density map: about the old CPU scatter (0.55 to 1.5), shin to knee on a 1.6 m character. */
+export const GRASS_HEIGHT = 1.0;
 /** How far tips bend per (world height)^2 in wind. */
 const BEND = 1.1;
 /** Camera distance over which tips take on the ground colour, so far grass melts into the fur. */
@@ -47,7 +47,7 @@ float grassDist = distance(grassXZ, cameraPosition.xz);
 float grassSize = 1.0 - smoothstep(${f(band.fadeOut[0])}, ${f(band.fadeOut[1])}, grassDist);
 ${grow}
 grassSize *= step(grassSeed, grassMap.r * uGrassKeep) * grassMap.g;
-grassSize *= ${f(GRASS_HEIGHT)} * (0.8 + 0.4 * grassHash(grassXZ + 9.1));
+grassSize *= ${f(GRASS_HEIGHT)} * (0.6 + 0.8 * grassHash(grassXZ + 9.1));
 vec3 grassRoot = vec3(grassXZ.x, groundHeightAt(grassXZ) - 0.04, grassXZ.y);
 float grassYaw = grassHash(grassXZ + 4.2) * 6.2832;
 float grassC = cos(grassYaw);

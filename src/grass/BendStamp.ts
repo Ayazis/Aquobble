@@ -15,9 +15,9 @@ export const MAX_BEND_STAMPS = 16;
 /** Speed (m/s) at which a mover pushes at full strength. */
 const RUN_SPEED = 7;
 
-/** Stamp strength for a mover at `speed`: standing still still flattens, running parts the grass hardest. */
+/** Stamp strength for a mover at `speed`: standing still barely presses, running parts the grass hardest. */
 export function stampStrength(speed: number): number {
-  return 0.75 + 0.55 * Math.min(speed / RUN_SPEED, 1);
+  return 0.45 + 0.65 * Math.min(speed / RUN_SPEED, 1);
 }
 
 /**

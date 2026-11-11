@@ -46,9 +46,9 @@ void main() {
     vec2 vel = uMotion[i].xy;
     float speed = length(vel);
     vec2 along = speed > 0.1 ? vel / speed : vec2(0.0);
-    vec2 dir = radial + along * min(speed * 0.25, 1.2);
-    float dirLen = length(dir);
-    dir = dirLen > 0.001 ? dir / dirLen : radial;
+    // Feet press blades over in the walking direction, parting a little sideways; no outward blast.
+    float moving = smoothstep(0.2, 1.5, speed);
+    vec2 dir = along * moving + radial * mix(0.3, 0.45, moving);
     vec2 target = dir * disc.w * reach;
     float k = clamp(reach * ${f(BEND_SPRING.press)} * uDt, 0.0, 1.0);
     // Only push further: a blade already leaning more than this disc asks keeps its lean.

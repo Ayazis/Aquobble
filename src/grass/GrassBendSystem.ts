@@ -31,7 +31,8 @@ export class GrassBendSystem implements System {
 
   update(dt: number): void {
     const stamps: BendStamp[] = [];
-    for (const e of this.characters) this.stamp(e, dt, this.radius, stamps, false);
+    // Only the feet's footprint, not the body's whole bend radius: a wide disc reads as an aura.
+    for (const e of this.characters) this.stamp(e, dt, this.radius * 0.55, stamps, false);
     for (const e of this.rocks) this.stamp(e, dt, this.radius * 0.8, stamps, true);
     const focus = this.players.first ?? this.characters.first;
     if (!focus) return;

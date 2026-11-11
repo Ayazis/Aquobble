@@ -7,7 +7,7 @@ import { patchiness } from './patchiness';
 /** Share of tufts kept even on the thinnest patch, so bare ground never shows as a hole. */
 const PATCH_FLOOR = 0.3;
 /** Tuft height on mown ground. */
-const LAWN_SCALE = 0.45;
+const LAWN_SCALE = 0.75;
 /** Under a closed canopy: share of tufts kept, and their height. */
 const FOREST_KEEP = 0.35;
 const FOREST_SCALE = 0.55;
