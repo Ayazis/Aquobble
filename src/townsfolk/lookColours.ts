@@ -1,0 +1,9 @@
+/** Colour choices for villager looks. None of them is a colour of the player's own (original) palette. */
+export const lookColours: Readonly<Record<'hair' | 'skin' | 'cloth', readonly number[]>> = {
+  hair: [0x2b1d14, 0x4a2c17, 0x6e4321, 0xb8863b, 0xd9c08a, 0x8a8a86, 0x9c3b1c, 0x1a1a1f],
+  skin: [0xf0c9a8, 0xd9a882, 0xa8754f, 0x7a4e30, 0xc99a74],
+  cloth: [
+    0x8c2f2f, 0x2f4f8c, 0x3f6b3a, 0x7a5c2e, 0x6b3f6e, 0xc9b98f, 0x3a3a40, 0xa8643a, 0x4f8c86, 0xd8d0c0, 0x5e2a20,
+    0x2e5a4e,
+  ],
+};

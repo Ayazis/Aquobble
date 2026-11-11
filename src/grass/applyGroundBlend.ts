@@ -1,41 +1,57 @@
 import type * as THREE from 'three';
-import { LUSH_GROUND_GLSL } from '@terrain';
+import { GROUND_SHADE_GLSL, LUSH_GROUND_GLSL, type GroundShadeUniforms } from '@terrain';
+import { GRASS_GLOW_FRAGMENT } from './grassGlowChunk';
 
 export interface GroundBlendLook {
   /** Camera distance where tips start taking the ground colour, and where the whole tuft has it. */
   tipFadeStart: number;
   tipFadeEnd: number;
+  /** The ground shade map, so roots match the ground where it is darkened under trees and beside rocks. */
+  shade: GroundShadeUniforms;
 }
 
 /**
  * Patches a grass material (after `applyWindSway`) so each tuft runs from the ground colour at its root to
- * its instance colour at the tip; the geometry's vertex colour red channel is the blend weight. Far tufts
- * turn fully ground-coloured before they shrink away, and both faces of a blade are lit alike.
+ * its instance colour at the tip, lightening where a gust passes; the geometry's vertex colour red channel is the blend weight. Far tufts
+ * turn fully ground-coloured before they shrink away, and both faces of a blade are lit alike. Costs one
+ * vertex texture read (the ground shade map) per blade vertex.
  */
 export function applyGroundBlend(material: THREE.Material, look: GroundBlendLook): void {
   const before = material.onBeforeCompile.bind(material);
   const fade = `${look.tipFadeStart.toFixed(1)}, ${look.tipFadeEnd.toFixed(1)}`;
   material.onBeforeCompile = (shader, renderer) => {
     before(shader, renderer);
+    Object.assign(shader.uniforms, look.shade);
     shader.vertexShader = shader.vertexShader
-      .replace('#include <common>', `#include <common>\n${LUSH_GROUND_GLSL}`)
+      .replace(
+        '#include <common>',
+        `#include <common>\nvarying float vGrassTip;\n${LUSH_GROUND_GLSL}\n${GROUND_SHADE_GLSL}`,
+      )
       .replace(
         '#include <color_vertex>',
         /* glsl */ `#include <color_vertex>
+vGrassTip = color.r;
 #ifdef USE_INSTANCING_COLOR
   vec3 grassRoot = (modelMatrix * vec4(instanceMatrix[3].xyz, 1.0)).xyz;
   float grassTip = color.r * (1.0 - smoothstep(${fade}, distance(grassRoot, cameraPosition)));
-  vColor.rgb = mix(lushGroundColor(grassRoot.y), instanceColor.rgb, grassTip);
+  vColor.rgb = mix(shadedGround(lushGroundColor(grassRoot.y), grassRoot.xz), instanceColor.rgb, grassTip);
+  // A lighter, warmer band travels with each gust as the blades lay over and show their paler side.
+  vColor.rgb *= 1.0 + windGust(grassRoot.xz) * grassTip * vec3(0.22, 0.2, 0.1);
 #endif`,
       );
     // Undo three's back-face normal flip: the normals point up, so a flipped one would be lit from below.
-    shader.fragmentShader = shader.fragmentShader.replace(
-      '#include <normal_fragment_begin>',
-      /* glsl */ `#include <normal_fragment_begin>
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', '#include <common>\nvarying float vGrassTip;')
+      .replace(
+        '#include <normal_fragment_begin>',
+        /* glsl */ `#include <normal_fragment_begin>
 #ifdef DOUBLE_SIDED
   normal *= faceDirection;
 #endif`,
-    );
+      )
+      // Light through the blades when looking towards a low sun.
+      .replace('#include <opaque_fragment>', `${GRASS_GLOW_FRAGMENT}\n#include <opaque_fragment>`);
   };
-  material.customProgramCacheKey = () => `aquobble-grass-${fade}`;
+  const windKey = material.customProgramCacheKey();
+  material.customProgramCacheKey = () => `${windKey}|aquobble-grass-${fade}`;
 }

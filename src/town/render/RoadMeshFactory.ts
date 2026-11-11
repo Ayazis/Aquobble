@@ -1,7 +1,11 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import type { Random } from '@core';
 import type { SurfaceKind, SurfaceStyler } from '@rendering';
+import type { GroundShadeUniforms } from '@terrain';
 import { roadBounds, type Bounds } from '../layout/Bounds';
+import { placePuddles } from '../layout/placePuddles';
+import { puddleWetness } from '../layout/puddleWetness';
 import type { TownLayout } from '../layout/TownLayout';
 import type { TownRoad } from '../layout/TownRoad';
 import { applyVerge } from './applyVerge';
@@ -20,25 +24,34 @@ const OVERLAP = 1.2;
 /** Metres per grid cell; only the edge cover and broad tints live on the vertices. */
 const STEP = 0.5;
 
-/** Builds textured packed-dirt roads and a cobbled square just above the ground, town-local: two meshes. */
+/**
+ * Builds textured packed-dirt roads and a cobbled square just above the ground, town-local: two meshes.
+ * With a `random`, a few puddles lie on them; with the ground `shade` map, they darken where things stand.
+ */
 export class RoadMeshFactory {
   private readonly cobble: THREE.Material;
   private readonly dirt: THREE.Material;
 
-  constructor(surfaces?: SurfaceStyler) {
-    this.cobble = groundMaterial('cobble', surfaces);
-    this.dirt = groundMaterial('dirt', surfaces);
+  constructor(
+    surfaces?: SurfaceStyler,
+    shade?: GroundShadeUniforms,
+    private readonly random?: Random,
+  ) {
+    this.cobble = groundMaterial('cobble', surfaces, shade);
+    this.dirt = groundMaterial('dirt', surfaces, shade);
   }
 
   create(layout: TownLayout): THREE.Group {
     const group = new THREE.Group();
     const p = layout.plazaHalfSize;
     const plaza = { minX: -p, maxX: p, minZ: -p, maxZ: p };
-    group.add(mesh(groundPatch(plaza, LIFT + PLAZA_LIFT, STEP, plazaShade(p * 2, FEATHER)), this.cobble));
+    const puddles = this.random ? placePuddles(layout, this.random) : [];
+    const wet = (x: number, z: number) => puddleWetness(puddles, x, z);
+    group.add(mesh(groundPatch(plaza, LIFT + PLAZA_LIFT, STEP, plazaShade(p * 2, FEATHER), wet), this.cobble));
 
     const strips = layout.roads.map((road) => {
       const alongX = road.from.z === road.to.z;
-      return groundPatch(towardsPlaza(road, alongX), LIFT, STEP, roadShade(alongX, road.width, FEATHER));
+      return groundPatch(towardsPlaza(road, alongX), LIFT, STEP, roadShade(alongX, road.width, FEATHER), wet);
     });
     if (strips.length > 0) {
       group.add(mesh(mergeGeometries(strips), this.dirt));
@@ -59,10 +72,10 @@ function towardsPlaza(road: TownRoad, alongX: boolean): Bounds {
   return b;
 }
 
-function groundMaterial(kind: SurfaceKind, surfaces?: SurfaceStyler): THREE.Material {
+function groundMaterial(kind: SurfaceKind, surfaces?: SurfaceStyler, shade?: GroundShadeUniforms): THREE.Material {
   const material = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1 });
   surfaces?.apply(material, kind);
-  applyVerge(material);
+  applyVerge(material, shade);
   return material;
 }
 

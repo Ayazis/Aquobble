@@ -6,6 +6,7 @@ import { DEFAULT_TERRAIN, type PondOptions, type TerrainConfig } from '@terrain'
 import type { TownSite } from '@town';
 import type { TreePlacerOptions } from '@vegetation';
 import type { WaterLook } from '@water';
+import type { ForestDetail } from './ForestDetail';
 import type { TownsfolkConfig } from './spawnTownsfolk';
 
 /** All tunable numbers in one place. */
@@ -18,7 +19,8 @@ export interface GameConfig {
   ponds: Omit<PondOptions, 'avoid'>;
   terrain: TerrainConfig;
   environment: EnvironmentConfig;
-  forest: TreePlacerOptions;
+  /** Where trees grow, and how far they are drawn in full. */
+  forest: TreePlacerOptions & { detail: ForestDetail };
   /** Instanced grass blades and flower clusters; skips beaches, steep slopes, town and ponds. */
   grass: GrassOptions;
   rocks: RockRecycleOptions;
@@ -37,27 +39,33 @@ export interface GameConfig {
 export const DEFAULT_CONFIG: GameConfig = {
   seed: 1337,
   waterLevel: 0.2,
-  water: { waterColor: 0x1fa3c4, opacity: 0.8 },
+  water: { waterColor: 0x1fa3c4, shallowColor: 0x7fdccb, opacity: 0.8 },
   ponds: { count: 3, extent: 60, minRadius: 3.5, maxRadius: 6.5, depth: 1.6, minLevel: 1.2, freeboard: 0.25 },
   terrain: DEFAULT_TERRAIN,
   environment: DEFAULT_ENVIRONMENT,
-  forest: { count: 340, extent: 80, minHeight: 2, maxHeight: 11 },
+  forest: { count: 340, extent: 80, minHeight: 2, maxHeight: 11, detail: { treeDistance: 75, floorDistance: 45 } },
   grass: {
-    grass: { count: 110000, extent: 80 },
-    flowers: { clusters: 130, perCluster: 14, radius: 2.5, variants: 5, extent: 80 },
+    grass: { count: 55000, extent: 80 },
+    nearGrass: { count: 160000, extent: 80 },
+    flowers: { clusters: 420, perCluster: 18, radius: 2.2, variants: 5, extent: 80 },
+    seedHeads: { clumps: 320, perClump: 12, radius: 1.8, extent: 80 },
+    pondReeds: { clumps: 14, perClump: 9, radius: 0.9, extent: 0 },
+    shoreReeds: { clumps: 90, perClump: 10, radius: 1.4, extent: 90 },
     beachMargin: 0.8,
     maxHeight: 14,
     maxSlope: 0.7,
   },
   rocks: { population: 40, removeBelow: -2, dropExtent: 50, dropHeight: 40 },
   rockScatter: {
-    clusters: 95,
+    clusters: 110,
     clusterSize: 5,
     extent: 85,
     maxHeight: 30,
     minScale: 0.25,
     maxScale: 2.2,
-    variants: 6,
+    variants: 3,
+    outcrops: 9,
+    beachPebbles: 120,
     colliderMinScale: 0.9,
   },
   fallingRocks: false,

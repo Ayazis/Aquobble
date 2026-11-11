@@ -8,6 +8,8 @@ export interface RenderQuality {
   postEffects: boolean;
   /** Sun shadow map resolution (square). */
   shadowMapSize: number;
+  /** Width in metres of the sun's shadow box, which follows the view. Smaller is sharper but ends nearer. */
+  shadowBoxSize: number;
   /** Redraw the shadow map every this many frames (1 = every frame). */
   shadowInterval: number;
   /** Detail textures over models, trees and rocks (several texture reads per pixel). */
@@ -20,6 +22,7 @@ export const HIGH_QUALITY: RenderQuality = {
   shadows: true,
   postEffects: true,
   shadowMapSize: 4096,
+  shadowBoxSize: 60,
   shadowInterval: 1,
   surfaceDetail: true,
 };

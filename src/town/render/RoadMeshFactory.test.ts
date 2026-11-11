@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
+import { SeededRandom } from '@core';
+import { createGroundShadeUniforms } from '@terrain';
 import { DEFAULT_TOWN_LAYOUT } from '../layout/defaultTownLayout';
 import { NO_LANE } from './groundPatch';
 import { RoadMeshFactory } from './RoadMeshFactory';
@@ -75,5 +77,37 @@ describe('RoadMeshFactory', () => {
     expect(shader.vertexShader).toContain('attribute vec2 verge;');
     expect(shader.fragmentShader).toContain('discard;');
     expect(material.customProgramCacheKey()).toContain('aquobble-verge');
+  });
+
+  it('wets a few spots for puddles when given a random, and none without', () => {
+    const wet = (mesh: THREE.Mesh) => Array.from(mesh.geometry.getAttribute('puddle').array).filter((w) => w > 0.4);
+    const dry = build();
+    expect([...wet(dry.plaza), ...wet(dry.roads)]).toHaveLength(0);
+    const factory = new RoadMeshFactory(undefined, undefined, new SeededRandom(5));
+    const [plaza, roads] = factory.create(DEFAULT_TOWN_LAYOUT).children as THREE.Mesh[];
+    expect(wet(plaza).length + wet(roads).length).toBeGreaterThan(4);
+  });
+
+  it('reads the ground shade map and makes puddles smooth when given one', () => {
+    const factory = new RoadMeshFactory(undefined, createGroundShadeUniforms());
+    const material = (factory.create(DEFAULT_TOWN_LAYOUT).children[1] as THREE.Mesh).material as THREE.Material;
+    const shader = {
+      uniforms: {},
+      vertexShader: ['#include <common>', '#include <begin_vertex>'].join('\n'),
+      fragmentShader: [
+        '#include <common>',
+        '#include <color_fragment>',
+        '#include <roughnessmap_fragment>',
+        '#include <emissivemap_fragment>',
+      ].join('\n'),
+    } as Shader;
+    material.onBeforeCompile(shader, undefined as unknown as THREE.WebGLRenderer);
+    expect(shader.uniforms).toHaveProperty('uGroundShadeMap');
+    expect(shader.fragmentShader).toContain('shadedGround(diffuseColor.rgb, vVergePos)');
+    expect(shader.fragmentShader).toContain('roughnessFactor = mix(');
+    expect(shader.fragmentShader.indexOf('nonPerturbedNormal')).toBeLessThan(
+      shader.fragmentShader.indexOf('<emissivemap_fragment>'),
+    );
+    expect(material.customProgramCacheKey()).toContain('aquobble-verge-shaded');
   });
 });

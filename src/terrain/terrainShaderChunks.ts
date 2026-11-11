@@ -1,5 +1,6 @@
 import { DEFAULT_PALETTE } from './TerrainPalette';
 import { linearRgb } from './linearRgb';
+import { GROUND_SHADE_GLSL } from './groundShadeGlsl';
 import { LUSH_GROUND_GLSL } from './lushGroundGlsl';
 
 /** GLSL injected into MeshStandardMaterial by `TerrainMaterialFactory`. */
@@ -28,9 +29,11 @@ uniform sampler2D uGrassMap;
 uniform sampler2D uRockMap;
 uniform sampler2D uSandMap;
 uniform float uTerrainDetail;
+uniform float uTerrainWaterLevel;
 varying vec3 vTerrainPos;
 varying vec3 vTerrainNormal;
 ${LUSH_GROUND_GLSL}
+${GROUND_SHADE_GLSL}
 // Texture colour divided by its own average, so the palette colour stays the overall tint.
 vec3 terrainDetail(sampler2D map, vec2 uv) {
   vec3 mean = max(textureLod(map, vec2(0.5), 16.0).rgb, vec3(0.04));
@@ -80,10 +83,13 @@ export const TERRAIN_FRAGMENT_MAIN = /* glsl */ `
   float grass = max(1.0 - rock - sand, 0.0);
 
   // Base colour: height bands blended across the noisy edge, steep faces go earth/rock.
-  vec3 lush = lushGroundColor(hn);
+  // Plants' ground is browner under tree crowns and darker where a trunk or rock stands on it.
+  vec3 lush = shadedGround(lushGroundColor(hn), vTerrainPos.xz);
   vec3 stone = mix(${EARTH}, ${ROCK}, smoothstep(6.0, 14.0, hn));
   float snow = smoothstep(21.0, 23.0, hn) * (1.0 - steep * 0.7);
-  vec3 base = ${SAND} * sand + lush * grass + stone * rock;
+  // Sand is dark and wet where the sea laps over it, with a ragged upper edge.
+  float wet = 1.0 - smoothstep(0.12, 0.42, h - uTerrainWaterLevel + edge * 0.25);
+  vec3 base = ${SAND} * mix(1.0, 0.62, wet) * sand + lush * grass + stone * rock;
   diffuseColor.rgb = mix(base, ${SNOW}, snow);
 
   vec3 detail = vec3(0.0);

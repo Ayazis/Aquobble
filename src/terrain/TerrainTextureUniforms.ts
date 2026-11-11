@@ -7,10 +7,12 @@ export interface TerrainTextureUniforms {
   uRockMap: THREE.IUniform<THREE.Texture>;
   uSandMap: THREE.IUniform<THREE.Texture>;
   uTerrainDetail: THREE.IUniform<number>;
+  /** World height of the sea; sand just above it is dark and wet. */
+  uTerrainWaterLevel: THREE.IUniform<number>;
 }
 
 /** Uniforms with 1x1 white placeholders, so the terrain renders untextured until textures arrive. */
-export function createTerrainTextureUniforms(): TerrainTextureUniforms {
+export function createTerrainTextureUniforms(waterLevel = -1000): TerrainTextureUniforms {
   const white = new THREE.DataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1);
   white.needsUpdate = true;
   return {
@@ -18,5 +20,6 @@ export function createTerrainTextureUniforms(): TerrainTextureUniforms {
     uRockMap: { value: white },
     uSandMap: { value: white },
     uTerrainDetail: { value: 0 },
+    uTerrainWaterLevel: { value: waterLevel },
   };
 }

@@ -64,14 +64,148 @@ desktop; house-c, barracks, watchtower and windmill have no window swatch and st
 at knee height in front of the player, intensity 14 to 4, reach 16 to 9) and 7.3 (fresnel rim on player and
 townsfolk materials, keyed on the key light's brightness so it is strong at dusk and night and faint by day).
 
+Step 4 was rendered for the first time on 2026-11-11 (software Chromium, 1x): lamp glass, windows and the pools
+of light all come on at night and read well. Two things to fix under 1.4: the town lawn turns neon yellow-green
+in lamplight, and buildings away from a lamp are nearly black (36.7% of the `plaza` night frame is black).
+
+Step 5, first pass, rendered the same way, so colour and shape were checked on screen and frame cost was not:
+
+- 4.1: rocks are chiselled, a subdivided sphere bent by layered waves and sliced by flat cuts. Four shapes
+  (boulder and slab at 320 triangles, small stone at 80, pebble cluster at 80 to 100), three of each, in warm
+  and cool greys that neighbours share. The falling-rock demo keeps the old lump.
+- 4.2: the base is darkened in the vertex colours, and grass keeps off the middle of a rock and thins at its edge.
+- 4.3: moss on upward faces under tree crowns, lichen flecks from 8 m up, a dark wet band up to 0.3 m above the
+  sea. No foam ring; that comes with 6.2.
+- 4.4: nine outcrops of two to four large blocks on the steepest ground, with scree below, and pebbles on flat
+  ground (more at the shore). All nine land on the eastern hill, where the steepest ground is. Only 18 pebble
+  clusters come out, so beaches are still bare. No stepping stones in ponds.
+- 1.8 for trees and rocks: a new ground shade map (1024 px over the island, one channel for contact patches and
+  one for canopy), stamped as things are placed and read by the terrain, the grass roots and the rocks. Town
+  props, buildings and the wall do not stamp it yet, and the roads and square do not read it.
+- 2.5 in part: the canopy channel browns and darkens the ground under crowns. No leaf litter.
+- 5.2 (trunks flare into roots and lean up to 4 degrees; the collider stays an upright cylinder), 5.3 (crowns
+  sway on the same gust front as the grass) and 5.4 (dark undersides and inner faces, a tint per clump; no lit rim).
+
+Cost per frame, all devices: one more texture read per terrain pixel; one vertex texture read per grass-blade
+vertex and per rock vertex; 371 rocks instead of 256, drawn as one instanced mesh per shape per 50 m cell so
+off-screen cells are skipped. Not measured on a device.
+
+Step 5, second pass, tested and built but never rendered, so every size, colour and distance is a first guess:
+
+- 5.1: trees are Quaternius models (CC0, Poly Pizza): two pines, two oaks and a dead tree, merged into one file,
+  `models/forest.glb` (542 KB, nine 512 px WebP textures, the shared bark stored once). Pines take over from oaks
+  on the upper half of the forest's height band, 3% are dead trunks and 12% of the living trees are saplings at a
+  third to under half size. Two bush models (the pack's and the town's) grow on the outer side of trees with few
+  neighbours. No birch: the pack has none. Leaves are alpha-tested, sway on the gust front (5.3), stamp the ground
+  shade (1.8, canopy channel; dead trunks stamp contact only) and drop leaf litter; colliders are sized per species.
+- 5.4, the rest: crowns (models and stand-ins) get a lit rim on the key light's side, tinted by the leaf colour,
+  strong by day and faint under the moon.
+- 5.5: ferns, Plant Big, mushrooms, mossy and bare logs and mossy stumps (about 750 on desktop) are scattered under
+  grown trees by the same seeded random, mushrooms near trunks and logs further out. The untextured logs and stump
+  are merged into one vertex-coloured mesh each, re-tinted towards the bark and moss, with the shared bark detail,
+  and leave a contact patch. No colliders on them.
+- Far level: each 40 m tree cell is a `THREE.LOD`; past 75 m (40 m on phones) from the cell centre the models give
+  way to the old procedural tree (about 210 triangles), shaped and tinted per species. Floor cells (25 m) are
+  hidden past 45 m (26 m on phones).
+
+Cost per frame, estimated from the seeded placement, not measured: the models average 3,100 triangles (1.6k to
+6.5k), 1.06 M for all 340 trees and 0.4 M for the whole floor at full detail. With the LOD and frustum culling
+about 80 near trees (about 250k triangles) and 50k for the floor on desktop, and about 20 near trees (65k) plus 40k
+of stand-ins on phones; the shadow pass roughly doubles it. Draws: up to nine per near tree cell (one per species
+per part), two per far cell, up to eight per floor cell; ferns, plants and mushrooms cast no shadow. Download:
++542 KB.
+
+Step 6, first pass, rendered the same way (desktop and phone profile at noon, desktop at sunset and night):
+
+- 6.2: the water reads the terrain's height from a texture (one read per pixel), so it has a shoreline: pale,
+  clearer shallows, darker and more solid deep water, a thin foam edge at the waterline and bands that lap in
+  towards it.
+- 6.1: flecks are streaks along the wind, about a third as many, gone over the shallows and past 220 m.
+- 6.3: a 6 cm swell out to 110 m from the island centre (the sea mesh went from 2 to 28,800 triangles, crowded
+  towards the middle), and wave tips that flash the sun's or moon's colour along the path towards it. The
+  sea is rougher and reflects the sky less, so it is blue where it was white.
+- 6.4: ponds are calm and a little darker, with four to ten lily pads each. No reeds (3.3). Ponds are shallow,
+  so most of a pond still gets the pale shallows colour.
+- 2.4: sand is dark and wet up to about 0.3 m above the sea, with a ragged edge, and 70 pebble clusters or
+  stones lie along the beaches.
+- 1.7 in part: day fog is sky blue instead of near white, and the cloud sheet thins out well before the
+  horizon. The horizon itself is still white at noon: that is the sky shader, not the fog.
+- Not done: 1.9 (cloud shadows). Every material would need the cloud uniforms; doing it for the terrain alone
+  is the cheap version.
+- Seen, not fixed: at night the sea and its flecks are far brighter than the land. At sunset a straight-edged
+  wedge of darker water shows near the island; it was there before this step and looks like the edge of the
+  fixed shadow box (1.10).
+
+Step 7, first pass on grass, rendered at noon (software Chromium, meadow and forest, desktop and phone profile):
+
+- 3.3 in part: grass is thick in some patches and thin in others (fixed sine patches 10 to 25 m across; the
+  thinnest ground keeps 30% of the tufts so it never shows bare), and thick patches grow a little taller. One tuft
+  shape still: no seed heads, reeds, ferns or dry patches.
+- 3.4: flower heads are about twice the size, stems are a lighter green near the grass tips, and 420 clusters of
+  18 gather in drifts around about 50 centres, most of a drift in one colour.
+- 3.5 in part: a lighter, warmer band runs across the blade tips with each gust (same gust formula as the sway,
+  now one shared GLSL function). No glow when looking towards a low sun.
+- 2.5, leaf litter: nine patches of seven flat leaves per tree (more for bigger trees), most near the trunk, in
+  greens through browns, one instanced mesh per 25 m cell. Under long grass only a few flecks show; thinning
+  the grass under crowns would show more. The litter draws from the shared seeded random after the trees, so
+  rocks, grass and flowers moved compared with earlier shots.
+- Not done in step 7 (first pass): 3.6, 2.3, 7.1, 7.2.
+
+Cost per frame: a few more ALU ops per grass vertex; leaf litter adds about 3,000 small instances (42 triangles
+each) in one draw per visible 25 m cell. Flowers go from about 315 to
+several thousand instances in one draw. Not measured on a device.
+
+Step 7, second pass, tested and built but never rendered, so every colour and size is a first guess:
+
+- 3.6: two grass rings. Near: 5 blades per tuft, at most about 5 cm wide, 160,000 tufts in 10 m cells, full size
+  to 14 m and gone by 20 m, each cell a `THREE.LOD` that stops drawing past about 28 m. Far: 3 wider blades,
+  55,000 tufts in 20 m cells, growing in from 12 to 18 m. Phones get half of each ring (was a quarter).
+- 2.3: the wall has a plinth, an overhanging cap course, a dirt and moss gradient at the base in vertex colours,
+  darker mortar (masonry detail 0.5 to 0.68), and at each gate a flat stone arch and two open wooden doors.
+  Colliders are unchanged. No masonry normal map (none in the repository). The doors may overlap the gate posts.
+- 7.1: each villager gets its own 64x4 copy of the character palette with hair, skin and six clothing swatches
+  repainted from seeded lists; the player keeps the original colours, which no villager can draw. Which columns
+  are hair and skin was read from the texture, not seen.
+- 7.2 in part: new `effects` slice with chimney smoke from 10 buildings (house_a, house_b, tavern, blacksmith), 7
+  fading puffs per chimney in one instanced draw. house_b and tavern chimney positions are guesses. No windmill
+  sails or awnings: those models are single meshes.
+
+Cost per frame: grass roughly 350k to 375k triangles instead of about 500k (estimated), plus 25 to 40 more draws
+for near cells, and about 16 MB of grass instance data; the wall is 2 draws (about 3,300 triangles) instead of 1;
+smoke is 1 draw of 70 instances. Villager palettes cost only at spawn. Not measured on a device.
+
+Leftovers pass, tested and built, loaded once in Chromium with no shader errors, never looked at:
+
+- 1.1: our own sun, an additive disc (3.5 before tone mapping) and a drawn halo, so phones get the glow too.
+- 1.2: FXAA after the grade when the device has no antialiasing (phones).
+- 1.3 in part: wall and placeholder building colours darker. The square and roads are not retuned. `npm run
+shots` now prints 5th, 50th and 95th brightness percentiles and a 10-bin histogram.
+- 1.4: each keyframe carries saturation, contrast and a blue lift; night is 0.88, 0.97 and 0.07. Lamp light is
+  warmer and weaker, against the neon lawn. Night sea at half colour, a third of the flecks, grey foam.
+- 1.9: cloud shadows on every standard and physical material (not the water), sharing the sky's cloud pattern,
+  strength 0.38 times daylight. About 120 to 150 ALU per lit pixel by day on all devices; no phone switch yet.
+- 1.10: the shadow box follows the camera (60 m desktop, 40 m phone), snapped to texels, and the sun shadow
+  fades out over the outer fifth of the box, which should remove the sunset wedge.
+- 6.5: a painted moon face with seeded seas and craters, drawn over the stars.
+- 3.3, the rest: seed-head grass in thick meadow, reeds round ponds and along the shore, dry tips on high ground.
+  No ferns here (5.5 has them). Also fixed: near and far grass rings shared one compiled program.
+- 3.5, the rest: glow through the upper blades when looking towards a low, warm key light.
+- 2.2, puddles: four on the default seed, on roads and the square, with a damp ring.
+- 1.8, the rest: buildings, props and the wall stamp the contact channel, and the roads and square read it.
+- 4.4, the rest: stepping stones across about 60% of ponds, no colliders.
+- 2.4, beaches: pebble clusters were rejected because beach sand is steep; now about 200 instead of 18.
+- Still open: 2.6, the square and road colours (1.3), and a phone switch for cloud shadows if they cost too much.
+
+Every rock, tuft and flower moved compared with earlier shots: the shared random is drawn in a new order.
+
 ## Tools first
 
 Taking these screenshots meant reaching into private fields. Two small tools make every later item checkable.
 
-| #   | Change                                                                                                                                                                                            | Where                                   | Size |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- | ---- |
-| 0.1 | Debug mode behind `?debug`: set the time of day, free the camera, show draw calls and triangles. The FPS counter moves here.                                                                      | `diagnostics`, `Game`, `DayNightSystem` | M    |
-| 0.2 | `npm run shots`: saves a fixed set of views (plaza, lane, gate, meadow, forest, pond, coast, a rock, a tree) at noon, sunset and night, desktop and phone. Every item below is judged against it. | `scripts/shots/` (output is gitignored) | M    |
+| #   | Change                                                                                                                                                                                                             | Where                                   | Size |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------- | ---- |
+| 0.1 | Debug mode behind `?debug`: set the time of day, free the camera, show draw calls and triangles. The FPS counter moves here.                                                                                       | `diagnostics`, `Game`, `DayNightSystem` | M    |
+| 0.2 | `npm run shots`: saves a fixed set of views (plaza, lane, gate, meadow, forest, pond, coast, a rock, an outcrop, shore rocks) at noon, sunset and night, desktop and phone. Every item below is judged against it. | `scripts/shots/` (output is gitignored) | M    |
 
 ## 1. Lighting and image
 
@@ -155,8 +289,8 @@ every facet is perfectly flat to the light (see Decisions).
 
 ## Order
 
-Each step ends with `npm run check` passing, the shots re-taken and compared, and a look at the pull request
-preview on a real phone and a desktop.
+Each step ends with `npm run check` passing and a look at the pull request preview on a real phone and a
+desktop. The shots tool is slow; run it only when asked.
 
 1. **Tools**: 0.1, 0.2.
 2. **Cheap fixes to the whole picture**: 1.1, 1.2, 1.3, 1.4, 1.11. All small, and they change every frame.

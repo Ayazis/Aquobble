@@ -23,6 +23,9 @@ export function sampleDayCycle(keyframes: readonly DayKeyframe[], time: number):
     turbidity: lerp(a.turbidity, b.turbidity, f),
     rayleigh: lerp(a.rayleigh, b.rayleigh, f),
     exposure: lerp(a.exposure, b.exposure, f),
+    gradeSaturation: lerp(a.gradeSaturation, b.gradeSaturation, f),
+    gradeContrast: lerp(a.gradeContrast, b.gradeContrast, f),
+    gradeLift: lerp(a.gradeLift, b.gradeLift, f),
   };
 }
 

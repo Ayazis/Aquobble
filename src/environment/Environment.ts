@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import type { RenderContext } from '@rendering';
+import type { CloudShadow, ColorGrade, RenderContext } from '@rendering';
 import { CloudLayer } from './CloudLayer';
 import { DayNightSystem } from './DayNightSystem';
 import type { DayKeyframe } from './DayKeyframe';
@@ -8,6 +8,7 @@ import type { EnvironmentConfig } from './EnvironmentConfig';
 import type { Random } from '@core';
 import { NightSky } from './NightSky';
 import { SkyDome } from './SkyDome';
+import { SunDisc } from './SunDisc';
 import { SunLight } from './SunLight';
 
 /** Installs sky, sun, moon, stars, fog and image-based lighting into the scene. */
@@ -17,16 +18,22 @@ export class Environment {
     private readonly keyframes: readonly DayKeyframe[] = DEFAULT_DAY_KEYFRAMES,
   ) {}
 
-  /** Adds the atmosphere to the scene and returns the frame system that animates it through the day. */
-  install(context: RenderContext, random: Random): DayNightSystem {
+  /**
+   * Adds the atmosphere to the scene and returns the frame system that animates it through the day.
+   * `grade`, when given, follows the hour too (calmer colour at night). `cloudShadow`, from
+   * `installToonLighting`, lets the drifting clouds shade the ground.
+   */
+  install(context: RenderContext, random: Random, grade?: ColorGrade, cloudShadow?: CloudShadow): DayNightSystem {
     const { scene, renderer, camera } = context;
     const night = new NightSky(random);
     const sky = new SkyDome();
-    const clouds = new CloudLayer();
-    const light = new SunLight(undefined, context.quality.shadows ? context.quality.shadowMapSize : 512);
+    const clouds = new CloudLayer(cloudShadow);
+    const sunDisc = new SunDisc();
+    const { shadows, shadowMapSize, shadowBoxSize } = context.quality;
+    const light = new SunLight(shadowBoxSize, shadows ? shadowMapSize : 512);
     const fog = new THREE.FogExp2(0xffffff, 0);
 
-    scene.add(sky.sky, night.group, clouds.mesh, light.sun, light.fill);
+    scene.add(sky.sky, sunDisc.group, night.group, clouds.mesh, light.sun, light.fill);
     scene.fog = fog;
     const dayNight = new DayNightSystem(
       renderer,
@@ -39,6 +46,8 @@ export class Environment {
       night,
       camera,
       clouds,
+      sunDisc,
+      grade,
     );
     dayNight.update(0); // apply the start time before the first frame
     return dayNight;

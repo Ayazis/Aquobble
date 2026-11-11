@@ -6,13 +6,17 @@ const NIGHT: Omit<DayKeyframe, 'time'> = {
   sunIntensity: 1.15,
   hemisphereSky: 0x34466e,
   hemisphereGround: 0x1c2640,
-  hemisphereIntensity: 0.75,
+  hemisphereIntensity: 0.9,
   environmentIntensity: 0.2,
   fogColor: 0x1b2333,
   fogDensity: 0.0035,
   turbidity: 2,
   rayleigh: 0.5,
   exposure: 0.9,
+  // Calmer at night: lamplight on grass must not go neon, and moon shade lifts to dark blue rather than black.
+  gradeSaturation: 0.88,
+  gradeContrast: 0.97,
+  gradeLift: 0.07,
 };
 
 const DAY: Omit<DayKeyframe, 'time'> = {
@@ -23,11 +27,15 @@ const DAY: Omit<DayKeyframe, 'time'> = {
   hemisphereGround: 0x6f8a5c,
   hemisphereIntensity: 1.25,
   environmentIntensity: 0.35,
-  fogColor: 0xbfe0f5,
+  // Sky blue rather than white, so far land and the horizon sink into blue haze.
+  fogColor: 0xa6cff0,
   fogDensity: 0.0022,
   turbidity: 2.5,
   rayleigh: 1.3,
   exposure: 0.62,
+  gradeSaturation: 1.22,
+  gradeContrast: 1.06,
+  gradeLift: 0,
 };
 
 /** Night → dawn → morning → noon → evening → dusk → night, sorted by time. */

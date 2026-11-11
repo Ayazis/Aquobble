@@ -4,9 +4,14 @@ import { canGrow } from './canGrow';
 import type { GrassPlacement } from './GrassPlacement';
 import type { GroundRules } from './GroundRules';
 import { growthAt } from './growthAt';
+import { patchiness } from './patchiness';
 
 /** Tuft scale on mown ground. */
 const LAWN_SCALE = 0.45;
+/** Share of tufts kept even on the thinnest patch, so bare ground never shows as a hole. */
+const PATCH_FLOOR = 0.3;
+/** Flower clusters gather around this many drift centres per hundred clusters. */
+const DRIFTS_PER_100 = 12;
 
 export interface GrassPlacerOptions {
   count: number;
@@ -34,18 +39,33 @@ export class GrassPlacer {
 
   grass({ count, extent }: GrassPlacerOptions): GrassPlacement[] {
     const out: GrassPlacement[] = [];
-    for (let tries = 0; out.length < count && tries < count * 4; tries++) {
-      this.tryAdd(out, this.random.range(-extent, extent), this.random.range(-extent, extent), 0, 0.6, 1.4);
+    for (let tries = 0; out.length < count && tries < count * 6; tries++) {
+      const x = this.random.range(-extent, extent);
+      const z = this.random.range(-extent, extent);
+      const thick = patchiness(x, z);
+      if (this.random.next() > PATCH_FLOOR + (1 - PATCH_FLOOR) * thick) continue;
+      // Thick patches grow a little taller too.
+      this.tryAdd(out, x, z, 0, 0.55 + 0.15 * thick, 1.2 + 0.3 * thick);
     }
     return out;
   }
 
   flowers({ clusters, perCluster, radius, variants, extent }: FlowerPlacerOptions): GrassPlacement[] {
     const out: GrassPlacement[] = [];
+    const drifts = Array.from({ length: Math.max(1, Math.round((clusters * DRIFTS_PER_100) / 100)) }, () => ({
+      x: this.random.range(-extent, extent),
+      z: this.random.range(-extent, extent),
+      variant: Math.floor(this.random.next() * variants),
+    }));
     for (let c = 0; c < clusters; c++) {
-      const cx = this.random.range(-extent, extent);
-      const cz = this.random.range(-extent, extent);
-      const variant = Math.floor(this.random.next() * variants);
+      // Most clusters join a drift (and mostly its colour); a few stand alone.
+      const drift = drifts[Math.floor(this.random.next() * drifts.length)];
+      const alone = this.random.next() < 0.2;
+      const spread = radius * 5;
+      const cx = alone ? this.random.range(-extent, extent) : drift.x + this.random.range(-spread, spread);
+      const cz = alone ? this.random.range(-extent, extent) : drift.z + this.random.range(-spread, spread);
+      const own = alone || this.random.next() < 0.3;
+      const variant = own ? Math.floor(this.random.next() * variants) : drift.variant;
       for (let i = 0; i < perCluster; i++) {
         const angle = this.random.range(0, Math.PI * 2);
         const r = radius * Math.sqrt(this.random.next());

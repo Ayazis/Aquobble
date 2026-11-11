@@ -1,4 +1,4 @@
-// npm run assets:use -- <path under assets/library> [--as name]   (glb/gltf, obj+mtl, hdr/exr or images)
+// npm run assets:use -- <path under assets/library> [--as name] [--size px] [--keep-nodes]   (glb/gltf, obj+mtl, hdr/exr or images)
 // Optimises a library asset into public/assets/ (committed) and records its credit.
 import fs from 'node:fs';
 import path from 'node:path';
@@ -44,6 +44,10 @@ if (model) {
       'webp',
       '--texture-size',
       flags.size ?? '1024',
+      // --keep-nodes: keep every node and mesh apart (a pack merged into one file, picked apart by name in code).
+      ...(flags['keep-nodes']
+        ? ['--join', 'false', '--flatten', 'false', '--instance', 'false', '--palette', 'false', '--simplify', 'false']
+        : []),
     ],
     { stdio: 'inherit' },
   );

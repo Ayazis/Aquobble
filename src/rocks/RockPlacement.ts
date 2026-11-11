@@ -1,3 +1,5 @@
+import type { RockFamily } from './RockFamily';
+
 /** One decorative rock: where it sits and how it is shaped. Pure data. */
 export interface RockPlacement {
   x: number;
@@ -11,6 +13,7 @@ export interface RockPlacement {
   scale: number;
   /** Vertical squash factor (below 1 flattens). */
   squash: number;
-  /** Index of the geometry variant, in [0, variants). */
+  family: RockFamily;
+  /** Index of the shape within its family, in [0, variants). */
   variant: number;
 }

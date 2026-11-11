@@ -1,5 +1,17 @@
 export type { TreePlacement } from './TreePlacement';
+export type { TreeSpecies } from './TreeSpecies';
 export type { ExclusionZone } from './ExclusionZone';
 export { TreePlacer, type TreePlacerOptions } from './TreePlacer';
 export { TreeInstancesFactory } from './TreeInstancesFactory';
+export { ForestInstancesFactory } from './ForestInstancesFactory';
 export { ForestSpawner } from './ForestSpawner';
+export type { CrownSwayClock } from './applyCrownSway';
+export type { LeafLitterPlacement } from './LeafLitterPlacement';
+export { LeafLitterPlacer, type LeafLitterOptions } from './LeafLitterPlacer';
+export { LeafLitterFactory } from './LeafLitterFactory';
+export type { ForestModelSet } from './ForestModelSet';
+export { buildForestModelSet } from './buildForestModelSet';
+export type { UnderstoryPlacement } from './UnderstoryPlacement';
+export { ForestFloorPlacer, type ForestFloorOptions } from './ForestFloorPlacer';
+export { EdgeBushPlacer, type EdgeBushOptions } from './EdgeBushPlacer';
+export { UnderstoryInstancesFactory } from './UnderstoryInstancesFactory';

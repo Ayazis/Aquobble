@@ -20,10 +20,13 @@ describe('RockScatterPlacer', () => {
     const rocks = new RockScatterPlacer(ground, new SeededRandom(1)).place(base);
     expect(rocks.length).toBeGreaterThan(40);
     for (const r of rocks) {
-      expect(r.y).toBeLessThan(ground.heightAt(r.x));
+      expect(r.y).toBeLessThanOrEqual(ground.heightAt(r.x));
       expect(r.scale).toBeGreaterThanOrEqual(0.3);
       expect(r.scale).toBeLessThanOrEqual(2);
-      expect(r.squash).toBeLessThan(1);
+      expect(r.squash).toBeLessThanOrEqual(1);
+      if (r.family === 'pebbles') expect(r.x).toBeLessThan(1);
+      else expect(r.y).toBeLessThan(ground.heightAt(r.x));
+      if (r.family === 'stone') expect(r.scale).toBeLessThan(0.9);
       expect(r.variant).toBeGreaterThanOrEqual(0);
       expect(r.variant).toBeLessThan(3);
     }
@@ -48,6 +51,40 @@ describe('RockScatterPlacer', () => {
       expect(Math.abs(r.x) < 10 && Math.abs(r.z) < 10).toBe(false);
       expect(sea.heightAt(r.x)).toBeGreaterThanOrEqual(0);
     }
+  });
+
+  it('sets large outcrops on steep ground only, with scree below them', () => {
+    const none = new RockScatterPlacer(ground, new SeededRandom(5)).place({ ...base, clusters: 0, outcrops: 3 });
+    expect(none.length).toBeGreaterThan(3 * 6);
+    const blocks = none.filter((r) => r.scale > base.maxScale * 0.9 && r.family !== 'pebbles');
+    expect(blocks.length).toBeGreaterThanOrEqual(3 * 2);
+    for (const b of blocks) expect(b.x).toBeGreaterThanOrEqual(-3);
+    // Scree lies downhill (towards -x on this ramp) of the blocks.
+    const small = none.filter((r) => !blocks.includes(r));
+    const mean = (rocks: typeof none) => rocks.reduce((sum, r) => sum + ground.heightAt(r.x), 0) / rocks.length;
+    expect(mean(small)).toBeLessThan(mean(blocks));
+    const flat = new RockScatterPlacer({ heightAt: () => 3 }, new SeededRandom(5));
+    expect(flat.place({ ...base, clusters: 0, outcrops: 3 })).toEqual([]);
+  });
+
+  it('strews pebbles along the beach only', () => {
+    const shore = { heightAt: (x: number) => x / 10 };
+    const rocks = new RockScatterPlacer(shore, new SeededRandom(6)).place({ ...base, clusters: 0, beachPebbles: 20 });
+    expect(rocks.length).toBeGreaterThan(30);
+    for (const r of rocks) {
+      expect(r.x / 10).toBeGreaterThan(0);
+      expect(r.x / 10).toBeLessThan(0.9);
+    }
+    expect(rocks.filter((r) => r.family === 'pebbles').length).toBeGreaterThan(10);
+  });
+
+  it('lays pebbles on steep beaches too', () => {
+    // A beach rising 0.7 m per metre, like most of the island's.
+    const steep = { heightAt: (x: number) => x * 0.7 };
+    const rocks = new RockScatterPlacer(steep, new SeededRandom(8)).place({ ...base, clusters: 0, beachPebbles: 30 });
+    const pebbles = rocks.filter((r) => r.family === 'pebbles');
+    expect(pebbles.length).toBeGreaterThan(rocks.length * 0.6);
+    for (const r of pebbles) expect(r.y).toBeLessThan(steep.heightAt(r.x));
   });
 
   it('is reproducible for a seed', () => {

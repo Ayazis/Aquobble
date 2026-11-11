@@ -1,43 +1,29 @@
 import * as THREE from 'three';
 import type { Random, Vec3 } from '@core';
+import { glowTexture } from './glowTexture';
+import { moonFaceTexture } from './moonFaceTexture';
+import { moonMaria } from './moonMaria';
 import { StarFieldFactory } from './StarFieldFactory';
 
 const RADIUS = 900;
-const MOON_SIZE = 56;
+const MOON_SIZE = 34;
+const MOON_BRIGHTNESS = 1.6;
 
-/** Draws a soft round glow into a canvas, used for the moon disc and its halo. */
-function glowTexture(core: number): THREE.CanvasTexture {
-  const canvas = document.createElement('canvas');
-  canvas.width = canvas.height = 128;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) throw new Error('2D canvas unavailable');
-  const g = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
-  g.addColorStop(0, 'rgba(255,255,255,1)');
-  g.addColorStop(core, 'rgba(255,255,255,1)');
-  g.addColorStop(Math.min(1, core + 0.04), 'rgba(255,255,255,0.25)');
-  g.addColorStop(1, 'rgba(255,255,255,0)');
-  ctx.fillStyle = g;
-  ctx.fillRect(0, 0, 128, 128);
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  return texture;
-}
-
-function sprite(texture: THREE.Texture, color: number, scale: number): THREE.Sprite {
+function sprite(texture: THREE.Texture, color: THREE.Color, scale: number, blending: THREE.Blending): THREE.Sprite {
   const material = new THREE.SpriteMaterial({
     map: texture,
     color,
     transparent: true,
     depthWrite: false,
     fog: false,
-    blending: THREE.AdditiveBlending,
+    blending,
   });
   const s = new THREE.Sprite(material);
   s.scale.setScalar(scale);
   return s;
 }
 
-/** Stars and a glowing moon disc that fade in as the sun goes down. */
+/** Stars, a moon with a painted face and its soft halo, all fading in as the sun goes down. */
 export class NightSky {
   readonly group = new THREE.Group();
   private readonly stars: THREE.Points<THREE.BufferGeometry, THREE.ShaderMaterial>;
@@ -47,8 +33,16 @@ export class NightSky {
 
   constructor(random: Random) {
     this.stars = new StarFieldFactory(random).create(2500, RADIUS);
-    this.moon = sprite(glowTexture(0.42), 0xfffdf2, MOON_SIZE);
-    this.halo = sprite(glowTexture(0.02), 0xa9c0f0, MOON_SIZE * 7);
+    // Drawn over the sky (not added), so stars do not shine through it; bright, but well under the bloom threshold.
+    const face = moonFaceTexture(moonMaria(random));
+    this.moon = sprite(
+      face,
+      new THREE.Color(0xfffdf2).multiplyScalar(MOON_BRIGHTNESS),
+      MOON_SIZE,
+      THREE.NormalBlending,
+    );
+    this.halo = sprite(glowTexture(0.02), new THREE.Color(0xa9c0f0), MOON_SIZE * 9, THREE.AdditiveBlending);
+    this.moon.renderOrder = 1;
     this.group.add(this.stars, this.halo, this.moon);
     this.group.renderOrder = -1;
   }

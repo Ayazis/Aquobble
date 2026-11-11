@@ -2,30 +2,33 @@ import * as THREE from 'three';
 import { identityQuat, vec3, type GameWorld } from '@core';
 import type { PhysicsEngine } from '@physics';
 import type {} from '@rendering';
+import type { RockPlacement } from './RockPlacement';
 import type { RockScatterFactory } from './RockScatterFactory';
 import type { RockScatterOptions, RockScatterPlacer } from './RockScatterPlacer';
+import type { RockVariantFactory } from './RockVariantFactory';
 
 export interface RockScatterSpawnOptions extends RockScatterOptions {
-  /** Rocks at least this big (scale, metres) get a fixed convex-hull collider; smaller ones are visual only. */
+  /** Rocks at least this big (scale, metres) get a fixed convex-hull collider; smaller ones and pebbles are visual only. */
   colliderMinScale: number;
 }
 
-/** Places static decorative rocks: one instanced render entity plus fixed colliders for the big ones. */
+/** Places static decorative rocks: instanced render meshes plus fixed colliders for the big ones. Returns where they lie. */
 export class RockScatterSpawner {
   constructor(
     private readonly world: GameWorld,
     private readonly placer: RockScatterPlacer,
+    private readonly shapes: RockVariantFactory,
     private readonly factory: RockScatterFactory,
     private readonly physics: PhysicsEngine,
   ) {}
 
-  spawn(options: RockScatterSpawnOptions): void {
+  spawn(options: RockScatterSpawnOptions): RockPlacement[] {
     const placements = this.placer.place(options);
-    const { object, hulls } = this.factory.create(placements, options.variants);
+    const variants = this.shapes.createSet(options.variants);
     const euler = new THREE.Euler();
     for (const p of placements) {
-      if (p.scale < options.colliderMinScale) continue;
-      const unit = hulls[p.variant];
+      if (p.scale < options.colliderMinScale || p.family === 'pebbles') continue;
+      const unit = variants[p.family][p.variant].hull;
       const points = new Float32Array(unit.length);
       for (let i = 0; i < unit.length; i += 3) {
         points[i] = unit[i] * p.scale;
@@ -43,7 +46,8 @@ export class RockScatterSpawner {
     }
     this.world.add({
       transform: { position: vec3(), rotation: identityQuat() },
-      renderObject: { object },
+      renderObject: { object: this.factory.create(placements, variants) },
     });
+    return placements;
   }
 }

@@ -1,11 +1,13 @@
 import type * as THREE from 'three';
 import type { System, Vec3 } from '@core';
+import type { ColorGrade } from '@rendering';
 import type { CloudLayer } from './CloudLayer';
 import type { NightSky } from './NightSky';
 import type { DayKeyframe } from './DayKeyframe';
 import type { EnvironmentConfig } from './EnvironmentConfig';
 import { sampleDayCycle } from './sampleDayCycle';
 import type { SkyDome } from './SkyDome';
+import type { SunDisc } from './SunDisc';
 import { sunDirectionAt } from './sunDirectionAt';
 import type { SunLight } from './SunLight';
 
@@ -30,6 +32,8 @@ export class DayNightSystem implements System {
     private readonly night: NightSky,
     private readonly camera: THREE.Camera,
     private readonly clouds: CloudLayer,
+    private readonly sunDisc: SunDisc,
+    private readonly grade?: ColorGrade,
   ) {
     this.time = config.startTimeOfDay;
   }
@@ -51,6 +55,12 @@ export class DayNightSystem implements System {
   }
 
   private lightDir: Vec3 = { x: 0, y: 1, z: 0 };
+  private darkness = 0;
+
+  /** How dark the sky is in [0, 1]: 0 by day, 1 at full night (stars and moon fully out). */
+  get nightAmount(): number {
+    return this.darkness;
+  }
 
   update(dt: number): void {
     const { dayLengthSeconds, sunAzimuth, noonSunElevation, environmentRefreshSeconds } = this.config;
@@ -64,6 +74,8 @@ export class DayNightSystem implements System {
 
     this.lightDir = lightDir;
     this.light.setDirection(lightDir);
+    this.light.follow(this.camera);
+    this.light.follow(this.camera);
     this.light.sun.color.setHex(lighting.sunColor);
     this.light.sun.intensity = lighting.sunIntensity * fade;
     this.light.fill.color.setHex(lighting.hemisphereSky);
@@ -74,7 +86,10 @@ export class DayNightSystem implements System {
     this.renderer.toneMappingExposure = lighting.exposure;
     this.scene.environmentIntensity = lighting.environmentIntensity;
     this.sky.setSun(sun, lighting.turbidity, lighting.rayleigh);
+    this.grade?.setGrade(lighting.gradeSaturation, lighting.gradeContrast, lighting.gradeLift);
+    this.sunDisc.update(sun, lighting.sunColor, this.camera.position);
     const darkness = Math.min(1, Math.max(0, -sun.y / 0.15 + 0.15));
+    this.darkness = darkness;
     this.night.update(dt, darkness, { x: -sun.x, y: -sun.y, z: -sun.z }, this.camera.position);
     const daylight = Math.min(1, Math.max(0, sun.y / 0.35 + 0.1));
     this.clouds.update(dt, lighting.fogColor, lighting.sunColor, daylight, sun, this.camera.position);

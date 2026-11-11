@@ -3,14 +3,25 @@ import { MAX_GRASS_BENDERS } from './WindSway';
 export const WIND_UNIFORMS = `
 uniform float uWindTime;
 uniform vec4 uBenders[${MAX_GRASS_BENDERS}];
+const vec2 WIND_DIR = vec2(0.94299, 0.33005);
+// Gust strength in [0, 1] at a plant root: fronts rolling along the wind, slowly waxing and waning.
+float windGust(vec2 root) {
+  float g = 0.5 + 0.5 * sin(dot(root, WIND_DIR) * 0.09 - uWindTime * 1.1);
+  return g * g * (0.6 + 0.4 * sin(dot(root, vec2(-0.05, 0.07)) + uWindTime * 0.37));
+}
 `;
 
 /**
  * Replaces three's project_vertex: works in world space so wind and trampling push the same way
- * whatever the instance yaw. Bend grows with height above the base (local y); far plants shrink away.
+ * whatever the instance yaw. Bend grows with height above the base (local y); far plants shrink away, and
+ * with a `fadeIn` range (end above 0) near plants are shrunk away too (see `ringFade`).
  */
-export function windProjectVertex(strength: number, fadeStart: number, fadeEnd: number): string {
-  const f = (v: number) => v.toFixed(3);
+export function windProjectVertex(
+  strength: number,
+  fadeStart: number,
+  fadeEnd: number,
+  fadeIn: readonly number[] = [0, 0],
+): string {
   return `
 vec4 plantWorld = vec4(transformed, 1.0);
 #ifdef USE_INSTANCING
@@ -21,13 +32,12 @@ vec4 plantWorld = vec4(transformed, 1.0);
 #endif
 plantWorld = modelMatrix * plantWorld;
 float plantH = max(position.y, 0.0);
-float plantBend = plantH * plantH * ${f(strength)};
+float plantBend = plantH * plantH * ${strength.toFixed(3)};
 
 // Wind: a steady lean plus gusts rolling across the field, and per-plant flutter.
-vec2 windDir = normalize(vec2(1.0, 0.35));
+vec2 windDir = WIND_DIR;
 float windAlong = dot(plantRoot.xz, windDir);
-float gust = 0.5 + 0.5 * sin(windAlong * 0.09 - uWindTime * 1.1);
-gust = gust * gust * (0.6 + 0.4 * sin(dot(plantRoot.xz, vec2(-0.05, 0.07)) + uWindTime * 0.37));
+float gust = windGust(plantRoot.xz);
 float flutter = sin(uWindTime * 3.3 + plantRoot.x * 1.7 + plantRoot.z * 1.3);
 vec2 windPush = windDir * (0.25 + gust * 1.2 + flutter * 0.18)
   + vec2(-windDir.y, windDir.x) * sin(uWindTime * 2.1 + windAlong * 0.6) * 0.14;
@@ -53,10 +63,19 @@ plantWorld.xz += push;
 // Keep blade length roughly constant: the further it leans, the lower the tip.
 plantWorld.y -= min(dot(push, push) * 0.6 / max(plantH, 0.05), plantH * 0.85) + trample * plantH * 0.25;
 
-float plantFade = 1.0 - smoothstep(${f(fadeStart)}, ${f(fadeEnd)}, distance(plantRoot, cameraPosition));
+${plantFadeGlsl(fadeStart, fadeEnd, fadeIn)}
 plantWorld.xyz = plantRoot + (plantWorld.xyz - plantRoot) * plantFade;
 
 vec4 mvPosition = viewMatrix * plantWorld;
 gl_Position = projectionMatrix * mvPosition;
 `;
+}
+
+/** GLSL for `plantFade`: the plant's size factor at its camera distance, as `ringFade` computes it. */
+function plantFadeGlsl(fadeStart: number, fadeEnd: number, fadeIn: readonly number[]): string {
+  const f = (v: number) => v.toFixed(3);
+  const grow = fadeIn[1] > 0 ? `plantFade *= smoothstep(${f(fadeIn[0])}, ${f(fadeIn[1])}, plantDist);` : '';
+  return `float plantDist = distance(plantRoot, cameraPosition);
+float plantFade = 1.0 - smoothstep(${f(fadeStart)}, ${f(fadeEnd)}, plantDist);
+${grow}`;
 }

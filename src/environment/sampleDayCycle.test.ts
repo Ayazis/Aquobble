@@ -14,6 +14,9 @@ const base: Omit<DayKeyframe, 'time' | 'sunIntensity' | 'sunColor'> = {
   turbidity: 0,
   rayleigh: 0,
   exposure: 1,
+  gradeSaturation: 1,
+  gradeContrast: 1,
+  gradeLift: 0,
 };
 const frames: DayKeyframe[] = [
   { time: 0.25, ...base, sunColor: 0x000000, sunIntensity: 0 },

@@ -1,8 +1,8 @@
-import type { GameWorld } from '@core';
+import type { GameWorld, Random } from '@core';
 import type { Object3D } from 'three';
 import type { PhysicsEngine } from '@physics';
 import type { SurfaceStyler } from '@rendering';
-import type { HeightField } from '@terrain';
+import type { GroundShadeUniforms, HeightField } from '@terrain';
 import {
   BuildingSpawner,
   DEFAULT_TOWN_LAYOUT,
@@ -34,7 +34,8 @@ export interface TownGround {
 
 /**
  * Levels the terrain under the town (must run before the terrain mesh and collider are built),
- * then spawns roads, wall, buildings and props (models, grey boxes where a model is missing).
+ * then spawns roads, wall, buildings and props (models, grey boxes where a model is missing). The roads read
+ * the ground shade map and get their puddles from `ground.random`.
  */
 export function populateTown(
   world: GameWorld,
@@ -43,13 +44,19 @@ export function populateTown(
   site: TownSite,
   models: ReadonlyMap<string, Object3D>,
   surfaces: SurfaceStyler,
+  ground?: { shade: GroundShadeUniforms; random: Random },
 ): TownGround {
   const planner = new TownPlanner(DEFAULT_TOWN_LAYOUT);
   const region = planner.region(site);
   terrain.flatten(region, planner.level(terrain, site));
 
   const town = planner.place(terrain, site);
-  new TownSpawner(world, physics, new RoadMeshFactory(surfaces), new WallFactory(surfaces)).spawn(town);
+  new TownSpawner(
+    world,
+    physics,
+    new RoadMeshFactory(surfaces, ground?.shade, ground?.random),
+    new WallFactory(surfaces),
+  ).spawn(town);
   const plots = new ModelPlotSpawner(world, physics, models, new PlotBoxSpawner(world, physics));
   new BuildingSpawner(plots).spawn(town);
   new PropSpawner(plots).spawn(town);
