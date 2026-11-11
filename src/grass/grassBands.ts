@@ -6,8 +6,12 @@ const NEAR = 20;
 const FAR = 90;
 /** Width (m) over which one band shrinks away while the next grows in. */
 const CROSS = 6;
-/** Tufts per square metre of each band at full (desktop) density. */
-const PER_M2 = { near: 5, mid: 1, cards: 0.08 };
+/**
+ * Tufts per square metre of each band at full (desktop) density, before the density map thins them. The old
+ * CPU scatter put about 15 tufts per m² on grassy ground; the near band matches it so the ground round the
+ * player is covered in blades, not painted fur.
+ */
+const PER_M2 = { near: 22, mid: 4, cards: 0.25 };
 
 /** Tiles per side so the grid reaches `radius` from the camera wherever it stands in its own tile. */
 function gridFor(radius: number, tile: number): number {
