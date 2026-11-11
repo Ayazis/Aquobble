@@ -20,8 +20,10 @@ describe('townObstacles', () => {
 
   it('turns footprints with their plots', () => {
     // The chapel faces east: its 10.12 m depth lies along x, its 8.78 m width along z.
-    expect(covers(100 - 7.36 + 4.8, -50 + 13.99)).toBe(true);
-    expect(covers(100 - 7.36, -50 + 13.99 + 4.8)).toBe(false);
+    const chapel = layout.buildings.find((b) => b.assetId === 'chapel');
+    if (!chapel) throw new Error('no chapel');
+    expect(covers(100 + chapel.x + 4.8, -50 + chapel.z)).toBe(true);
+    expect(covers(100 + chapel.x, -50 + chapel.z + 4.8)).toBe(false);
   });
 
   it('leaves the lanes and the gateways open', () => {

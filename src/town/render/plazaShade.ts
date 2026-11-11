@@ -2,9 +2,9 @@ import * as THREE from 'three';
 import { NO_LANE, type GroundShade } from './groundPatch';
 import { valueNoise2 } from './valueNoise2';
 
-const COBBLE = new THREE.Color(0x8a7f72);
-const COBBLE_DARK = new THREE.Color(0x5f5850);
-const COBBLE_MOSS = new THREE.Color(0x6c6f52);
+const COBBLE = new THREE.Color(0x7f776d);
+const COBBLE_DARK = new THREE.Color(0x58524c);
+const COBBLE_MOSS = new THREE.Color(0x65675a);
 
 /**
  * Worn cobbles for a square `size` metres across: a trodden darker cross through the middle, broad stains,

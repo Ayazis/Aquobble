@@ -13,6 +13,7 @@ import {
   TownPlanner,
   townObstacles,
   TownSpawner,
+  WindowPanes,
   WallFactory,
   type TownObstacle,
   type TownSite,
@@ -51,6 +52,7 @@ export function populateTown(
   terrain.flatten(region, planner.level(terrain, site));
 
   const town = planner.place(terrain, site);
+  new WindowPanes().addTo(models);
   new TownSpawner(
     world,
     physics,
