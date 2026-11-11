@@ -54,6 +54,24 @@ Cost: one more vertex texture read per tuft and one 128x128 pass per frame, all 
 | 2.5 | **Ripples.** A small ripple simulation (height-field ping-pong, 256x256 over 40 m round the player) for ponds and the shallows: footsteps, splashes, falling rocks and rain drops make rings that spread and reflect. Its normal is added to the water normal. Splash particles on entry.                                                                         | `water`, `effects`           | M    |
 | 2.6 | **Refraction and depth colour.** Read the opaque scene colour behind the water (desktop): wobble it by the wave normal, tint with depth. Phones keep the current opacity blend.                                                                                                                                                                                   | `rendering`, `water`         | M    |
 
+### Water reacting to the player and the world
+
+Item 2.5 is the simulation underneath; these items are what you see and feel when something touches the water.
+
+| #    | Change                                                                                                                                                                                                                                                                                                                                              | Where                            | Size |
+| ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------- | ---- |
+| 2.7  | **Water contact system.** A `WaterContactSystem` (fixed) checks every character, buoyant body and falling rock against `waveHeightAt` and the ground height: is it in the water, how deep, how fast is it moving. It writes a `WaterContact` component (depth, speed, entered or left this step) that the effects below read. Pure TS, unit-tested. | `water`                          | S    |
+| 2.8  | **Footstep ripples.** Each footfall in the shallows (timed from the walk animation) stamps a ring into the ripple map at the foot. Walking leaves a trail of rings, running bigger and closer together, standing still gives a faint ring now and then. Same for villagers that wade.                                                               | `water`, `player`, `townsfolk`   | S    |
+| 2.9  | **Wake.** While moving through water deeper than the ankle, a continuous V-shaped wake is stamped behind the character (strength from speed), plus a small bow wave of foam ahead of the legs. Swimming leaves a wider wake.                                                                                                                        | `water`                          | S    |
+| 2.10 | **Splashes.** On entering water fast (jumping in, a rock dropping), a splash: a crown of instanced droplet particles, a foam ring that fades, a strong ripple and a small screen-space spray on the lens if the camera is close. Size from impact speed and mass.                                                                                   | `effects`, `water`               | M    |
+| 2.11 | **Wet look.** Characters get a wet line at the water depth they waded to (darker, shinier below it), which dries over about 20 s; drips fall from them for a few seconds after leaving the water and make tiny ripples. Wet footprints on sand and stone that fade.                                                                                 | `rendering`, `player`, `effects` | M    |
+| 2.12 | **Floating things react.** Lily pads, reeds and driftwood bob and drift away from ripples and wakes (read the ripple slope on the CPU at a few points, or push them from `WaterContact`). Reeds bend like grass when walked through.                                                                                                                | `water`, `grass`                 | S    |
+| 2.13 | **Sound hooks.** Emit events for footstep in water, splash and swim stroke, so audio can add sloshes later (sound itself stays out of scope).                                                                                                                                                                                                       | `water`                          | S    |
+
+Cost: contact checks are a few height samples per moving body per step; stamps are small quads drawn into the
+ripple map (one draw for all of them); splash and drip particles are one instanced draw. All devices; phones use
+the 128x128 ripple map and fewer droplets.
+
 Cost: about 30 more ALU per water vertex; the ripple sim is one 256x256 pass (128 on phones); refraction is one
 scene-colour copy, desktop only.
 
@@ -117,7 +135,7 @@ every distance in this plan (grass bands, bend radius, shadow box) is measured a
 1. **Measure and fix scale first**: 0.1, step 6 (scale), then the cheap leftovers 0.3 to 0.6 and 0.8.
 2. **Grass everywhere** (3.1 to 3.5): the new grass system is the base the grass physics build on.
 3. **Grass physics** (1.1 to 1.3), then the shared wind field (1.4), which water uses next.
-4. **Water** (2.1, 2.2 first; then 2.3, 2.4; then 2.5, 2.6).
+4. **Water** (2.1, 2.2 first; then 2.3, 2.4, 2.7; then 2.5, 2.8 to 2.12; then 2.6, 2.13).
 5. **Light and shadow** (4.1, 4.2, 4.4 first; 4.3 falls out of step 2; then 4.5 to 4.7).
 6. **Art**: 5.1 outlines and 5.5 colour script early in this step, since they change every later screenshot;
    then 5.3, 5.4, and 5.2 weather last because it touches everything.
