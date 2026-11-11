@@ -14,6 +14,16 @@ export interface RenderQuality {
   shadowInterval: number;
   /** Detail textures over models, trees and rocks (several texture reads per pixel). */
   surfaceDetail: boolean;
+  // lane D: light
+  /** Sun shadow cascades: 2 adds a wide soft box (`farShadowBoxSize`) behind the sharp one. */
+  shadowCascades: number;
+  /** Width in metres of the far, soft shadow box. */
+  farShadowBoxSize: number;
+  /** Cloud shadows drifting over the ground. */
+  cloudShadows: boolean;
+  /** Bake vertex ambient occlusion into models at load (stands in for the depth AO pass on phones). */
+  vertexAo: boolean;
+  // end lane D
 }
 
 export const HIGH_QUALITY: RenderQuality = {
@@ -22,7 +32,13 @@ export const HIGH_QUALITY: RenderQuality = {
   shadows: true,
   postEffects: true,
   shadowMapSize: 4096,
-  shadowBoxSize: 60,
+  shadowBoxSize: 25,
   shadowInterval: 1,
   surfaceDetail: true,
+  // lane D: light
+  shadowCascades: 2,
+  farShadowBoxSize: 120,
+  cloudShadows: true,
+  vertexAo: false,
+  // end lane D
 };

@@ -21,7 +21,8 @@ const NIGHT: Hour = {
   ...colours(COLOUR_SCRIPT.night),
   // The "sun" at night is the moon: bright enough to read the town and cast clear shadows.
   sunIntensity: 1.15,
-  hemisphereIntensity: 0.9,
+  // lane D 0.8: more sky fill so buildings away from lamps read dark blue, not black.
+  hemisphereIntensity: 1.05,
   environmentIntensity: 0.2,
   fogDensity: 0.0035,
   exposure: 0.9,

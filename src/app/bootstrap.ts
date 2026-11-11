@@ -41,6 +41,7 @@ import { Game } from './Game';
 import { DEFAULT_CONFIG, type GameConfig } from './GameConfig';
 import { forDevice, isMobileDevice } from './forDevice';
 import { installStreetLighting } from './installStreetLighting';
+import { bakeModelAo, installLight } from './installLight'; // lane D: light
 import { installWind } from './installWind'; // lane W0-b: contracts
 import { loadCharacterModel } from './loadCharacterModel';
 import { loadForestModels } from './loadForestModels';
@@ -60,9 +61,9 @@ export async function bootstrap(container: HTMLElement, baseConfig: GameConfig =
 
   const render = new RenderContext(container, quality);
   const post = new PostProcessing(render);
-  const dayNight = installEnvironment(config, render, post);
+  const env = installEnvironment(config, render, post); // lane D: light
   // lane W0-b: contracts. Shared wind (CPU field + shader uniforms); consumers read wind.wind / wind.uniforms.
-  const wind = installWind(random, () => dayNight.timeOfDay);
+  const wind = installWind(random, () => env.dayNight.timeOfDay);
 
   const loader = new GltfModelLoader();
   const [townModels, characterModel, forestPack] = await Promise.all([
@@ -71,8 +72,9 @@ export async function bootstrap(container: HTMLElement, baseConfig: GameConfig =
     loadForestModels(loader),
   ]);
   const surfaces = styleModels(townModels, characterModel, quality.surfaceDetail);
+  bakeModelAo(quality, [...townModels.values(), forestPack]); // lane D: light
   const town = populateWorld(world, physics, random, config, townModels, surfaces, forestPack);
-  const streetLights = installStreetLighting(world, townModels, dayNight, config.streetLights);
+  const streetLights = installStreetLighting(world, townModels, env.dayNight, config.streetLights);
   const { birdMeshes, ambience } = spawnWildlife(world, config.seed);
   const rocks = new RockSpawner(world, physics, await rockFactory(loader, random, config));
   const build = spawnPlayer(world, physics, config, characterModel);
@@ -85,7 +87,7 @@ export async function bootstrap(container: HTMLElement, baseConfig: GameConfig =
   const { minCameraDistance: minDistance, maxCameraDistance: maxDistance } = build;
   const zoom = new SmoothZoom({ ...DEFAULT_SMOOTH_ZOOM, minDistance, maxDistance });
   const wheel = new WheelZoomInput(render.canvas, zoom);
-  const debug = createDebug(isDebugMode(), container, render, dayNight, keys, physics);
+  const debug = createDebug(isDebugMode(), container, render, env.dayNight, keys, physics);
   // lane W0-a: tools
   const scale = createScaleOverlay(isScaleMode(), world, render.scene, render.camera, physics);
   // end lane W0-a
@@ -105,7 +107,7 @@ export async function bootstrap(container: HTMLElement, baseConfig: GameConfig =
     frameSystems: [
       wind.system, // lane W0-b: contracts
       new TransformSyncSystem(world),
-      new WaterAnimationSystem(world, 0.6, () => dayNight.nightAmount),
+      new WaterAnimationSystem(world, 0.6, () => env.dayNight.nightAmount),
       new WindSwaySystem(world),
       new GrassBendSystem(world, build.bendRadius),
       new PlayerAnimationSystem(world),
@@ -117,8 +119,9 @@ export async function bootstrap(container: HTMLElement, baseConfig: GameConfig =
       ...scale, // lane W0-a: tools
       new BirdRenderSystem(world, birdMeshes.clock),
       ambience,
-      dayNight,
+      env.dayNight,
       streetLights,
+      installLight(world, physics, env, town.area), // lane D: light
       new RenderSystem(post, render),
       ...debug.afterRender,
     ],

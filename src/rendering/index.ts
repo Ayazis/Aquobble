@@ -30,3 +30,7 @@ export { cloudPatternDefines } from './cloudPatternDefines';
 export { applyCharacterRim } from './applyCharacterRim';
 export type { ColourScript, HourColours, BiomeColours, BuildingSwatches } from './palette/ColourScript';
 export { COLOUR_SCRIPT } from './palette/islandColourScript';
+export type { ToonLighting } from './installToonLighting';
+export { ToonLightUniforms, MAX_TOON_PROBES, type ToonProbe } from './ToonLightUniforms';
+export { ToonLightSystem } from './ToonLightSystem';
+export { bakeVertexAo } from './bakeVertexAo';

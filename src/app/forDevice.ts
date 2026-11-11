@@ -11,6 +11,12 @@ export const MOBILE_QUALITY: RenderQuality = {
   shadowBoxSize: 40,
   shadowInterval: 2,
   surfaceDetail: false,
+  // lane D: light
+  shadowCascades: 1,
+  farShadowBoxSize: 120,
+  cloudShadows: true,
+  vertexAo: true,
+  // end lane D
 };
 
 /** True on touch-first devices, where the GPU budget is a fraction of a desktop's. */
