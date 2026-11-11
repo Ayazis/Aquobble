@@ -17,6 +17,14 @@ describe('grassBands', () => {
     for (const band of desktop) expect(((band.grid - 2) / 2) * band.tile).toBeGreaterThanOrEqual(band.fadeOut[1]);
   });
 
+  it('fills the ground near the camera with dense tufts, thinning further out', () => {
+    const perM2 = (b: { side: number; tile: number }) => (b.side / b.tile) ** 2;
+    expect(perM2(desktop[0])).toBeGreaterThanOrEqual(15);
+    expect(perM2(desktop[1])).toBeLessThan(perM2(desktop[0]));
+    expect(perM2(desktop[1])).toBeGreaterThanOrEqual(3);
+    expect(perM2(desktop[2])).toBeLessThan(perM2(desktop[1]));
+  });
+
   it('draws fewer tufts on a weaker device', () => {
     expect(phone[0].side).toBeLessThan(desktop[0].side);
     expect(phone[1].grid).toBeLessThan(desktop[1].grid);
