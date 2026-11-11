@@ -6,7 +6,7 @@ export class FpsOverlay {
     Object.assign(this.element.style, {
       position: 'fixed',
       top: '8px',
-      left: '8px',
+      left: '68px',
       padding: '4px 8px',
       font: '12px/1.4 ui-monospace, monospace',
       color: '#fff',
