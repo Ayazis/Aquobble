@@ -21,3 +21,14 @@ export { WaterPushSystem } from './WaterPushSystem';
 export { SinkingRockSystem } from './SinkingRockSystem';
 export { FloaterMeshFactory } from './FloaterMeshFactory';
 export { FloaterSpawner } from './FloaterSpawner';
+// lane C2: water reactions
+export type { WaterEvent, WaterEventType } from './WaterEvent';
+export { WaterEventBus } from './WaterEventBus';
+export type { RippleStamper } from './RippleStamper';
+export type { RippleUniforms } from './RippleUniforms';
+export { RippleSimulation } from './RippleSimulation';
+export { RippleSystem } from './RippleSystem';
+export { SplashTriggerSystem } from './SplashTriggerSystem';
+export { WadingRippleSystem } from './WadingRippleSystem';
+export type { Wetness } from './Wetness';
+export { WetnessSystem, DRYING_SECONDS } from './WetnessSystem';

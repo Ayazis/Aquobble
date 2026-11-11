@@ -1,5 +1,6 @@
 import { HEIGHT_MAP_GLSL } from '@terrain';
 import { gerstnerGlsl } from './gerstnerGlsl';
+import { RIPPLE_FRAGMENT_PARS } from './rippleGlsl';
 
 /**
  * GLSL injected into MeshStandardMaterial by `WaterMeshFactory`. The water knows the ground under it from
@@ -45,6 +46,7 @@ varying vec3 vWaterPos;
 varying vec2 vWaveRest;
 varying vec2 vWaveShoal;
 ${HEIGHT_MAP_GLSL}
+${RIPPLE_FRAGMENT_PARS}
 `;
 
 export const WATER_FRAGMENT_COLOR = /* glsl */ `
@@ -70,6 +72,8 @@ export const WATER_FRAGMENT_COLOR = /* glsl */ `
   float foam = (1.0 - smoothstep(0.08, 0.32, depth)) * smoothstep(0.55, 0.8, lap) * 0.75;
   foam = max(foam, 1.0 - smoothstep(0.02, 0.06 + 0.06 * b, depth));
   foam *= mix(1.0, 0.3, uWaterCalm);
+  // Bow waves, splash rings and wakes leave foam in the ripple map.
+  foam = max(foam, smoothstep(0.05, 0.6, rippleAt(p).z) * 0.85);
   fleck *= mix(1.0, 0.35, uWaterNight);
   diffuseColor.rgb = mix(diffuseColor.rgb, vec3(mix(1.0, 0.55, uWaterNight)), max(fleck * 0.6, foam));
   diffuseColor.a = mix(diffuseColor.a, 1.0, max(fleck, foam));
@@ -84,6 +88,7 @@ export const WATER_FRAGMENT_NORMAL = /* glsl */ `
   vec3 n2 = texture2D(uWaterNormals, p * 0.021 - uWaterTime * vec2(0.008, 0.014)).xyz * 2.0 - 1.0;
   vec2 ripple = (n1.xy + n2.xy) * 0.35 * mix(1.0, 0.4, uWaterCalm);
   vec3 swell = vWaveShoal.y > 0.0 ? gerstnerNormal(vWaveRest, uWaterTime, vWaveShoal) : vec3(0.0, 1.0, 0.0);
+  ripple += rippleAt(p).xy;
   vec3 world = normalize(vec3(swell.x + ripple.x, swell.y, swell.z + ripple.y));
   normal = normalize((viewMatrix * vec4(world, 0.0)).xyz);
 }

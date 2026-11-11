@@ -14,6 +14,7 @@ import {
   WaterNormalsFactory,
   WaterSpawner,
   type WaterLevel,
+  type RippleUniforms, // lane C2
 } from '@water';
 import type { GameConfig } from './GameConfig';
 
@@ -30,7 +31,7 @@ export function populateWater(
   // lane C: water
   physics: PhysicsEngine,
   wind: WindDirection,
-): { areas: ExclusionZone[]; ponds: Pond[]; water: WaterLevel } {
+): { areas: ExclusionZone[]; ponds: Pond[]; water: WaterLevel; ripple: RippleUniforms } {
   const ponds = new PondCarver(random).carve(terrain, { ...config.ponds, avoid });
   const normals = new WaterNormalsFactory(random).create();
   // lane C: water. Gerstner waves fanned around the prevailing wind; the CPU field and the shader share the numbers.
@@ -54,5 +55,5 @@ export function populateWater(
     minZ: p.z - p.radius,
     maxZ: p.z + p.radius,
   }));
-  return { areas, ponds, water };
+  return { areas, ponds, water, ripple: meshes.ripple }; // lane C2: ripple map
 }

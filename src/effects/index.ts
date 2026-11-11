@@ -4,3 +4,4 @@ export { smokePuff, type PuffPose } from './smokePuff';
 export { SmokeMeshFactory } from './SmokeMeshFactory';
 export { SmokeSystem } from './SmokeSystem';
 export { SmokeSpawner } from './SmokeSpawner';
+export { DropletPool, SplashSystem, DripSystem, WetLookSystem } from './waterEffects'; // lane C2
