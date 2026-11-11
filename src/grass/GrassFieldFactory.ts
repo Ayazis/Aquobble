@@ -38,9 +38,7 @@ export class GrassFieldFactory {
     const key = `aquobble-grass-field-${index}-${JSON.stringify(band)}`;
     material.customProgramCacheKey = () => key;
     material.onBeforeCompile = (shader) => {
-      Object.assign(shader.uniforms, this.density, this.heightMap);
-      shader.uniforms.uWindTime = wind.time;
-      shader.uniforms.uBenders = wind.benders;
+      Object.assign(shader.uniforms, this.density, this.heightMap, wind.wind, wind.bend);
       shader.vertexShader = shader.vertexShader
         .replace('#include <common>', `#include <common>\n${WIND_UNIFORMS}\n${GRASS_FIELD_PARS}`)
         .replace('#include <begin_vertex>', `#include <begin_vertex>\n${grassFieldVertex(band)}`);

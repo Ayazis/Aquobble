@@ -30,6 +30,10 @@ export interface RenderQuality {
   /** Where thinned grass blades end and far grass cards take over (m). */
   grassMidDistance: number;
   // end lane B
+  // lane B2: grass physics
+  /** Texels per side of the trampling bend map (32 m box round the player). */
+  grassBendMapSize: number;
+  // end lane B2
 }
 
 export const HIGH_QUALITY: RenderQuality = {
@@ -49,4 +53,5 @@ export const HIGH_QUALITY: RenderQuality = {
   // end lane D
   grassDensity: 1, // lane B: grass
   grassMidDistance: 45, // lane B: grass
+  grassBendMapSize: 128, // lane B2: grass physics
 };

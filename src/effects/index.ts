@@ -4,3 +4,4 @@ export { smokePuff, type PuffPose } from './smokePuff';
 export { SmokeMeshFactory } from './SmokeMeshFactory';
 export { SmokeSystem } from './SmokeSystem';
 export { SmokeSpawner } from './SmokeSpawner';
+export { RustleSpawner } from './RustleSpawner'; // lane B2: grass physics

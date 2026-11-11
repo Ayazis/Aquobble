@@ -37,6 +37,8 @@ vGrassTip = color.r;
   vColor.rgb = mix(shadedGround(lushGroundColor(grassRoot.y), grassRoot.xz), instanceColor.rgb, grassTip);
   // A lighter, warmer band travels with each gust as the blades lay over and show their paler side.
   vColor.rgb *= 1.0 + windGust(grassRoot.xz) * grassTip * vec3(0.22, 0.2, 0.1);
+  // Tall grass flashes paler while it springs about after someone runs through it.
+  vColor.rgb *= 1.0 + bendRustle(grassRoot.xz) * grassTip * vec3(0.5, 0.48, 0.3);
 #endif`,
       );
     // Undo three's back-face normal flip: the normals point up, so a flipped one would be lit from below.
