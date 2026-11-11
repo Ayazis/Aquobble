@@ -20,10 +20,11 @@ if (uRefraction > 0.5) {
   vec4 behind = texture2D(uSceneColour, screen + normal.xy * 0.03 * reach);
   // Never refract something that stands in front of the water.
   if (behind.a < here) behind = straight;
-  float thick = max(behind.a - here, 0.0);
+  // No valid depth behind (empty or unresolved copy): draw plain lit water, never the dark copy.
+  float thick = behind.a > here + 0.01 ? behind.a - here : 1e4;
   float murk = 1.0 - exp(-thick * 0.22);
-  float opacity = clamp(max(diffuseColor.a * 0.55, murk), 0.0, 1.0);
-  vec3 seen = behind.rgb * mix(vec3(1.0), diffuseColor.rgb * 1.6, 0.6);
+  float opacity = clamp(max(diffuseColor.a * 0.8, murk), 0.0, 1.0);
+  vec3 seen = behind.rgb * mix(vec3(1.0), diffuseColor.rgb * 1.2, 0.5);
   totalEmissiveRadiance += seen * (1.0 - opacity);
   diffuseColor.rgb *= opacity;
   diffuseColor.a = 1.0;

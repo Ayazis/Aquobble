@@ -16,9 +16,9 @@ export const InkOutlineShader = {
     /** One texel in UV; scaled by `stride` (2 on phones: lines drawn from a half-resolution sampling). */
     texel: { value: new THREE.Vector2(1 / 1024, 1 / 1024) },
     stride: { value: 1 },
-    strength: { value: 0.75 },
+    strength: { value: 0.5 },
     /** Ink as a multiple of the surface colour: darker and a little cooler. */
-    ink: { value: new THREE.Vector3(0.32, 0.3, 0.38) },
+    ink: { value: new THREE.Vector3(0.45, 0.43, 0.5) },
     fadeStart: { value: 25 },
     fadeEnd: { value: 110 },
   },

@@ -7,8 +7,8 @@ export const ColorGradeShader = {
   uniforms: {
     tDiffuse: { value: null },
     saturation: { value: 1.22 },
-    contrast: { value: 1.06 },
-    vignette: { value: 0.26 },
+    contrast: { value: 0.94 },
+    vignette: { value: 0.14 },
     // Fixed paper grain: a still, fine tooth over the frame so it reads as painted on paper, not as film noise.
     grain: { value: 0.035 },
     lift: { value: 0 },

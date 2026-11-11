@@ -16,7 +16,7 @@ export interface ToonProbe {
  */
 export class ToonLightUniforms {
   /** Linear RGB share of the sun that still reaches shaded ground: a cool palette colour, not black. */
-  readonly shadowTint = new Float32Array([0.14, 0.18, 0.3]);
+  readonly shadowTint = new Float32Array([0.3, 0.34, 0.46]);
   /** Per probe: xyz world position, w radius in metres (0 = unused). */
   readonly probePositions = new Float32Array(MAX_TOON_PROBES * 4);
   /** Per probe: L1 SH openness, x = constant term, yzw = linear (world direction) term. */

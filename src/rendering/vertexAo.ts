@@ -1,5 +1,5 @@
 /** Darkness at a vertex whose every ray is blocked (1 - this is the floor of the AO value). */
-const STRENGTH = 0.55;
+const STRENGTH = 0.35;
 const EPSILON = 1e-4;
 
 /**

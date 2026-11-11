@@ -22,30 +22,30 @@ const NIGHT: Hour = {
   // The "sun" at night is the moon: bright enough to read the town and cast clear shadows.
   sunIntensity: 1.15,
   // lane D 0.8: more sky fill so buildings away from lamps read dark blue, not black.
-  hemisphereIntensity: 1.05,
+  hemisphereIntensity: 1.25,
   environmentIntensity: 0.2,
   fogDensity: 0.0035,
   exposure: 0.9,
   // Calmer at night: lamplight on grass must not go neon, and moon shade lifts to dark blue rather than black.
   gradeSaturation: 0.88,
-  gradeContrast: 0.97,
-  gradeLift: 0.07,
+  gradeContrast: 0.9,
+  gradeLift: 0.1,
 };
 
 const DAY: Hour = {
   ...colours(COLOUR_SCRIPT.noon),
   sunIntensity: 1.8,
   // Strong blue sky light with a green bounce: shade stays bright and coloured, as in a cel-shaded scene.
-  hemisphereIntensity: 1.25,
+  hemisphereIntensity: 1.5,
   environmentIntensity: 0.35,
   fogDensity: 0.0022,
   exposure: 0.62,
   gradeSaturation: 1.22,
-  gradeContrast: 1.06,
-  gradeLift: 0,
+  gradeContrast: 0.94,
+  gradeLift: 0.04,
 };
 
-const LOW_SUN = { sunIntensity: 1.1, hemisphereIntensity: 0.45, environmentIntensity: 0.4, fogDensity: 0.0048 };
+const LOW_SUN = { sunIntensity: 1.1, hemisphereIntensity: 0.7, environmentIntensity: 0.4, fogDensity: 0.0048 };
 
 /** Night → dawn → morning → noon → evening → dusk → night, sorted by time. Colours: `COLOUR_SCRIPT`. */
 export const DEFAULT_DAY_KEYFRAMES: readonly DayKeyframe[] = [

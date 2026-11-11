@@ -33,8 +33,8 @@ export class SkyDome {
     (uniforms.zenith.value as THREE.Color).setHex(zenith);
     (uniforms.horizon.value as THREE.Color).setHex(horizon);
     (uniforms.sunColor.value as THREE.Color).setHex(sunColor);
-    // ACES darkens mid-tones by about half; undo that and the exposure so the sky shows its scripted colour.
-    uniforms.brightness.value = 1.6 / Math.max(exposure, 0.05);
+    // Undo the exposure (plus a little for ACES) but stay well under white, so the sky shows its scripted colour.
+    uniforms.brightness.value = 1.05 / Math.max(exposure, 0.05);
   }
 
   /** Re-bakes the environment map from the current sky and disposes the previous one. */

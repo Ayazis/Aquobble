@@ -93,7 +93,7 @@ export class DayNightSystem implements System {
     this.scene.environmentIntensity = lighting.environmentIntensity;
     this.sky.setColours(sun, lighting.skyZenith, lighting.skyHorizon, lighting.sunColor, lighting.exposure);
     this.grade?.setGrade(
-      lighting.gradeSaturation * (1 - 0.4 * this.overcast), // lane G
+      lighting.gradeSaturation * (1 - 0.25 * this.overcast), // lane G
       lighting.gradeContrast,
       lighting.gradeLift,
     );

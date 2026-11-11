@@ -11,8 +11,8 @@ describe('DEFAULT_DAY_KEYFRAMES colour grade', () => {
     expect(midnight.gradeContrast).toBeLessThan(noon.gradeContrast);
   });
 
-  it('lifts the blacks at night only', () => {
-    expect(noon.gradeLift).toBe(0);
+  it('lifts the blacks more at night than by day', () => {
+    expect(noon.gradeLift).toBeLessThan(midnight.gradeLift);
     expect(midnight.gradeLift).toBeGreaterThan(0);
   });
 });
