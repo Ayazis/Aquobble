@@ -1,7 +1,6 @@
 import { AnimationFrameScheduler, createGameWorld, GameLoop, SeededRandom } from '@core';
 import { PhysicsBodyCleanup, PhysicsPoseSystem, PhysicsStepSystem, RapierPhysicsEngine } from '@physics';
 import {
-  GltfModelLoader,
   PostProcessing,
   RenderContext,
   RenderSystem,
@@ -19,7 +18,10 @@ import { BirdRenderSystem, FlockSystem } from '@wildlife';
 import { RockRecycleSystem, RockSpawner } from '@rocks';
 import { WaterAnimationSystem, WaterContactSystem } from '@water'; // lane C: water
 import { GrassWatchdogSystem } from '@grass';
-import { applyQualitySettings, SettingsStore } from '@menu';
+import { applyQualitySettings, type LoadingProgress, NO_PROGRESS, SettingsStore } from '@menu';
+import { loadAllModels } from './loadAllModels';
+import { loadingStage } from './loadingStage';
+import { compileShaders } from './compileShaders';
 import { installGrassPhysics } from './installGrassPhysics'; // lane B2: grass physics
 import { spawnChimneySmoke } from './spawnChimneySmoke';
 import { styleModels } from './styleModels';
@@ -31,9 +33,6 @@ import { forDevice, isMobileDevice } from './forDevice';
 import { installStreetLighting } from './installStreetLighting';
 import { bakeModelAo, installLight } from './installLight'; // lane D: light
 import { installWind } from './installWind'; // lane W0-b: contracts
-import { loadCharacterModel } from './loadCharacterModel';
-import { loadForestModels } from './loadForestModels';
-import { loadTownModels } from './loadTownModels';
 import { populateWorld } from './populateWorld';
 import { rockFactory } from './rockFactory';
 import { spawnPlayer } from './spawnPlayer';
@@ -47,7 +46,11 @@ import { installMenu } from './installMenu';
 import { createWeather, installWeather, OVERCAST_WIND_BOOST } from './installWeather'; // lane G: weather
 
 /** Composition root: the only place that knows concrete classes and wires them together. */
-export async function bootstrap(container: HTMLElement, baseConfig: GameConfig = DEFAULT_CONFIG): Promise<Game> {
+export async function bootstrap(
+  container: HTMLElement,
+  progress: LoadingProgress = NO_PROGRESS,
+  baseConfig: GameConfig = DEFAULT_CONFIG,
+): Promise<Game> {
   const mobile = isMobileDevice();
   const settings = new SettingsStore();
   const device = forDevice(baseConfig, mobile);
@@ -55,6 +58,7 @@ export async function bootstrap(container: HTMLElement, baseConfig: GameConfig =
   const quality = applyQualitySettings(device.quality, settings.settings);
   const world = createGameWorld();
   const random = new SeededRandom(config.seed);
+  await loadingStage(progress, 'Starting physics', 0.02);
   const physics = await RapierPhysicsEngine.create();
 
   const render = new RenderContext(container, quality);
@@ -65,12 +69,8 @@ export async function bootstrap(container: HTMLElement, baseConfig: GameConfig =
   const boost = () => 1 + OVERCAST_WIND_BOOST * weather.weather.mix.overcast; // lane G: weather
   const wind = installWind(random, () => env.dayNight.timeOfDay, boost);
 
-  const loader = new GltfModelLoader();
-  const [townModels, characterModel, forestPack] = await Promise.all([
-    loadTownModels(loader),
-    loadCharacterModel(loader),
-    loadForestModels(loader),
-  ]);
+  const { loader, townModels, characterModel, forestPack } = await loadAllModels(progress, 0.08, 0.6);
+  await loadingStage(progress, 'Building the island', 0.62);
   const surfaces = styleModels(townModels, characterModel, quality.surfaceDetail);
   bakeModelAo(quality, [...townModels.values(), forestPack]); // lane D: light
   // lane B grass quality, lane C prevailing wind for the waves
@@ -80,6 +80,7 @@ export async function bootstrap(container: HTMLElement, baseConfig: GameConfig =
   const { birdMeshes, ambience } = spawnWildlife(world, config.seed);
   const rocks = new RockSpawner(world, physics, await rockFactory(loader, random, config));
   const build = spawnPlayer(world, physics, config, characterModel);
+  await loadingStage(progress, 'Growing grass', 0.8);
   const grassPhysics = installGrassPhysics(world, render.renderer, quality, wind, random, build.bendRadius); // lane B2
   // Own seed stream so townsfolk never shift the rest of the world's random draws.
   const folkRandom = new SeededRandom(config.seed + 1);
@@ -136,14 +137,9 @@ export async function bootstrap(container: HTMLElement, baseConfig: GameConfig =
     ],
   });
 
-  const menu = installMenu(container, settings, {
-    loop,
-    dayNight: env.dayNight,
-    weather: weather.weather,
-    audio: ambience,
-    post,
-    render,
-  });
+  const targets = { loop, dayNight: env.dayNight, weather: weather.weather, audio: ambience, post, render };
+  const menu = installMenu(container, settings, targets);
+  await compileShaders(render, progress, 0.9);
   return new Game(loop, [
     new SceneMembership(world, render.scene),
     new PhysicsBodyCleanup(world, physics),
