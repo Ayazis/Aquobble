@@ -20,4 +20,5 @@ export const SLICES = [
   'audio',
   'effects',
   'wind',
+  'weather', // lane G
 ] as const;

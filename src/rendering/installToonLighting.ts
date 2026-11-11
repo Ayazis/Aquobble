@@ -4,6 +4,7 @@ import { cloudShadowChunk } from './cloudShadowChunk';
 import { installToonLightingShadows } from './installToonLightingShadows';
 import { toonLightingChunk } from './toonLightingChunk';
 import { ToonLightUniforms } from './ToonLightUniforms';
+import { WEATHER_WET_FRAGMENT, WEATHER_WET_PARS } from './weatherWetChunk'; // lane G
 
 const SMOOTH = 'vec3 irradiance = dotNL * directLight.color;';
 
@@ -18,6 +19,8 @@ const LIT_LIBS = ['standard', 'physical', 'lambert', 'phong', 'toon'] as const;
 export interface ToonLighting {
   cloudShadow: CloudShadow;
   light: ToonLightUniforms;
+  /** Lane G: weather. x = how wet up-facing surfaces are (0..1), y = puddle growth (0..1). */
+  wetness: Float32Array;
 }
 
 /**
@@ -32,8 +35,11 @@ export function installToonLighting(cloudShadows = true): ToonLighting {
   const light = new ToonLightUniforms();
   const chunk = THREE.ShaderChunk.lights_physical_pars_fragment;
   if (chunk.includes(SMOOTH)) {
-    THREE.ShaderChunk.lights_physical_pars_fragment = cloudShadowChunk() + chunk.replace(SMOOTH, BANDED);
+    THREE.ShaderChunk.lights_physical_pars_fragment =
+      WEATHER_WET_PARS + cloudShadowChunk() + chunk.replace(SMOOTH, BANDED); // lane G: weather
+    THREE.ShaderChunk.normal_fragment_maps += WEATHER_WET_FRAGMENT; // lane G: weather
   }
+  const wetness = new Float32Array(4); // lane G: weather
   if (installToonLightingShadows()) {
     THREE.ShaderChunk.lights_pars_begin = toonLightingChunk() + THREE.ShaderChunk.lights_pars_begin;
   }
@@ -42,6 +48,7 @@ export function installToonLighting(cloudShadows = true): ToonLighting {
   for (const lib of [THREE.ShaderLib.standard, THREE.ShaderLib.physical]) {
     lib.uniforms.cloudShadowParams = { value: cloudShadow.params };
     lib.uniforms.cloudShadowSun = { value: cloudShadow.sun };
+    lib.uniforms.uWetness = { value: wetness }; // lane G: weather
   }
   for (const name of LIT_LIBS) {
     const lib = THREE.ShaderLib[name];
@@ -49,5 +56,5 @@ export function installToonLighting(cloudShadows = true): ToonLighting {
     lib.uniforms.toonProbePos = { value: light.probePositions };
     lib.uniforms.toonProbeSh = { value: light.probeSh };
   }
-  return { cloudShadow, light };
+  return { cloudShadow, light, wetness };
 }

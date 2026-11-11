@@ -24,6 +24,8 @@ export class DayNightSystem implements System {
   paused = false;
   /** Lane D2: live fog controls (weather sets `heightFog.mist`). */
   readonly heightFog = new HeightFog();
+  /** Lane G: weather. 0..1 grey sky: dims the sun and washes the colours out. */
+  overcast = 0;
 
   constructor(
     private readonly renderer: THREE.WebGLRenderer,
@@ -81,7 +83,7 @@ export class DayNightSystem implements System {
     this.light.follow(this.camera);
     this.light.follow(this.camera);
     this.light.sun.color.setHex(lighting.sunColor);
-    this.light.sun.intensity = lighting.sunIntensity * fade;
+    this.light.sun.intensity = lighting.sunIntensity * fade * (1 - 0.6 * this.overcast); // lane G
     this.light.fill.color.setHex(lighting.hemisphereSky);
     this.light.fill.groundColor.setHex(lighting.hemisphereGround);
     this.light.fill.intensity = lighting.hemisphereIntensity;
@@ -90,7 +92,11 @@ export class DayNightSystem implements System {
     this.renderer.toneMappingExposure = lighting.exposure;
     this.scene.environmentIntensity = lighting.environmentIntensity;
     this.sky.setColours(sun, lighting.skyZenith, lighting.skyHorizon, lighting.sunColor, lighting.exposure);
-    this.grade?.setGrade(lighting.gradeSaturation, lighting.gradeContrast, lighting.gradeLift);
+    this.grade?.setGrade(
+      lighting.gradeSaturation * (1 - 0.4 * this.overcast), // lane G
+      lighting.gradeContrast,
+      lighting.gradeLift,
+    );
     this.grade?.setLightShafts?.(sun, lighting.sunColor, lightShaftStrength(sun.y)); // lane D2
     this.sunDisc.update(sun, lighting.sunColor, this.camera.position);
     const darkness = Math.min(1, Math.max(0, -sun.y / 0.15 + 0.15));

@@ -28,8 +28,8 @@ varying float vPuddle;
 export const PUDDLE_FRAGMENT_COLOR = /* glsl */ `
 float puddleWet = 0.0;
 float puddleDamp = 0.0;
-if (vPuddle > 0.0) {
-  float puddleEdge = vPuddle + (vergeNoise(vVergePos * 2.3) - 0.5) * ${f(EDGE_WOBBLE)};
+if (vPuddle > 0.0) { // lane G: weather, puddles grow with uWetness.y
+  float puddleEdge = vPuddle * (1.0 + 0.6 * uWetness.y) + (vergeNoise(vVergePos * 2.3) - 0.5) * ${f(EDGE_WOBBLE)};
   puddleWet = smoothstep(${f(EDGE - 0.03)}, ${f(EDGE + 0.03)}, puddleEdge);
   puddleDamp = smoothstep(${f(EDGE - 0.3)}, ${f(EDGE)}, puddleEdge);
   diffuseColor.rgb *= 1.0 - ${f(DAMP_DARKEN)} * puddleDamp;

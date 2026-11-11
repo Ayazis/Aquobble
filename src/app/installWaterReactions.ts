@@ -18,6 +18,8 @@ export interface WaterReactions {
   ripples: RippleStamper;
   /** Footstep, splash and swim stroke events. */
   events: WaterEventBus;
+  /** Lane G: weather. Shared droplets, for rain splashes on the ground. */
+  droplets: DropletPool;
   /** Run after the physics pose (fixed step). */
   fixedSystems: System[];
   /** Run before the camera and render (frame). */
@@ -39,6 +41,7 @@ export function installWaterReactions(
   return {
     ripples,
     events,
+    droplets, // lane G: weather
     fixedSystems: [
       new SplashTriggerSystem(world, ripples, events),
       new WadingRippleSystem(world, ripples, events),

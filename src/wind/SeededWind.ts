@@ -18,6 +18,8 @@ export class SeededWind implements Wind {
   constructor(
     random: Random,
     private readonly hour: () => number,
+    /** Lane G: weather. Multiplies the strength (stronger wind under an overcast sky). */
+    private readonly boost: () => number = () => 1,
   ) {
     this.heading = random.range(0, Math.PI * 2);
     this.phases = [random.range(0, 6.283), random.range(0, 6.283), random.range(0, 6.283)];
@@ -32,7 +34,7 @@ export class SeededWind implements Wind {
 
   strength(t: number): number {
     const swell = 0.85 + 0.15 * Math.sin(t * 0.05 + this.phases[2]);
-    return Math.min(1, windStrengthAtHour(this.hour()) * swell);
+    return Math.min(1, windStrengthAtHour(this.hour()) * swell * this.boost()); // lane G
   }
 
   gust(x: number, z: number, t: number): number {
