@@ -14,6 +14,12 @@ export interface RenderQuality {
   shadowInterval: number;
   /** Detail textures over models, trees and rocks (several texture reads per pixel). */
   surfaceDetail: boolean;
+  // lane B: grass
+  /** Grass tufts per square metre as a share of the desktop count. */
+  grassDensity: number;
+  /** Where thinned grass blades end and far grass cards take over (m). */
+  grassMidDistance: number;
+  // end lane B
 }
 
 export const HIGH_QUALITY: RenderQuality = {
@@ -25,4 +31,6 @@ export const HIGH_QUALITY: RenderQuality = {
   shadowBoxSize: 60,
   shadowInterval: 1,
   surfaceDetail: true,
+  grassDensity: 1, // lane B: grass
+  grassMidDistance: 45, // lane B: grass
 };

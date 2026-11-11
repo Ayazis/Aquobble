@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { createGroundShadeUniforms, type GroundShadeUniforms } from './GroundShadeUniforms';
 import type { HeightField } from './HeightField';
+import type { TerrainGroundHook } from './TerrainGroundHook';
 import { TerrainMaterialFactory } from './TerrainMaterialFactory';
 import { TerrainTextureLoader } from './TerrainTextureLoader';
 import { createTerrainTextureUniforms } from './TerrainTextureUniforms';
@@ -15,6 +16,8 @@ export class TerrainMeshFactory {
     private readonly shade: GroundShadeUniforms = createGroundShadeUniforms(),
     /** World height of the sea, for the wet band on the sand; none if unset. */
     private readonly waterLevel?: number,
+    /** lane B: grass. Extra ground shading (the far grass fur). */
+    private readonly hook?: TerrainGroundHook,
   ) {}
 
   create(field: HeightField): THREE.Mesh {
@@ -29,7 +32,7 @@ export class TerrainMeshFactory {
     geometry.computeVertexNormals();
 
     const uniforms = createTerrainTextureUniforms(this.waterLevel);
-    const material = this.materials.create({ ...uniforms, ...this.shade });
+    const material = this.materials.create({ ...uniforms, ...this.shade }, this.hook);
     this.textures?.load(uniforms);
     const mesh = new THREE.Mesh(geometry, material);
     mesh.castShadow = true;

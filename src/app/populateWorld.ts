@@ -1,9 +1,10 @@
 import { SeededRandom, type GameWorld, type Random } from '@core';
 import type { Object3D } from 'three';
 import type { PhysicsEngine } from '@physics';
-import type { SurfaceStyler } from '@rendering';
+import type { RenderQuality, SurfaceStyler } from '@rendering';
 import {
   createGroundShadeUniforms,
+  createHeightMapUniforms,
   FractalNoise,
   GroundShade,
   TerrainGenerator,
@@ -11,7 +12,14 @@ import {
   TerrainSpawner,
   ValueNoise,
 } from '@terrain';
-import { FlowerInstancesFactory, GrassInstancesFactory, GrassSpawner, TallTuftInstancesFactory } from '@grass';
+import {
+  createGrassDensityUniforms,
+  FlowerInstancesFactory,
+  GrassFieldFactory,
+  grassFurHook,
+  GrassSpawner,
+  TallTuftInstancesFactory,
+} from '@grass';
 import type { GameConfig } from './GameConfig';
 import { populateForest } from './populateForest';
 import { populateRocks } from './populateRocks';
@@ -32,6 +40,7 @@ export function populateWorld(
   townModels: ReadonlyMap<string, Object3D>,
   surfaces: SurfaceStyler,
   forestPack: Object3D | null = null,
+  quality?: RenderQuality,
 ): TownGround {
   const noise = new FractalNoise(new ValueNoise(random));
   const terrain = new TerrainGenerator(noise, config.terrain).generate();
@@ -45,10 +54,14 @@ export function populateWorld(
   const townArea = town.area;
 
   const { areas: pondAreas, ponds } = populateWater(world, terrain, random, config, [townArea]);
+  // lane B: grass. Baked once the rocks are placed; the ground paints grass fur from it past the last band.
+  const grassDensity = createGrassDensityUniforms();
+  const hook = grassFurHook(grassDensity);
+  // end lane B
   new TerrainSpawner(
     world,
     physics,
-    new TerrainMeshFactory(undefined, undefined, shadeUniforms, config.waterLevel),
+    new TerrainMeshFactory(undefined, undefined, shadeUniforms, config.waterLevel, hook),
   ).spawn(terrain);
   const forest = { ...config.forest, exclude: [...(config.forest.exclude ?? []), townArea, ...pondAreas] };
   populateForest(world, physics, random, terrain, forest, surfaces, shade, forestPack, townModels);
@@ -62,17 +75,23 @@ export function populateWorld(
     map: shade,
     uniforms: shadeUniforms,
   });
-  const grass = [new GrassInstancesFactory(shadeUniforms), new FlowerInstancesFactory()] as const;
-  new GrassSpawner(world, terrain, random, ...grass, new TallTuftInstancesFactory(shadeUniforms)).spawn(
+  // lane B: grass
+  const field = new GrassFieldFactory(grassDensity, createHeightMapUniforms(terrain), shadeUniforms);
+  const grass = [field, new FlowerInstancesFactory(), new TallTuftInstancesFactory(shadeUniforms)] as const;
+  const grassQuality = { density: quality?.grassDensity ?? 1, midDistance: quality?.grassMidDistance ?? 45 };
+  new GrassSpawner(world, terrain, random, grassDensity, ...grass).spawn(
     config.grass,
     config.waterLevel,
+    grassQuality,
     [],
     {
       blockers: [...town.grassBlockers, ...pondAreas.map(pondCircle), ...rockGround],
       ponds: pondAreas.map(pondCircle),
       feather: 1.5,
       lawns: [townArea],
+      canopyAt: (x, z) => shade.at(x, z, 'canopy'),
     },
   );
+  // end lane B
   return town;
 }

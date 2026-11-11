@@ -49,8 +49,7 @@ export const DEFAULT_CONFIG: GameConfig = {
   environment: DEFAULT_ENVIRONMENT,
   forest: { count: 340, extent: 80, minHeight: 2, maxHeight: 11, detail: { treeDistance: 75, floorDistance: 45 } },
   grass: {
-    grass: { count: 55000, extent: 80 },
-    nearGrass: { count: 160000, extent: 80 },
+    density: { size: DEFAULT_TERRAIN.size, resolution: 1024 }, // lane B: grass
     flowers: { clusters: 420, perCluster: 18, radius: 2.2, variants: 5, extent: 80 },
     seedHeads: { clumps: 320, perClump: 12, radius: 1.8, extent: 80 },
     pondReeds: { clumps: 14, perClump: 9, radius: 0.9, extent: 0 },
