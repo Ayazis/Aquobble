@@ -31,7 +31,7 @@ import { AmbientAudio, MuteButton } from '@audio';
 import { createScaleOverlay, isDebugMode, isScaleMode } from '@diagnostics';
 import { BirdMeshFactory, BirdRenderSystem, DEFAULT_WILDLIFE, FlockSpawner, FlockSystem } from '@wildlife';
 import { RockRecycleSystem, RockSpawner } from '@rocks';
-import { WaterAnimationSystem } from '@water';
+import { WaterAnimationSystem, WaterContactSystem } from '@water'; // lane C: water
 import { GrassBendSystem, WindSwaySystem } from '@grass';
 import type { Object3D } from 'three';
 import { spawnChimneySmoke } from './spawnChimneySmoke';
@@ -49,6 +49,7 @@ import { populateWorld } from './populateWorld';
 import { rockFactory } from './rockFactory';
 import { spawnPlayer } from './spawnPlayer';
 import { spawnTownsfolk } from './spawnTownsfolk';
+import { waterPhysicsSystems } from './waterPhysicsSystems'; // lane C: water
 
 /** Composition root: the only place that knows concrete classes and wires them together. */
 export async function bootstrap(container: HTMLElement, baseConfig: GameConfig = DEFAULT_CONFIG): Promise<Game> {
@@ -71,7 +72,8 @@ export async function bootstrap(container: HTMLElement, baseConfig: GameConfig =
     loadForestModels(loader),
   ]);
   const surfaces = styleModels(townModels, characterModel, quality.surfaceDetail);
-  const town = populateWorld(world, physics, random, config, townModels, surfaces, forestPack);
+  // lane C: water (prevailing wind for the waves)
+  const town = populateWorld(world, physics, random, config, townModels, surfaces, forestPack, wind.wind.direction(0));
   const streetLights = installStreetLighting(world, townModels, dayNight, config.streetLights);
   const { birdMeshes, ambience } = spawnWildlife(world, config.seed);
   const rocks = new RockSpawner(world, physics, await rockFactory(loader, random, config));
@@ -95,9 +97,11 @@ export async function bootstrap(container: HTMLElement, baseConfig: GameConfig =
   const loop = new GameLoop(new AnimationFrameScheduler(), {
     fixedSystems: [
       new PlayerInputSystem(world, keys, touch),
+      new WaterContactSystem(world, town.water), // lane C: water
       new CharacterMovementSystem(world, physics),
       new TownsfolkMovementSystem(world, physics, navigator, folkRandom),
       ...(config.fallingRocks ? [new RockRecycleSystem(world, rocks, random, config.rocks)] : []),
+      ...waterPhysicsSystems(world, physics, town.water), // lane C: water
       new PhysicsStepSystem(physics),
       new PhysicsPoseSystem(world, physics),
       new FlockSystem(world),

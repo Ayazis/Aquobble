@@ -16,6 +16,21 @@ describe('RapierPhysicsEngine', () => {
     expect(pose.position.y).toBeLessThan(10);
   });
 
+  it('spins a body when an impulse is applied off its centre', async () => {
+    const engine = await RapierPhysicsEngine.create({ x: 0, y: 0, z: 0 });
+    const box = engine.createBody({
+      kind: 'dynamic',
+      position: vec3(),
+      shape: { type: 'cuboid', halfExtents: vec3(1, 0.1, 0.1) },
+    });
+    engine.applyImpulseAt(box, vec3(0, 0.1, 0), vec3(1, 0, 0));
+    settle(engine, 0.2);
+    const pose: Transform = { position: vec3(), rotation: identityQuat() };
+    engine.readPose(box, pose);
+    expect(pose.position.y).toBeGreaterThan(0);
+    expect(Math.abs(pose.rotation.z)).toBeGreaterThan(0.01);
+  });
+
   it('rests a box on a sloped height field at the right height (axis mapping)', async () => {
     const engine = await RapierPhysicsEngine.create();
     // 3x3 grid, 20 m wide, rising along +x (columns): heights 0, 2, 4.

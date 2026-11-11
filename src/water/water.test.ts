@@ -39,7 +39,8 @@ describe('WaterMeshFactory', () => {
     expect(sea.uniforms.uHeightMap).toBe(ground.uHeightMap);
     expect(sea.fragmentShader).toContain('float depth = vWaterPos.y - groundHeightAt(p);');
     expect(sea.fragmentShader).toContain('totalEmissiveRadiance += directionalLights[0].color * glint');
-    expect(sea.vertexShader).toContain('transformed.z += swell;');
+    expect(sea.vertexShader).toContain('gerstnerOffset(waterWorld.xz');
+    expect(sea.fragmentShader).toContain('gerstnerNormal(vWaveRest');
     const pond = compile(factory.createPond(4).object);
     expect(pond.uniforms.uWaterSwell.value).toBe(0);
     expect(pond.uniforms.uWaterCalm.value).toBe(1);

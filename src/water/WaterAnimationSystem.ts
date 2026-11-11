@@ -16,9 +16,12 @@ export class WaterAnimationSystem implements System {
 
   update(dt: number): void {
     const night = this.night();
+    // Surfaces may share one clock: advance each clock once.
+    const clocks = new Set<{ value: number }>();
     for (const { waterSurface } of this.surfaces) {
-      waterSurface.time.value += dt * this.speed;
+      clocks.add(waterSurface.time);
       waterSurface.night.value = night;
     }
+    for (const clock of clocks) clock.value += dt * this.speed;
   }
 }

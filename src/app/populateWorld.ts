@@ -12,6 +12,8 @@ import {
   ValueNoise,
 } from '@terrain';
 import { FlowerInstancesFactory, GrassInstancesFactory, GrassSpawner, TallTuftInstancesFactory } from '@grass';
+import type { WindDirection } from '@wind';
+import type { WaterLevel } from '@water';
 import type { GameConfig } from './GameConfig';
 import { populateForest } from './populateForest';
 import { populateRocks } from './populateRocks';
@@ -32,7 +34,8 @@ export function populateWorld(
   townModels: ReadonlyMap<string, Object3D>,
   surfaces: SurfaceStyler,
   forestPack: Object3D | null = null,
-): TownGround {
+  wind: WindDirection = { x: 1, z: 0 }, // lane C: water
+): TownGround & { water: WaterLevel } {
   const noise = new FractalNoise(new ValueNoise(random));
   const terrain = new TerrainGenerator(noise, config.terrain).generate();
   // Filled in as the town, trees and rocks are placed; the ground, roads and grass read it once drawing starts.
@@ -44,7 +47,7 @@ export function populateWorld(
   stampTownShade(shade, town.obstacles);
   const townArea = town.area;
 
-  const { areas: pondAreas, ponds } = populateWater(world, terrain, random, config, [townArea]);
+  const { areas: pondAreas, ponds, water } = populateWater(world, terrain, random, config, [townArea], physics, wind);
   new TerrainSpawner(
     world,
     physics,
@@ -74,5 +77,5 @@ export function populateWorld(
       lawns: [townArea],
     },
   );
-  return town;
+  return { ...town, water };
 }
