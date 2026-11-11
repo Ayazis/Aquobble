@@ -26,6 +26,7 @@ export class PostProcessing implements ColorGrade, LightShafts {
   private readonly grade = new ShaderPass(ColorGradeShader);
   private readonly fxaa?: ShaderPass;
   private readonly shafts?: GodRayPass; // lane D2
+  private readonly outlinePass?: InkOutlinePass;
   private readonly renderer: THREE.WebGLRenderer;
 
   constructor(context: RenderContext, outlines = outlinesEnabled(globalThis.location?.search ?? '')) {
@@ -52,7 +53,8 @@ export class PostProcessing implements ColorGrade, LightShafts {
     if (outlines) {
       // After AO, which tracks this frame's scene depth; phones sample every second pixel (half resolution).
       const stride = post ? 1 : 2;
-      this.composer.addPass(new InkOutlinePass(context.camera, stride, ao && (() => ao.depthTexture)));
+      this.outlinePass = new InkOutlinePass(context.camera, stride, ao && (() => ao.depthTexture));
+      this.composer.addPass(this.outlinePass);
     }
     // lane D2: god rays from the sky mask, desktop only.
     if (post && context.quality.godRays) {
@@ -84,6 +86,11 @@ export class PostProcessing implements ColorGrade, LightShafts {
 
   setLightShafts(direction: Vec3, color: number, strength: number): void {
     this.shafts?.setLightShafts(direction, color, strength); // lane D2
+  }
+
+  /** Turns the ink outlines on or off at runtime (no effect when they were left out at start). */
+  setOutlines(on: boolean): void {
+    if (this.outlinePass) this.outlinePass.enabled = on;
   }
 
   render(): void {
