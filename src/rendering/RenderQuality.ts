@@ -52,12 +52,12 @@ export const HIGH_QUALITY: RenderQuality = {
   shadows: true,
   postEffects: true,
   shadowMapSize: 4096,
-  shadowBoxSize: 25,
+  shadowBoxSize: 50,
   shadowInterval: 1,
   surfaceDetail: true,
   // lane D: light
   shadowCascades: 2,
-  farShadowBoxSize: 120,
+  farShadowBoxSize: 200,
   cloudShadows: true,
   vertexAo: false,
   // end lane D

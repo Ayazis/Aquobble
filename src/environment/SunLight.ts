@@ -5,8 +5,8 @@ import { snapToShadowTexels } from './snapToShadowTexels';
 const LIGHT_DISTANCE = 150;
 /** How far ahead of the camera, as a share of the box width, the shadow box is centred. */
 const LOOK_AHEAD = 0.3;
-/** The far cascade's map: its box is wide, so a smaller map and a wider blur keep it soft and cheap. */
-const FAR_MAP_SIZE = 2048;
+/** The far cascade's map: its box is wide, so a full-size map and a blur close to the near one keep the hand-over invisible. */
+const FAR_MAP_SIZE = 4096;
 
 /** Shadow layout: one sharp box near the camera, plus an optional wide soft one out to the horizon. */
 export interface SunShadowOptions {
@@ -36,8 +36,8 @@ export class SunLight {
     configureShadow(this.sun, options.nearBox, options.mapSize, 1.5);
     if (options.cascades > 1) {
       this.farCascade = new THREE.DirectionalLight(0x000000, 0);
-      configureShadow(this.farCascade, options.farBox, FAR_MAP_SIZE, 4);
-      this.farCascade.shadow.normalBias = 0.08;
+      configureShadow(this.farCascade, options.farBox, FAR_MAP_SIZE, 2.5);
+      this.farCascade.shadow.normalBias = 0.05;
     }
   }
 

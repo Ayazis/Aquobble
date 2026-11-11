@@ -10,10 +10,10 @@ export function toonLightingChunk(): string {
   uniform vec4 toonProbePos[ ${MAX_TOON_PROBES} ];
   uniform vec4 toonProbeSh[ ${MAX_TOON_PROBES} ];
 
-  // 1 inside a shadow box, fading to 0 over its outer fifth, so a cascade hands over without a seam.
+  // 1 inside a shadow box, fading to 0 over a wide outer band (40% of the box), so a cascade hands over without a seam.
   float toonShadowFade( vec4 shadowCoord ) {
     vec2 edge = abs( shadowCoord.xy / shadowCoord.w - 0.5 );
-    return 1.0 - smoothstep( 0.4, 0.5, max( edge.x, edge.y ) );
+    return 1.0 - smoothstep( 0.3, 0.5, max( edge.x, edge.y ) );
   }
 
   // Sky-fill multiplier from the nearby street probes: enclosed alleys and the gate tunnel get darker and
