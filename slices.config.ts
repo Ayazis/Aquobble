@@ -21,4 +21,5 @@ export const SLICES = [
   'effects',
   'wind',
   'weather', // lane G
+  'menu',
 ] as const;

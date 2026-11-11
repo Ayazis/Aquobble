@@ -8,4 +8,6 @@ export class Weather {
   wetness = 0;
   /** Days passed since the start, counted from the day clock wrapping. */
   day = 0;
+  /** When set, replaces the schedule's mix (the pause menu's weather choice). */
+  override: WeatherMix | null = null;
 }

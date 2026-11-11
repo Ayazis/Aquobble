@@ -25,7 +25,7 @@ export class WeatherSystem implements System {
     const hour = this.hour();
     if (this.lastHour !== undefined && hour < this.lastHour - 12) this.weather.day++;
     this.lastHour = hour;
-    const mix = this.schedule.mixAt(this.weather.day, hour);
+    const mix = this.weather.override ?? this.schedule.mixAt(this.weather.day, hour);
     this.weather.mix = mix;
     this.weather.wetness = soak(this.weather.wetness, mix.rain, dt);
     this.targets.setOvercast(mix.overcast);

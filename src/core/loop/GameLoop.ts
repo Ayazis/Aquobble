@@ -14,6 +14,8 @@ export class GameLoop {
   private accumulator = 0;
   private lastTimeMs: number | null = null;
   private frameId: number | null = null;
+  /** True skips the simulation and hands frame systems a zero step (the scene keeps drawing). */
+  paused = false;
 
   constructor(
     private readonly scheduler: FrameScheduler,
@@ -38,7 +40,8 @@ export class GameLoop {
 
   /** Advances the loop to `timeMs`. Public so tests can drive time directly. */
   tick(timeMs: number): void {
-    const frameDt = this.lastTimeMs === null ? 0 : (timeMs - this.lastTimeMs) / 1000;
+    const realDt = this.lastTimeMs === null ? 0 : (timeMs - this.lastTimeMs) / 1000;
+    const frameDt = this.paused ? 0 : realDt;
     this.lastTimeMs = timeMs;
     this.accumulator = Math.min(this.accumulator + frameDt, this.fixedDt * this.maxSteps);
 

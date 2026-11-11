@@ -19,6 +19,7 @@ import { BirdRenderSystem, FlockSystem } from '@wildlife';
 import { RockRecycleSystem, RockSpawner } from '@rocks';
 import { WaterAnimationSystem, WaterContactSystem } from '@water'; // lane C: water
 import { GrassWatchdogSystem } from '@grass';
+import { applyQualitySettings, SettingsStore } from '@menu';
 import { installGrassPhysics } from './installGrassPhysics'; // lane B2: grass physics
 import { spawnChimneySmoke } from './spawnChimneySmoke';
 import { styleModels } from './styleModels';
@@ -42,12 +43,16 @@ import { waterPhysicsSystems } from './waterPhysicsSystems'; // lane C: water
 import { installWaterReactions } from './installWaterReactions'; // lane C2
 import { spawnWildlife } from './spawnWildlife';
 import { installInput } from './installInput';
+import { installMenu } from './installMenu';
 import { createWeather, installWeather, OVERCAST_WIND_BOOST } from './installWeather'; // lane G: weather
 
 /** Composition root: the only place that knows concrete classes and wires them together. */
 export async function bootstrap(container: HTMLElement, baseConfig: GameConfig = DEFAULT_CONFIG): Promise<Game> {
   const mobile = isMobileDevice();
-  const { config, quality } = forDevice(baseConfig, mobile);
+  const settings = new SettingsStore();
+  const device = forDevice(baseConfig, mobile);
+  const config = device.config;
+  const quality = applyQualitySettings(device.quality, settings.settings);
   const world = createGameWorld();
   const random = new SeededRandom(config.seed);
   const physics = await RapierPhysicsEngine.create();
@@ -131,6 +136,14 @@ export async function bootstrap(container: HTMLElement, baseConfig: GameConfig =
     ],
   });
 
+  const menu = installMenu(container, settings, {
+    loop,
+    dayNight: env.dayNight,
+    weather: weather.weather,
+    audio: ambience,
+    post,
+    render,
+  });
   return new Game(loop, [
     new SceneMembership(world, render.scene),
     new PhysicsBodyCleanup(world, physics),
@@ -143,5 +156,6 @@ export async function bootstrap(container: HTMLElement, baseConfig: GameConfig =
     new MuteButton(container, ambience),
     lanternButton,
     ...(touch ? [touch] : []),
+    menu,
   ]);
 }
