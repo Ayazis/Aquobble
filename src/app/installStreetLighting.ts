@@ -1,5 +1,6 @@
 import type { GameWorld, System } from '@core';
 import {
+  castLampShadow, // lane D2
   LightPoolFactory,
   NightGlow,
   scaleToPost,
@@ -23,6 +24,7 @@ export function installStreetLighting(
   models: ReadonlyMap<string, THREE.Object3D>,
   clock: DayClock,
   tuned: StreetLightOptions,
+  lampShadows = false, // lane D2
 ): System {
   const options = scaleToPost(tuned, TOWN_ASSET_SIZES[LAMP_ASSET].height);
   const glow = new NightGlow();
@@ -46,6 +48,7 @@ export function installStreetLighting(
     light.position.copy(lamps[i].glass);
     return light;
   });
+  if (lampShadows && lights.length > 0) castLampShadow(lights[0]); // lane D2: nearest lamp only
   if (lights.length > 0) world.add({ renderObject: { object: new THREE.Group().add(...lights) } });
 
   const players = world.with('player', 'transform');

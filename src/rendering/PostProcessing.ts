@@ -9,6 +9,9 @@ import type { ColorGrade } from './ColorGrade';
 import { ColorGradeShader } from './ColorGradeShader';
 import type { RenderContext } from './RenderContext';
 import { SceneDepthAoPass } from './SceneDepthAoPass';
+import { GodRayPass } from './GodRayPass'; // lane D2
+import type { LightShafts } from './LightShafts'; // lane D2
+import type { Vec3 } from '@core'; // lane D2
 import { InkOutlinePass } from './outline/InkOutlinePass';
 import { outlinesEnabled } from './outline/outlinesEnabled';
 
@@ -16,10 +19,11 @@ import { outlinesEnabled } from './outline/outlinesEnabled';
  * Post-processing chain: scene → ambient occlusion → ink outlines → bloom → tone mapping/colour output → grade, and on
  * devices without a multisampled buffer (phones) a final FXAA pass to smooth stair-stepped edges.
  */
-export class PostProcessing implements ColorGrade {
+export class PostProcessing implements ColorGrade, LightShafts {
   private readonly composer: EffectComposer;
   private readonly grade = new ShaderPass(ColorGradeShader);
   private readonly fxaa?: ShaderPass;
+  private readonly shafts?: GodRayPass; // lane D2
   private readonly renderer: THREE.WebGLRenderer;
 
   constructor(context: RenderContext, outlines = outlinesEnabled(globalThis.location?.search ?? '')) {
@@ -43,6 +47,12 @@ export class PostProcessing implements ColorGrade {
       const stride = post ? 1 : 2;
       this.composer.addPass(new InkOutlinePass(context.camera, stride, ao && (() => ao.depthTexture)));
     }
+    // lane D2: god rays from the sky mask, desktop only.
+    if (post && context.quality.godRays) {
+      this.shafts = new GodRayPass(context.camera, ao && (() => ao.depthTexture));
+      this.composer.addPass(this.shafts);
+    }
+    // end lane D2
     if (post) {
       // Threshold 6 keeps bloom to the lamps; the drawn sun stays below it and brings its own glow.
       this.composer.addPass(new UnrealBloomPass(size, 0.06, 0.3, 6));
@@ -63,6 +73,10 @@ export class PostProcessing implements ColorGrade {
     uniforms.saturation.value = saturation;
     uniforms.contrast.value = contrast;
     uniforms.lift.value = lift;
+  }
+
+  setLightShafts(direction: Vec3, color: number, strength: number): void {
+    this.shafts?.setLightShafts(direction, color, strength); // lane D2
   }
 
   render(): void {

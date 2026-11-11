@@ -1,5 +1,6 @@
 import * as THREE from 'three';
-import type { CloudShadow, ColorGrade, RenderContext } from '@rendering';
+import type { CloudShadow, ColorGrade, LightShafts, RenderContext } from '@rendering';
+import { installHeightFog } from './heightFogChunk'; // lane D2
 import { CloudLayer } from './CloudLayer';
 import { DayNightSystem } from './DayNightSystem';
 import type { DayKeyframe } from './DayKeyframe';
@@ -26,7 +27,12 @@ export class Environment {
    * `grade`, when given, follows the hour too (calmer colour at night). `cloudShadow`, from
    * `installToonLighting`, lets the drifting clouds shade the ground.
    */
-  install(context: RenderContext, random: Random, grade?: ColorGrade, cloudShadow?: CloudShadow): DayNightSystem {
+  install(
+    context: RenderContext,
+    random: Random,
+    grade?: ColorGrade & Partial<LightShafts>,
+    cloudShadow?: CloudShadow,
+  ): DayNightSystem {
     const { scene, renderer, camera } = context;
     const night = new NightSky(random);
     const sky = new SkyDome();
@@ -38,6 +44,7 @@ export class Environment {
     const light = new SunLight({ nearBox: shadowBoxSize, farBox: farShadowBoxSize, mapSize, cascades: shadowCascades });
     this.sunLight = light;
     // end lane D
+    installHeightFog(); // lane D2: fog pools in valleys and over the sea
     const fog = new THREE.FogExp2(0xffffff, 0);
 
     scene.add(sky.sky, sunDisc.group, night.group, clouds.mesh, ...light.objects);
