@@ -7,3 +7,6 @@ export { FlockSystem } from './FlockSystem';
 export { BirdRenderSystem } from './BirdRenderSystem';
 export { FlockSpawner } from './FlockSpawner';
 export { DEFAULT_WILDLIFE, type WildlifeConfig } from './WildlifeConfig';
+export { fishRipple, fishJump, RIPPLE_LIFE, JUMP_TIME } from './fishRipple';
+export { PondFishMeshFactory } from './PondFishMeshFactory';
+export { PondFishSystem, type FishPond } from './PondFishSystem';

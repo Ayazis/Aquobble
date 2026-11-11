@@ -49,6 +49,7 @@ import { loadTownModels } from './loadTownModels';
 import { populateWorld } from './populateWorld';
 import { rockFactory } from './rockFactory';
 import { spawnPlayer } from './spawnPlayer';
+import { spawnLivingDetails } from './spawnLivingDetails'; // lane F: living details
 import { spawnTownsfolk } from './spawnTownsfolk';
 import { waterPhysicsSystems } from './waterPhysicsSystems'; // lane C: water
 
@@ -123,6 +124,7 @@ export async function bootstrap(container: HTMLElement, baseConfig: GameConfig =
       ...debug.afterCamera,
       ...scale, // lane W0-a: tools
       new BirdRenderSystem(world, birdMeshes.clock),
+      ...spawnLivingDetails(world, random.fork('living'), config.waterLevel, town.nature, wind, env.dayNight), // lane F
       ambience,
       env.dayNight,
       streetLights,

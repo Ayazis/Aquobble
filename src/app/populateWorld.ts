@@ -28,6 +28,7 @@ import { populateRocks } from './populateRocks';
 import { populateTown, type TownGround } from './populateTown';
 import { populateWater } from './populateWater';
 import { pondCircle } from './pondCircle';
+import type { NatureAnchors } from './NatureAnchors'; // lane F: living details
 import { stampTownShade } from './stampTownShade';
 
 /** Texels per side of the ground shade map: about 20 cm each on the default island. */
@@ -44,7 +45,7 @@ export function populateWorld(
   forestPack: Object3D | null = null,
   quality?: RenderQuality,
   wind: WindDirection = { x: 1, z: 0 }, // lane C: water
-): TownGround & { water: WaterLevel } {
+): TownGround & { water: WaterLevel; nature: NatureAnchors } /* lane F: living details */ {
   const noise = new FractalNoise(new ValueNoise(random));
   const terrain = new TerrainGenerator(noise, config.terrain).generate();
   // Filled in as the town, trees and rocks are placed; the ground, roads and grass read it once drawing starts.
@@ -67,7 +68,8 @@ export function populateWorld(
     new TerrainMeshFactory(undefined, undefined, shadeUniforms, config.waterLevel, hook),
   ).spawn(terrain);
   const forest = { ...config.forest, exclude: [...(config.forest.exclude ?? []), townArea, ...pondAreas] };
-  populateForest(world, physics, random, terrain, forest, surfaces, shade, forestPack, townModels);
+  // lane F: living details (the trees)
+  const trees = populateForest(world, physics, random, terrain, forest, surfaces, shade, forestPack, townModels);
   const rocks = {
     ...config.rockScatter,
     waterLevel: config.waterLevel,
@@ -96,5 +98,5 @@ export function populateWorld(
     },
   );
   // end lane B
-  return { ...town, water };
+  return { ...town, water, nature: { ponds, trees, ground: terrain } }; // lane F: living details
 }

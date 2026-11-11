@@ -15,6 +15,7 @@ import {
   TreeInstancesFactory,
   TreePlacer,
   UnderstoryInstancesFactory,
+  type TreePlacement, // lane F: living details
   type TreePlacerOptions,
 } from '@vegetation';
 import type { ForestDetail } from './ForestDetail';
@@ -46,7 +47,7 @@ export function populateForest(
   pack: Object3D | null,
   /** The town's models; its bush joins the forest edge. */
   townModels: ReadonlyMap<string, Object3D>,
-): void {
+): TreePlacement[] /* lane F: living details */ {
   const wind = createWindSway();
   const set = buildForestModelSet(pack, townModels.get('bush') ?? null);
   const standIns = new TreeInstancesFactory(surfaces, wind);
@@ -69,4 +70,5 @@ export function populateForest(
   for (const object of [new LeafLitterFactory().create(litter), understory.create(floor)]) {
     world.add({ transform: { position: vec3(), rotation: identityQuat() }, renderObject: { object } });
   }
+  return trees; // lane F: living details
 }

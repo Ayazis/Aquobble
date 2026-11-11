@@ -8,7 +8,7 @@ const SAPLING = 0.12;
 /**
  * Picks a species and size for a tree standing at `height01` (0 at the lowest allowed ground, 1 at the
  * highest): pines take over from oaks on the upper half, with a wide mixed band between. A few trees
- * are dead trunks, and some living ones are saplings (a third to under half size).
+ * are dead trunks, and some living ones are saplings (a third to half size, so the smallest still stands about 2.4 m, above a 1.6 m person).
  */
 export function pickTreeSpecies(height01: number, random: Random): { species: TreeSpecies; scale: number } {
   if (random.next() < DEAD) return { species: 'dead', scale: random.range(0.6, 0.9) };
@@ -17,5 +17,5 @@ export function pickTreeSpecies(height01: number, random: Random): { species: Tr
   const tall = random.next() < 0.5;
   const species: TreeSpecies = pine ? (tall ? 'pineTall' : 'pineSmall') : tall ? 'oakTall' : 'oakRound';
   const sapling = random.next() < SAPLING;
-  return { species, scale: sapling ? random.range(0.3, 0.45) : random.range(0.75, 1.25) };
+  return { species, scale: sapling ? random.range(0.35, 0.5) : random.range(0.75, 1.25) };
 }
