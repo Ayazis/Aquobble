@@ -11,7 +11,7 @@ const CROSS = 6;
  * CPU scatter put about 15 tufts per m² on grassy ground; the near band matches it so the ground round the
  * player is covered in blades, not painted fur.
  */
-const PER_M2 = { near: 22, mid: 4, cards: 0.25 };
+const PER_M2 = { near: 36, mid: 10, cards: 0.4 };
 
 /** Tiles per side so the grid reaches `radius` from the camera wherever it stands in its own tile. */
 function gridFor(radius: number, tile: number): number {
@@ -26,7 +26,7 @@ function sideFor(perM2: number, tile: number, density: number): number {
 export function grassBands({ density, midDistance }: GrassQuality): GrassBand[] {
   const mid = Math.max(midDistance, NEAR + CROSS * 1.5);
   const near: GrassBand = {
-    shape: { kind: 'blades', blades: 5, halfWidth: 0.018 },
+    shape: { kind: 'blades', blades: 5, halfWidth: 0.028 },
     tile: 8,
     grid: gridFor(NEAR + CROSS / 2, 8),
     side: sideFor(PER_M2.near, 8, density),
@@ -34,7 +34,7 @@ export function grassBands({ density, midDistance }: GrassQuality): GrassBand[] 
     fadeOut: [NEAR - CROSS / 2, NEAR + CROSS / 2],
   };
   const thinned: GrassBand = {
-    shape: { kind: 'blades', blades: 3, halfWidth: 0.04 },
+    shape: { kind: 'blades', blades: 4, halfWidth: 0.045 },
     tile: 8,
     grid: gridFor(mid, 8),
     side: sideFor(PER_M2.mid, 8, density),

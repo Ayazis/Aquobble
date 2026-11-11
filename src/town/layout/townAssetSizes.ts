@@ -23,7 +23,7 @@ export const TOWN_ASSET_SIZES = {
   windmill: size(10.81, 7.58, 13.0),
   sawmill: size(14.96, 11.15, 9.72),
   stable: size(16.92, 11.99, 8.96),
-  well: size(1.33, 2.01, 2.5),
+  well: size(3.33, 5.03, 6.25), // 2.5x: reads as the square's centrepiece
   market_stall: size(2.37, 2.96, 2.61),
   barrel: size(0.69, 0.69, 0.9),
   crate: size(0.8, 0.8, 0.8),

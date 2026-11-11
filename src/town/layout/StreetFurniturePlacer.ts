@@ -66,7 +66,8 @@ export class StreetFurniturePlacer {
         if (this.onVerge(benches, s, 'bench', this.random.range(2, length - 2), side, 0.15)) break;
       }
     }
-    return benches;
+    // The bench model's seat faces its -z, the opposite of every other prop: turn it round to face the road.
+    return benches.map((b) => ({ ...b, rotation: b.rotation + Math.PI }));
   }
 
   /** Signposts inside every gate and where the main streets leave the square, pointing along the road. */
