@@ -94,9 +94,27 @@ Cost: memory drops from about 16 MB of instance data to one patch plus a texture
 | 5.4 | **Living details.** Butterflies over flower drifts, fireflies at dusk near ponds and the forest edge, dust motes in sunbeams, falling leaves from crowns on gusts, fish ripples in ponds. All instanced particles in `effects`, all from seeded `Random`.                                                                                                   | `effects`, `wildlife`      | M    |
 | 5.5 | **Colour script and art direction pass.** One palette document (key colours per hour, per biome) that the keyframes, terrain palette, grass tips and building swatches all read from; a stylised hand-painted sky gradient with banding instead of the physical sky; a slight vignette and paper grain in the grade. Makes the island read as one painting. | `environment`, `rendering` | M    |
 
+## 6. Scale
+
+Sizes today: the player is 1.8 m and villagers 1.75 m (x0.92 to 1.05); lantern posts are 3.36 m; buildings
+come from `town/layout/townAssetSizes.ts`, scaled so a storey is about 2.5 m. On screen the characters look
+a little big, the lanterns far too small, and several houses too small next to the people.
+
+| #   | Change                                                                                                                                                                                                                                                                                                                                                                                              | Where                                                 | Size |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- | ---- |
+| 6.1 | **One scale reference.** Pick the door as the yardstick: a door is 1.25x character height. Add a debug overlay (`?debug&scale`) that draws a 1 m grid, a 1.8 m figure and each model's door height, and a "scale" shot set (character at a door, under a lamp, next to each building type) in `npm run shots`.                                                                                      | `diagnostics`, `scripts/shots`                        | S    |
+| 6.2 | **Characters a little smaller.** Player 1.8 to about 1.6 m, villagers 1.5 to 1.68 m. The stylised models have big heads and hands, so they read taller than their height. Capsule collider, camera distance and grass bend radius follow from the same number in `GameConfig` instead of separate constants.                                                                                        | `player`, `townsfolk`, `app/GameConfig.ts`            | S    |
+| 6.3 | **Lanterns much bigger.** Lantern posts 3.36 to about 4.5 m, and the lamp head scaled extra (about 1.6x) so it reads from across the square. Glass glow, light pool radius and point-light height read from the post footprint, so they follow. The hand lantern grows with it.                                                                                                                     | `town/layout/townAssetSizes.ts`, `lighting`, `player` | S    |
+| 6.4 | **Houses that are still too small.** Rescale per model from its measured door height (6.1) rather than the storey guess. Likely candidates: windmill (7.25 m, should be about 12 to 14 m), house_c (6.5 m), stable and blacksmith (doors under person height), watchtower (should clearly overtop the wall). Re-run the town planner tests: bigger footprints may need a wider town or fewer plots. | `town/layout/townAssetSizes.ts`, `TownPlanner`        | M    |
+| 6.5 | **Props against the new character.** Check barrels, benches, carts, market stalls and fences against 1.6 m; seats at about 0.45 m, counters at waist height.                                                                                                                                                                                                                                        | `town/layout/townAssetSizes.ts`                       | S    |
+| 6.6 | **Nature against people.** Trees, rocks, flowers and grass were tuned against 1.8 m. Check that grass reaches the shin, seed heads the knee, and that saplings and bushes stay above head height.                                                                                                                                                                                                   | `vegetation`, `grass`, `rocks`                        | S    |
+
+Order inside this step: 6.1, then 6.2 and 6.3 together, then 6.4 to 6.6. Do it first: every later shot and
+every distance in this plan (grass bands, bend radius, shadow box) is measured against the character.
+
 ## Order
 
-1. **Measure first**: 0.1, then the cheap leftovers 0.3 to 0.6 and 0.8.
+1. **Measure and fix scale first**: 0.1, step 6 (scale), then the cheap leftovers 0.3 to 0.6 and 0.8.
 2. **Grass everywhere** (3.1 to 3.5): the new grass system is the base the grass physics build on.
 3. **Grass physics** (1.1 to 1.3), then the shared wind field (1.4), which water uses next.
 4. **Water** (2.1, 2.2 first; then 2.3, 2.4; then 2.5, 2.6).
