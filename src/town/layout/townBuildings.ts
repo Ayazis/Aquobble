@@ -23,8 +23,7 @@ export const TOWN_BUILDINGS: TownPlot[] = [
   plot('chapel', -7.36, 13.99, EAST),
   plot('house_a', -12.6, 5.73, SOUTH),
   plot('house_b', -19.5, 7.23, SOUTH),
-  plot('house_a', -15.77, 16.03, SOUTH),
-  plot('windmill', -20.75, 19.6, EAST),
+  plot('windmill', -19, 17.7, EAST),
   // South-west: barracks on the west lane, watchtower in the corner
   plot('barracks', -17.85, -7.6, NORTH),
   plot('house_a', -9.27, -5.73, NORTH),
@@ -33,7 +32,7 @@ export const TOWN_BUILDINGS: TownPlot[] = [
   plot('watchtower', -20.55, -20.5, NORTH),
   // South-east: stone hall on the east lane, smithy on the south lane
   plot('house_c', 16.87, -8.73, NORTH),
-  plot('blacksmith', 6.57, -11.05, WEST),
+  plot('blacksmith', 6.22, -11, WEST),
   plot('house_a', 5.73, -19.67, WEST),
-  plot('house_b', 14.93, -19.35, WEST),
+  plot('house_b', 14.93, -19.9, WEST),
 ];

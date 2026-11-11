@@ -6,6 +6,7 @@ import { DEFAULT_TERRAIN, type PondOptions, type TerrainConfig } from '@terrain'
 import type { TownSite } from '@town';
 import type { TreePlacerOptions } from '@vegetation';
 import type { WaterLook } from '@water';
+import type { CharacterScale } from './CharacterScale';
 import type { ForestDetail } from './ForestDetail';
 import type { TownsfolkConfig } from './spawnTownsfolk';
 
@@ -34,6 +35,9 @@ export interface GameConfig {
   streetLights: StreetLightOptions;
   /** Optional model for the falling rocks (path under public/), e.g. "assets/models/cookie.glb". Procedural rocks if unset. */
   rockModel?: string;
+  // lane W0-c: scale
+  /** Character heights (a door is 1.25x the player); see `characterBuild`. */
+  scale: CharacterScale;
 }
 
 export const DEFAULT_CONFIG: GameConfig = {
@@ -73,4 +77,6 @@ export const DEFAULT_CONFIG: GameConfig = {
   townsfolk: { minCount: 10, maxCount: 16, walkSpeed: 1.4 },
   streetLights: DEFAULT_STREET_LIGHTS,
   rockModel: 'assets/models/cookie.glb',
+  // lane W0-c: scale
+  scale: { playerHeight: 1.6, villagerMinHeight: 1.5, villagerMaxHeight: 1.68 },
 };

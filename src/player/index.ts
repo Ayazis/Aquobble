@@ -16,3 +16,4 @@ export type { Lantern } from './Lantern';
 export { LanternFactory } from './LanternFactory';
 export { LanternButton } from './LanternButton';
 export { LanternSystem } from './LanternSystem';
+export { characterBuild, type CharacterBuild } from './CharacterBuild';

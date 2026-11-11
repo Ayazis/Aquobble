@@ -17,7 +17,7 @@ const CLIP_NAMES: Record<LocomotionClip, string> = { idle: 'Idle', walk: 'Walk',
 export class PlayerModelFactory {
   constructor(
     private readonly model: AnimatedModel,
-    private readonly height = 1.8,
+    private readonly height = 1.6,
   ) {}
 
   create(halfHeight: number, radius: number): { object: THREE.Object3D; animation: CharacterAnimation } {

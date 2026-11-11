@@ -18,3 +18,4 @@ export type { PlotSpawner } from './render/PlotSpawner';
 export { ModelPlotSpawner } from './render/ModelPlotSpawner';
 export { townAssetPath } from './render/townAssetPath';
 export { TOWN_CHIMNEYS } from './layout/townChimneys';
+export { TOWN_ASSET_SIZES, type TownAssetId } from './layout/townAssetSizes';

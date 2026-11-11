@@ -35,13 +35,12 @@ const NORTH_WEST: TownPlot[] = [
   prop('stone_pile', -8.8, 21.6),
   prop('bush', -4.8, 21.8),
   prop('bush', -11.95, 22),
-  prop('fence', -15.4, 20),
   prop('hay_bale', -13.4, 21.6),
   prop('hay_bale', -14.4, 21.9),
-  prop('cart', -17, 21.9, 1.2),
-  prop('crate', -20.5, 13.5, 0.2),
-  prop('barrel', -21.6, 14.2),
-  prop('wood_pile', -20, 15.3, 0.3),
+  prop('cart', -13.9, 17.4, 0.1),
+  prop('crate', -14, 13.5, 0.2),
+  prop('barrel', -13.1, 14.3),
+  prop('wood_pile', -14.1, 20.2, 0.3),
 ];
 
 /** South-west: the barracks' drill yard under the watchtower. */

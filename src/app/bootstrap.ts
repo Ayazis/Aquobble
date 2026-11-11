@@ -20,13 +20,9 @@ import {
   CharacterMovementSystem,
   KeyboardState,
   LanternButton,
-  LanternFactory,
   LanternSystem,
   PlayerAnimationSystem,
   PlayerInputSystem,
-  PlayerMeshFactory,
-  PlayerModelFactory,
-  PlayerSpawner,
   TouchControls,
   type AnimatedModel,
 } from '@player';
@@ -51,6 +47,7 @@ import { loadForestModels } from './loadForestModels';
 import { loadTownModels } from './loadTownModels';
 import { populateWorld } from './populateWorld';
 import { rockFactory } from './rockFactory';
+import { spawnPlayer } from './spawnPlayer';
 import { spawnTownsfolk } from './spawnTownsfolk';
 
 /** Composition root: the only place that knows concrete classes and wires them together. */
@@ -73,20 +70,20 @@ export async function bootstrap(container: HTMLElement, baseConfig: GameConfig =
     loadCharacterModel(loader),
     loadForestModels(loader),
   ]);
-  const playerVisuals = characterModel ? new PlayerModelFactory(characterModel) : new PlayerMeshFactory();
   const surfaces = styleModels(townModels, characterModel, quality.surfaceDetail);
   const town = populateWorld(world, physics, random, config, townModels, surfaces, forestPack);
   const streetLights = installStreetLighting(world, townModels, dayNight, config.streetLights);
   const { birdMeshes, ambience } = spawnWildlife(world, config.seed);
   const rocks = new RockSpawner(world, physics, await rockFactory(loader, random, config));
-  new PlayerSpawner(world, physics, playerVisuals, new LanternFactory()).spawn(config.town.x, config.town.z + 8);
+  const build = spawnPlayer(world, physics, config, characterModel);
   // Own seed stream so townsfolk never shift the rest of the world's random draws.
   const folkRandom = new SeededRandom(config.seed + 1);
-  const folk = config.townsfolk;
+  const folk = { ...config.townsfolk, ...config.scale };
   const navigator = spawnTownsfolk(world, physics, folkRandom, config.town, town.obstacles, folk, characterModel);
   const keys = new KeyboardState();
   const look = new PointerLookInput(render.canvas);
-  const zoom = new SmoothZoom({ ...DEFAULT_SMOOTH_ZOOM, minDistance: 2, maxDistance: 25 });
+  const { minCameraDistance: minDistance, maxCameraDistance: maxDistance } = build;
+  const zoom = new SmoothZoom({ ...DEFAULT_SMOOTH_ZOOM, minDistance, maxDistance });
   const wheel = new WheelZoomInput(render.canvas, zoom);
   const debug = createDebug(isDebugMode(), container, render, dayNight, keys, physics);
   // lane W0-a: tools
@@ -110,7 +107,7 @@ export async function bootstrap(container: HTMLElement, baseConfig: GameConfig =
       new TransformSyncSystem(world),
       new WaterAnimationSystem(world, 0.6, () => dayNight.nightAmount),
       new WindSwaySystem(world),
-      new GrassBendSystem(world),
+      new GrassBendSystem(world, build.bendRadius),
       new PlayerAnimationSystem(world),
       new LanternSystem(world, keys, lanternButton),
       new TownsfolkAnimationSystem(world),
