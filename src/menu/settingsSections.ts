@@ -30,6 +30,7 @@ export function settingsSections(
   setFps: (on: boolean) => void,
 ): { elements: HTMLElement[]; refresh(): void } {
   const s = store.settings;
+  const started = { shadows: s.shadows, grass: s.grass };
   const weather = choiceGroup(
     WEATHER,
     () => s.weather,
@@ -56,19 +57,31 @@ export function settingsSections(
   const shadows = choiceGroup(
     SHADOWS,
     () => s.shadows,
-    (v) => store.update({ shadows: v }),
+    (v) => {
+      store.update({ shadows: v });
+      refresh();
+    },
   );
   const grass = choiceGroup(
     GRASS,
     () => s.grass,
-    (v) => store.update({ grass: v }),
+    (v) => {
+      store.update({ grass: v });
+      refresh();
+    },
   );
   const note = el('div', { fontSize: '12px', opacity: '0.6' }, 'Shadows and grass apply on reload.');
+  const reload = button('Reload to apply', () => location.reload());
+  reload.style.background = 'rgba(255, 210, 120, 0.45)';
+  const pending = el('div', { display: 'none', alignItems: 'center', gap: '8px', flexWrap: 'wrap' });
+  pending.append(reload, note);
   const refresh = () => {
     markActive(outlines, s.outlines);
     markActive(fps, s.fps);
     markActive(mute, !t.audio.isMuted);
     weather.refresh();
+    const changed = s.shadows !== started.shadows || s.grass !== started.grass;
+    pending.style.display = changed ? 'flex' : 'none';
   };
   refresh();
   return {
@@ -77,7 +90,7 @@ export function settingsSections(
       section('Display', outlines, fps, mute),
       section('Shadows', ...shadows.buttons),
       section('Grass', ...grass.buttons),
-      note,
+      pending,
     ],
     refresh,
   };
