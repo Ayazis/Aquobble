@@ -113,6 +113,20 @@ Step 6, first pass, rendered the same way (desktop and phone profile at noon, de
   wedge of darker water shows near the island; it was there before this step and looks like the edge of the
   fixed shadow box (1.10).
 
+Step 7, first pass on grass, rendered at noon (software Chromium, meadow and forest, desktop and phone profile):
+
+- 3.3 in part: grass is thick in some patches and thin in others (fixed sine patches 10 to 25 m across; the
+  thinnest ground keeps 30% of the tufts so it never shows bare), and thick patches grow a little taller. One tuft
+  shape still: no seed heads, reeds, ferns or dry patches.
+- 3.4: flower heads are about twice the size, stems are a lighter green near the grass tips, and 420 clusters of
+  18 gather in drifts around about 50 centres, most of a drift in one colour.
+- 3.5 in part: a lighter, warmer band runs across the blade tips with each gust (same gust formula as the sway,
+  now one shared GLSL function). No glow when looking towards a low sun.
+- Not done in step 7: 3.6, 2.3, 2.5 (leaf litter), 7.1, 7.2.
+
+Cost per frame: no new texture reads or draws; a few more ALU ops per grass vertex. Flowers go from about 315 to
+several thousand instances in one draw. Not measured on a device.
+
 ## Tools first
 
 Taking these screenshots meant reaching into private fields. Two small tools make every later item checkable.

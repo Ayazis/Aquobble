@@ -11,7 +11,7 @@ export interface GroundBlendLook {
 
 /**
  * Patches a grass material (after `applyWindSway`) so each tuft runs from the ground colour at its root to
- * its instance colour at the tip; the geometry's vertex colour red channel is the blend weight. Far tufts
+ * its instance colour at the tip, lightening where a gust passes; the geometry's vertex colour red channel is the blend weight. Far tufts
  * turn fully ground-coloured before they shrink away, and both faces of a blade are lit alike. Costs one
  * vertex texture read (the ground shade map) per blade vertex.
  */
@@ -30,6 +30,8 @@ export function applyGroundBlend(material: THREE.Material, look: GroundBlendLook
   vec3 grassRoot = (modelMatrix * vec4(instanceMatrix[3].xyz, 1.0)).xyz;
   float grassTip = color.r * (1.0 - smoothstep(${fade}, distance(grassRoot, cameraPosition)));
   vColor.rgb = mix(shadedGround(lushGroundColor(grassRoot.y), grassRoot.xz), instanceColor.rgb, grassTip);
+  // A lighter, warmer band travels with each gust as the blades lay over and show their paler side.
+  vColor.rgb *= 1.0 + windGust(grassRoot.xz) * grassTip * vec3(0.22, 0.2, 0.1);
 #endif`,
       );
     // Undo three's back-face normal flip: the normals point up, so a flipped one would be lit from below.
