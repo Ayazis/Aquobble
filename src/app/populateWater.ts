@@ -9,7 +9,9 @@ import {
   GerstnerWaveField,
   gerstnerWavesFromWind,
   SeaAndPonds,
+  Tide,
   waveShoaling,
+  type WaveScale,
   WaterMeshFactory,
   WaterNormalsFactory,
   WaterSpawner,
@@ -31,21 +33,24 @@ export function populateWater(
   // lane C: water
   physics: PhysicsEngine,
   wind: WindDirection,
-): { areas: ExclusionZone[]; ponds: Pond[]; water: WaterLevel; ripple: RippleUniforms } {
+): { areas: ExclusionZone[]; ponds: Pond[]; water: WaterLevel; ripple: RippleUniforms; tide: Tide } {
   const ponds = new PondCarver(random).carve(terrain, { ...config.ponds, avoid });
   const normals = new WaterNormalsFactory(random).create();
   // lane C: water. Gerstner waves fanned around the prevailing wind; the CPU field and the shader share the numbers.
   const level = config.waterLevel;
-  const shoal = (x: number, z: number) => waveShoaling(level - terrain.heightAt(x, z), Math.hypot(x, z));
-  const field = new GerstnerWaveField(gerstnerWavesFromWind(wind), shoal);
   // Baked after the ponds are carved, so each water surface knows its own shoreline.
   const ground = createHeightMapUniforms(terrain);
+  // Shoaling follows the tide, as in the shader (only called once the tide below exists).
+  const shoal = (x: number, z: number): WaveScale =>
+    waveShoaling(level + tide.offset.value - terrain.heightAt(x, z), Math.hypot(x, z));
+  const field = new GerstnerWaveField(gerstnerWavesFromWind(wind), shoal);
   const meshes = new WaterMeshFactory(normals, config.water, ground, undefined, field.terms);
+  const tide = new Tide(level, meshes.tide);
   const spawner = new WaterSpawner(world, meshes);
   spawner.spawn(config.waterLevel);
   for (const p of ponds) spawner.spawnPond(p.x, p.z, p.radius, p.level);
   // lane C: water. Floating driftwood and lily pads on their own stream (they replace the static pads).
-  const water = new SeaAndPonds(terrain, level, field, meshes.time, ponds);
+  const water = new SeaAndPonds(terrain, level, field, meshes.time, ponds, meshes.tide);
   const floaters = new FloaterSpawner(world, physics, water, new FloaterMeshFactory(), random.fork('water'));
   floaters.driftwood(6, 140);
   floaters.lilyPads(ponds);
@@ -55,5 +60,5 @@ export function populateWater(
     minZ: p.z - p.radius,
     maxZ: p.z + p.radius,
   }));
-  return { areas, ponds, water, ripple: meshes.ripple }; // lane C2: ripple map
+  return { areas, ponds, water, ripple: meshes.ripple, tide }; // lane C2: ripple map
 }

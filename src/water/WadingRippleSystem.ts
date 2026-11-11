@@ -54,7 +54,7 @@ export class WadingRippleSystem implements System {
       gait.idle += dt;
       if (gait.idle > IDLE_RING_SECONDS) {
         gait.idle = 0;
-        this.ripples.stamp(x, z, 0.3, 0.04);
+        this.ripples.stamp(x, z, 0.45, 0.08);
       }
       return;
     }
@@ -70,8 +70,8 @@ export class WadingRippleSystem implements System {
     const side = foot * 0.12;
     const fx = x + Math.cos(facing) * side;
     const fz = z - Math.sin(facing) * side;
-    const strength = Math.min(1, (run ? 0.35 : 0.2) * (1 + c.speed * 0.1));
-    this.ripples.stamp(fx, fz, run ? 0.35 : 0.25, strength, run ? 0.25 : 0.08);
+    const strength = Math.min(1, (run ? 0.6 : 0.38) * (1 + c.speed * 0.1));
+    this.ripples.stamp(fx, fz, run ? 0.55 : 0.42, strength, run ? 0.65 : 0.4);
     this.events.emit({ type: 'footstep', x: fx, y: p.y - c.bottom, z: fz, strength });
   }
 
@@ -81,21 +81,22 @@ export class WadingRippleSystem implements System {
     if (gait.stroke < STROKE_SECONDS) return;
     gait.stroke = 0;
     const { x, z } = p;
-    this.ripples.stamp(x, z, 0.6, 0.2, 0.3);
+    this.ripples.stamp(x, z, 0.9, 0.4, 0.6);
     this.events.emit({ type: 'swimStroke', x, y: c.surfaceY, z });
   }
 
   /** A moving source in a wave field leaves its own V; the bow gets a little foam ahead of the legs. */
   private wake(c: WaterContact, p: { x: number; z: number }, swimming: boolean): void {
     if (c.immersion < ANKLE || c.speed < 0.4) return;
-    const strength = Math.min(0.06, 0.008 * c.speed) * (swimming ? 1.5 : 1);
-    this.ripples.stamp(p.x, p.z, swimming ? 0.6 : 0.35, strength);
+    const strength = Math.min(0.12, 0.016 * c.speed) * (swimming ? 1.5 : 1);
+    // The trail: foam laid where the legs (or body) cut through, left behind as a white wake.
+    this.ripples.stamp(p.x, p.z, swimming ? 0.8 : 0.5, strength, Math.min(0.7, 0.25 + c.speed * 0.12));
     const dx = p.x - c.lastX;
     const dz = p.z - c.lastZ;
     const len = Math.hypot(dx, dz);
     // Runs after the physics pose: lastX is where the character was before this step's move.
     if (len < 1e-4) return;
     const ahead = 0.35 / len;
-    this.ripples.stamp(p.x + dx * ahead, p.z + dz * ahead, 0.3, 0, Math.min(0.8, c.speed * 0.15));
+    this.ripples.stamp(p.x + dx * ahead, p.z + dz * ahead, 0.4, 0, Math.min(1, c.speed * 0.25));
   }
 }

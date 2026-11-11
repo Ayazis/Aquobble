@@ -7,6 +7,9 @@ import type { RippleUniforms } from './RippleUniforms';
 const MAX_DROPS = 16;
 /** Wave stiffness at 256 texels over 40 m (about 2 m/s); scaled with resolution so speed stays in m/s. */
 const STIFFNESS_256 = 0.06;
+/** Foam laid by a stamp per unit of strength, and its cap. */
+const STAMP_FOAM_GAIN = 1.4;
+const STAMP_FOAM_MAX = 0.7;
 
 /**
  * GPU ripple height field (2.5): a box of `size` m round a target, ping-ponged between two float targets
@@ -50,6 +53,8 @@ export class RippleSimulation implements RippleStamper {
   }
 
   stamp(x: number, z: number, radius: number, strength: number, foam = 0): void {
+    // Every disturbance churns up some foam; drips and rain stay below the foam threshold.
+    foam = Math.max(foam, Math.min(STAMP_FOAM_MAX, strength * STAMP_FOAM_GAIN));
     const drop = this.box.toDrop(x, z, radius, strength, foam);
     if (drop && this.queue.length < MAX_DROPS * 8) this.queue.push(drop);
   }

@@ -21,12 +21,13 @@ import {
   TallTuftInstancesFactory,
 } from '@grass';
 import type { WindDirection } from '@wind';
-import type { RippleUniforms, WaterLevel } from '@water'; // lane C2
+import { wetSandHook, type RippleUniforms, type Tide, type WaterLevel } from '@water'; // lane C2, tides
 import type { GameConfig } from './GameConfig';
 import { populateForest } from './populateForest';
 import { populateRocks } from './populateRocks';
 import { populateTown, type TownGround } from './populateTown';
 import { populateWater } from './populateWater';
+import { mergeGroundHooks } from './mergeGroundHooks';
 import { pondCircle } from './pondCircle';
 import type { NatureAnchors } from './NatureAnchors'; // lane F: living details
 import { stampTownShade } from './stampTownShade';
@@ -45,7 +46,7 @@ export function populateWorld(
   forestPack: Object3D | null = null,
   quality?: RenderQuality,
   wind: WindDirection = { x: 1, z: 0 }, // lane C: water
-): TownGround & { water: WaterLevel; ripple: RippleUniforms; nature: NatureAnchors } /* lanes C2, F */ {
+): TownGround & { water: WaterLevel; ripple: RippleUniforms; tide: Tide; nature: NatureAnchors } /* lanes C2, F */ {
   const noise = new FractalNoise(new ValueNoise(random));
   const terrain = new TerrainGenerator(noise, config.terrain).generate();
   // Filled in as the town, trees and rocks are placed; the ground, roads and grass read it once drawing starts.
@@ -62,10 +63,11 @@ export function populateWorld(
     ponds,
     water,
     ripple,
+    tide,
   } = populateWater(world, terrain, random, config, [townArea], physics, wind);
   // lane B: grass. Baked once the rocks are placed; the ground paints grass fur from it past the last band.
   const grassDensity = createGrassDensityUniforms();
-  const hook = grassFurHook(grassDensity);
+  const hook = mergeGroundHooks(grassFurHook(grassDensity), wetSandHook(tide)); // tides: wet sand
   // end lane B
   new TerrainSpawner(
     world,
@@ -103,5 +105,5 @@ export function populateWorld(
     },
   );
   // end lane B
-  return { ...town, water, ripple, nature: { ponds, trees, ground: terrain } }; // lanes C2, F
+  return { ...town, water, ripple, tide, nature: { ponds, trees, ground: terrain } }; // lanes C2, F
 }

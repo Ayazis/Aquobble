@@ -32,3 +32,7 @@ export { SplashTriggerSystem } from './SplashTriggerSystem';
 export { WadingRippleSystem } from './WadingRippleSystem';
 export type { Wetness } from './Wetness';
 export { WetnessSystem, DRYING_SECONDS } from './WetnessSystem';
+// tides
+export { Tide, TIDE, tideOffset } from './Tide';
+export { TideSystem } from './TideSystem';
+export { wetSandHook } from './wetSandHook';

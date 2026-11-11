@@ -6,6 +6,7 @@ export const RIPPLE_FRAGMENT_PARS = /* glsl */ `
 uniform sampler2D uRippleMap;
 uniform vec3 uRippleBox;
 uniform float uRippleTexel;
+#define RIPPLE_NORMAL_GAIN 7.0
 vec3 rippleAt(vec2 p) {
   if (uRippleBox.z <= 0.0) return vec3(0.0);
   vec2 uv = (p - uRippleBox.xy) / uRippleBox.z;
@@ -16,7 +17,16 @@ vec3 rippleAt(vec2 p) {
   float hz = texture2D(uRippleMap, uv + vec2(0.0, e)).r - texture2D(uRippleMap, uv - vec2(0.0, e)).r;
   float fade = smoothstep(0.0, 0.12, edge);
   float foam = clamp(texture2D(uRippleMap, uv).b, 0.0, 1.0);
-  return vec3(-hx * 3.0, -hz * 3.0, foam) * fade;
+  vec2 slope = clamp(vec2(-hx, -hz) * RIPPLE_NORMAL_GAIN, -1.6, 1.6);
+  return vec3(slope, foam) * fade;
+}
+/** Ripple height (m-ish) at world (x, z): positive on the crests of the rings. */
+float rippleHeightAt(vec2 p) {
+  if (uRippleBox.z <= 0.0) return 0.0;
+  vec2 uv = (p - uRippleBox.xy) / uRippleBox.z;
+  float edge = min(min(uv.x, uv.y), min(1.0 - uv.x, 1.0 - uv.y));
+  if (edge <= 0.0) return 0.0;
+  return texture2D(uRippleMap, uv).r * smoothstep(0.0, 0.12, edge);
 }
 `;
 
@@ -39,9 +49,9 @@ void main() {
   vec4 c = at(uv);
   float n = at(uv + vec2(uTexel.x, 0.0)).r + at(uv - vec2(uTexel.x, 0.0)).r
     + at(uv + vec2(0.0, uTexel.y)).r + at(uv - vec2(0.0, uTexel.y)).r;
-  float v = (c.r - c.g) * 0.985 + uStiffness * (n - 4.0 * c.r);
-  float h = (c.r + v) * 0.998;
-  float foam = c.b * 0.985;
+  float v = (c.r - c.g) * 0.994 + uStiffness * (n - 4.0 * c.r);
+  float h = (c.r + v) * 0.9995;
+  float foam = c.b * 0.991;
   for (int i = 0; i < 16; i++) {
     if (i >= uDropCount) break;
     vec4 d = uDrops[i];

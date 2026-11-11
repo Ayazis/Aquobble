@@ -16,7 +16,7 @@ import { MuteButton } from '@audio';
 import { createScaleOverlay, isDebugMode, isScaleMode } from '@diagnostics';
 import { BirdRenderSystem, FlockSystem } from '@wildlife';
 import { RockRecycleSystem, RockSpawner } from '@rocks';
-import { WaterAnimationSystem, WaterContactSystem } from '@water'; // lane C: water
+import { TideSystem, WaterAnimationSystem, WaterContactSystem } from '@water'; // lane C: water, tides
 import { GrassWatchdogSystem } from '@grass';
 import { applyQualitySettings, type LoadingProgress, NO_PROGRESS, SettingsStore } from '@menu';
 import { loadAllModels } from './loadAllModels';
@@ -114,6 +114,7 @@ export async function bootstrap(
       wind.system, // lane W0-b: contracts
       new TransformSyncSystem(world),
       new WaterAnimationSystem(world, 0.6, () => env.dayNight.nightAmount),
+      new TideSystem(town.tide, () => env.dayNight.timeOfDay), // tides
       ...grassPhysics, // lane B2: grass physics (wind sway clock, bend map, rustle)
       new SailSystem(world, wind.uniforms), // lane A2: windmill sails
       new GrassWatchdogSystem(world), // lane B: grass

@@ -32,6 +32,8 @@ const SEA_SEGMENTS = 200;
 export class WaterMeshFactory {
   /** Water time shared by every surface (and by CPU wave queries): `WaterAnimationSystem` advances it once. */
   readonly time = { value: 0 };
+  /** Sea tide offset (m), shared with `Tide` and the CPU `SeaAndPonds`; ponds ignore it. */
+  readonly tide = { value: 0 };
   /** Ripple map round the player (2.5), shared by every surface; `RippleSimulation` fills it. Off until then. */
   readonly ripple: RippleUniforms = {
     uRippleMap: { value: null },
@@ -78,6 +80,7 @@ export class WaterMeshFactory {
       Object.assign(shader.uniforms, this.ground, gerstnerUniforms(this.waves), this.ripple, {
         uWaterNormals: { value: this.normals },
         uWaterTime: time,
+        uWaterTide: this.tide,
         uWaterNight: night,
         uWaterCalm: { value: calm ? 1 : 0 },
         uWaterSwell: { value: calm ? 0 : 1 },

@@ -29,9 +29,9 @@ export class SplashTriggerSystem implements System {
       const size = splashSize(impact, massOf(entity));
       if (size <= 0) continue;
       const { x, z } = entity.transform.position;
-      this.ripples.stamp(x, z, 0.5 + size * 0.6, 0.5 * size, 0);
+      this.ripples.stamp(x, z, 0.7 + size * 0.8, 0.8 * size, 0);
       // The foam ring: a wide faint patch whose centre the strong ripple pushes clear.
-      this.ripples.stamp(x, z, 1 + size * 1.2, 0, Math.min(1, 0.4 + size * 0.4));
+      this.ripples.stamp(x, z, 1.5 + size * 1.6, 0, Math.min(1, 0.6 + size * 0.4));
       this.events.emit({ type: 'splash', x, y: c.surfaceY, z, size });
     }
   }
