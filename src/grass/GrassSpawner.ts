@@ -18,6 +18,7 @@ import { GrassPlacer, type FlowerPlacerOptions } from './GrassPlacer';
 import type { TallTuftInstancesFactory } from './TallTuftInstancesFactory';
 import { TallTuftPlacer, type TallTuftOptions } from './TallTuftPlacer';
 import { createWindSway, type WindSway } from './WindSway';
+import { tallGrassCover, type TallGrassCover } from './TallGrassCover';
 
 export interface GrassOptions {
   /** The density map: world size it covers and texels per side. */
@@ -84,15 +85,17 @@ export class GrassSpawner {
       seedHeads: tallPlacer.seedHeads(options.seedHeads),
       reeds: tallPlacer.reeds(options.pondReeds, options.shoreReeds, ponds, waterLevel),
     };
-    this.add(this.tall.create(tall, windSway), windSway);
+    const tallGrass = tallGrassCover([...tall.seedHeads, ...tall.reeds]);
+    this.add(this.tall.create(tall, windSway), windSway, undefined, tallGrass);
   }
 
-  private add(object: Object3D, windSway: WindSway, grassField?: GrassFieldComponent): void {
+  private add(object: Object3D, windSway: WindSway, grassField?: GrassFieldComponent, tallGrass?: TallGrassCover) {
     this.world.add({
       transform: { position: vec3(), rotation: identityQuat() },
       renderObject: { object },
       windSway,
       ...(grassField ? { grassField } : {}),
+      ...(tallGrass ? { tallGrass } : {}),
     });
   }
 }

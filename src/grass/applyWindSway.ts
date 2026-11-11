@@ -18,8 +18,7 @@ export function applyWindSway(material: THREE.Material, wind: WindSway, look: Wi
   const key = `aquobble-wind-${look.strength}-${look.fadeStart}-${look.fadeEnd}-${look.fadeIn?.join(',') ?? ''}`;
   material.customProgramCacheKey = () => key;
   material.onBeforeCompile = (shader) => {
-    shader.uniforms.uWindTime = wind.time;
-    shader.uniforms.uBenders = wind.benders;
+    Object.assign(shader.uniforms, wind.wind, wind.bend);
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', `#include <common>\n${WIND_UNIFORMS}`)
       .replace(

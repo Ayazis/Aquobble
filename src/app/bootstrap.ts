@@ -33,7 +33,8 @@ import { createScaleOverlay, isDebugMode, isScaleMode } from '@diagnostics';
 import { BirdMeshFactory, BirdRenderSystem, DEFAULT_WILDLIFE, FlockSpawner, FlockSystem } from '@wildlife';
 import { RockRecycleSystem, RockSpawner } from '@rocks';
 import { WaterAnimationSystem, WaterContactSystem } from '@water'; // lane C: water
-import { GrassBendSystem, GrassWatchdogSystem, WindSwaySystem } from '@grass';
+import { GrassWatchdogSystem } from '@grass';
+import { installGrassPhysics } from './installGrassPhysics'; // lane B2: grass physics
 import type { Object3D } from 'three';
 import { spawnChimneySmoke } from './spawnChimneySmoke';
 import { createDebug } from './createDebug';
@@ -92,6 +93,7 @@ export async function bootstrap(container: HTMLElement, baseConfig: GameConfig =
   const { birdMeshes, ambience } = spawnWildlife(world, config.seed);
   const rocks = new RockSpawner(world, physics, await rockFactory(loader, random, config));
   const build = spawnPlayer(world, physics, config, characterModel);
+  const grassPhysics = installGrassPhysics(world, render.renderer, quality, wind, random, build.bendRadius); // lane B2
   // Own seed stream so townsfolk never shift the rest of the world's random draws.
   const folkRandom = new SeededRandom(config.seed + 1);
   const folk = { ...config.townsfolk, ...config.scale };
@@ -124,9 +126,8 @@ export async function bootstrap(container: HTMLElement, baseConfig: GameConfig =
       wind.system, // lane W0-b: contracts
       new TransformSyncSystem(world),
       new WaterAnimationSystem(world, 0.6, () => env.dayNight.nightAmount),
-      new WindSwaySystem(world),
+      ...grassPhysics, // lane B2: grass physics (wind sway clock, bend map, rustle)
       new SailSystem(world, wind.uniforms), // lane A2: windmill sails
-      new GrassBendSystem(world, build.bendRadius),
       new GrassWatchdogSystem(world), // lane B: grass
       new PlayerAnimationSystem(world),
       new LanternSystem(world, keys, lanternButton),

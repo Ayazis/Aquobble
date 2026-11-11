@@ -21,6 +21,7 @@ export const MOBILE_QUALITY: RenderQuality = {
   godRays: false, // lane D2
   grassDensity: 0.5, // lane B: grass
   grassMidDistance: 30, // lane B: grass
+  grassBendMapSize: 64, // lane B2: grass physics
 };
 
 /** True on touch-first devices, where the GPU budget is a fraction of a desktop's. */
