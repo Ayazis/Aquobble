@@ -19,4 +19,5 @@ export const SLICES = [
   'wildlife',
   'audio',
   'effects',
+  'wind',
 ] as const;
