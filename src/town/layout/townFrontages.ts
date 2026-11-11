@@ -25,8 +25,8 @@ export const OPEN_GROUND: TownPlot[] = [sizedPlot('windmill', -19, 17.7, EAST), 
 
 /** The well in the middle of the square and market stalls along its edges, facing in. */
 export const SQUARE_PLOTS: TownPlot[] = [
-  sizedPlot('well', 0, 0),
-  sizedPlot('market_stall', 2.8, -4.3),
-  sizedPlot('market_stall', -2.8, -4.3),
-  sizedPlot('market_stall', -2.8, 4.3, Math.PI),
+  sizedPlot('well', 0, 0, EAST), // long side east-west, so the stall rows stay clear
+  sizedPlot('market_stall', 2.8, -4.6),
+  sizedPlot('market_stall', -2.8, -4.6),
+  sizedPlot('market_stall', -2.8, 3.9, Math.PI),
 ];
