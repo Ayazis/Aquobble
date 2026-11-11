@@ -1,6 +1,7 @@
 import { identityQuat, type GameWorld } from '@core';
 import type { Object3D } from 'three';
 import type { PhysicsEngine } from '@physics';
+import { dryContact } from '@water';
 import type {} from '@rendering';
 import { DEFAULT_PLAYER } from './Player';
 import { idleInput } from './PlayerInput';
@@ -42,7 +43,8 @@ export class PlayerSpawner {
     // Hung on the node that turns with the character, so it stays at the same side.
     const lantern = this.lanterns?.create(visual.animation?.facing ?? visual.object);
     this.world.add({
-      player: { ...DEFAULT_PLAYER },
+      player: { ...DEFAULT_PLAYER, height: (halfHeight + radius) * 2 },
+      waterContact: dryContact(halfHeight + radius, position),
       playerInput: idleInput(),
       characterBody,
       physicsBody: { handle: characterBody.body },

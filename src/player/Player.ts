@@ -9,6 +9,10 @@ export interface Player {
   moveX: number;
   moveZ: number;
   grounded: boolean;
+  /** Full height (m), for wading and swimming depths. Set at spawn. */
+  height: number;
+  /** Floating in deep water. */
+  swimming: boolean;
 }
 
 export const DEFAULT_PLAYER: Player = {
@@ -20,6 +24,8 @@ export const DEFAULT_PLAYER: Player = {
   moveX: 0,
   moveZ: 0,
   grounded: false,
+  height: 1.8,
+  swimming: false,
 };
 
 declare module '@core/ecs/Entity' {

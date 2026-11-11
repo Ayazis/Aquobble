@@ -1,7 +1,20 @@
-import { SeededRandom, type GameWorld, type Random } from '@core';
+import { type GameWorld, type Random } from '@core';
 import { createHeightMapUniforms, PondCarver, type HeightField, type Pond } from '@terrain';
 import type { ExclusionZone } from '@vegetation';
-import { LilyPadFactory, WaterMeshFactory, WaterNormalsFactory, WaterSpawner } from '@water';
+import type { PhysicsEngine } from '@physics';
+import type { WindDirection } from '@wind';
+import {
+  FloaterMeshFactory,
+  FloaterSpawner,
+  GerstnerWaveField,
+  gerstnerWavesFromWind,
+  SeaAndPonds,
+  waveShoaling,
+  WaterMeshFactory,
+  WaterNormalsFactory,
+  WaterSpawner,
+  type WaterLevel,
+} from '@water';
 import type { GameConfig } from './GameConfig';
 
 /**
@@ -14,22 +27,32 @@ export function populateWater(
   random: Random,
   config: GameConfig,
   avoid: readonly ExclusionZone[],
-): { areas: ExclusionZone[]; ponds: Pond[] } {
+  // lane C: water
+  physics: PhysicsEngine,
+  wind: WindDirection,
+): { areas: ExclusionZone[]; ponds: Pond[]; water: WaterLevel } {
   const ponds = new PondCarver(random).carve(terrain, { ...config.ponds, avoid });
   const normals = new WaterNormalsFactory(random).create();
-  // Decoration draws from its own stream, so adding or changing it never moves the rest of the world.
-  const pads = new SeededRandom(config.seed + 1);
+  // lane C: water. Gerstner waves fanned around the prevailing wind; the CPU field and the shader share the numbers.
+  const level = config.waterLevel;
+  const shoal = (x: number, z: number) => waveShoaling(level - terrain.heightAt(x, z), Math.hypot(x, z));
+  const field = new GerstnerWaveField(gerstnerWavesFromWind(wind), shoal);
   // Baked after the ponds are carved, so each water surface knows its own shoreline.
   const ground = createHeightMapUniforms(terrain);
-  const meshes = new WaterMeshFactory(normals, config.water, ground, new LilyPadFactory(pads));
+  const meshes = new WaterMeshFactory(normals, config.water, ground, undefined, field.terms);
   const spawner = new WaterSpawner(world, meshes);
   spawner.spawn(config.waterLevel);
   for (const p of ponds) spawner.spawnPond(p.x, p.z, p.radius, p.level);
+  // lane C: water. Floating driftwood and lily pads on their own stream (they replace the static pads).
+  const water = new SeaAndPonds(terrain, level, field, meshes.time, ponds);
+  const floaters = new FloaterSpawner(world, physics, water, new FloaterMeshFactory(), random.fork('water'));
+  floaters.driftwood(6, 140);
+  floaters.lilyPads(ponds);
   const areas = ponds.map((p) => ({
     minX: p.x - p.radius,
     maxX: p.x + p.radius,
     minZ: p.z - p.radius,
     maxZ: p.z + p.radius,
   }));
-  return { areas, ponds };
+  return { areas, ponds, water };
 }

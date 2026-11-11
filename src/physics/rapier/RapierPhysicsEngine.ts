@@ -69,6 +69,10 @@ export class RapierPhysicsEngine implements PhysicsEngine {
     this.body(handle).applyImpulse(impulse, true);
   }
 
+  applyImpulseAt(handle: BodyHandle, impulse: Vec3, point: Vec3): void {
+    this.body(handle).applyImpulseAtPoint(impulse, point, true);
+  }
+
   addForce(handle: BodyHandle, force: Vec3): void {
     this.body(handle).addForce(force, true);
   }
