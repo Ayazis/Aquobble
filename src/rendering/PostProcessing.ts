@@ -9,9 +9,11 @@ import type { ColorGrade } from './ColorGrade';
 import { ColorGradeShader } from './ColorGradeShader';
 import type { RenderContext } from './RenderContext';
 import { SceneDepthAoPass } from './SceneDepthAoPass';
+import { InkOutlinePass } from './outline/InkOutlinePass';
+import { outlinesEnabled } from './outline/outlinesEnabled';
 
 /**
- * Post-processing chain: scene → ambient occlusion → bloom → tone mapping/colour output → grade, and on
+ * Post-processing chain: scene → ambient occlusion → ink outlines → bloom → tone mapping/colour output → grade, and on
  * devices without a multisampled buffer (phones) a final FXAA pass to smooth stair-stepped edges.
  */
 export class PostProcessing implements ColorGrade {
@@ -20,21 +22,28 @@ export class PostProcessing implements ColorGrade {
   private readonly fxaa?: ShaderPass;
   private readonly renderer: THREE.WebGLRenderer;
 
-  constructor(context: RenderContext) {
+  constructor(context: RenderContext, outlines = outlinesEnabled(globalThis.location?.search ?? '')) {
     this.renderer = context.renderer;
     const size = context.renderer.getSize(new THREE.Vector2());
-    // The scene pass keeps its depth in a texture so ambient occlusion can read it instead of redrawing.
+    // The scene pass keeps its depth in a texture so ambient occlusion and outlines can read it.
     const pixels = size.clone().multiplyScalar(context.renderer.getPixelRatio());
     const target = new THREE.WebGLRenderTarget(pixels.x, pixels.y, {
       type: THREE.HalfFloatType,
       samples: context.quality.antialias ? 4 : 0,
     });
-    if (context.quality.postEffects) target.depthTexture = new THREE.DepthTexture(pixels.x, pixels.y);
+    const post = context.quality.postEffects;
+    if (post || outlines) target.depthTexture = new THREE.DepthTexture(pixels.x, pixels.y);
     this.composer = new EffectComposer(context.renderer, target);
     this.composer.setSize(size.x, size.y);
     this.composer.addPass(new RenderPass(context.scene, context.camera));
-    if (context.quality.postEffects) {
-      this.composer.addPass(this.createAmbientOcclusion(context, size, target.depthTexture));
+    const ao = post ? this.createAmbientOcclusion(context, size, target.depthTexture) : undefined;
+    if (ao) this.composer.addPass(ao);
+    if (outlines) {
+      // After AO, which tracks this frame's scene depth; phones sample every second pixel (half resolution).
+      const stride = post ? 1 : 2;
+      this.composer.addPass(new InkOutlinePass(context.camera, stride, ao && (() => ao.depthTexture)));
+    }
+    if (post) {
       // Threshold 6 keeps bloom to the lamps; the drawn sun stays below it and brings its own glow.
       this.composer.addPass(new UnrealBloomPass(size, 0.06, 0.3, 6));
     }

@@ -1,3 +1,4 @@
+import { COLOUR_SCRIPT } from '@rendering'; // lane E: palette
 import { DEFAULT_PALETTE } from './TerrainPalette';
 import { linearRgb } from './linearRgb';
 import { GROUND_SHADE_GLSL } from './groundShadeGlsl';
@@ -12,7 +13,7 @@ const glslColor = (hex: number) =>
     .map((v) => v.toFixed(4))
     .join(', ')})`;
 const [SAND, , , ROCK, SNOW] = DEFAULT_PALETTE.map((band) => glslColor(band.color));
-const EARTH = glslColor(0x7a6450);
+const EARTH = glslColor(COLOUR_SCRIPT.biomes.earth); // lane E: palette
 
 export const TERRAIN_VERTEX_PARS = /* glsl */ `
 varying vec3 vTerrainPos;

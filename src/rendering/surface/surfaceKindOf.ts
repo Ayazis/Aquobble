@@ -1,4 +1,5 @@
 import type { SurfaceKind } from './SurfaceKind';
+import { surfaceKindOfColour } from './surfaceKindOfColour';
 
 const BY_NAME: readonly [RegExp, SurfaceKind | null][] = [
   [/metal|iron|steel/i, null],
@@ -7,10 +8,13 @@ const BY_NAME: readonly [RegExp, SurfaceKind | null][] = [
   [/wood|brown|plank/i, 'wood'],
 ];
 
-/** Guesses the surface kind from a model material's name; unnamed and palette materials count as plaster. */
-export function surfaceKindOf(materialName: string): SurfaceKind | null {
+/**
+ * Guesses the surface kind from a model material's name. Palette and unnamed materials are one colour
+ * region each, so when their colour is known it decides (roof, door, footing, wall); otherwise plaster.
+ */
+export function surfaceKindOf(materialName: string, color?: number): SurfaceKind | null {
   for (const [pattern, kind] of BY_NAME) if (pattern.test(materialName)) return kind;
-  return 'plaster';
+  return color === undefined ? 'plaster' : surfaceKindOfColour(color);
 }
 
 /** True for materials that should keep a metallic sheen. */

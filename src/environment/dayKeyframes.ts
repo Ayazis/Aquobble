@@ -1,17 +1,29 @@
-import type { DayKeyframe } from './DayKeyframe';
+import { COLOUR_SCRIPT, type HourColours } from '@rendering';
+import type { DayKeyframe, DayLighting } from './DayKeyframe';
 
-const NIGHT: Omit<DayKeyframe, 'time'> = {
+type Hour = Omit<DayKeyframe, 'time'>;
+
+/** Copies an hour's colours from the colour script into the lighting fields. */
+function colours(
+  hour: HourColours,
+): Pick<DayLighting, 'sunColor' | 'hemisphereSky' | 'hemisphereGround' | 'fogColor' | 'skyZenith' | 'skyHorizon'> {
+  return {
+    sunColor: hour.sun,
+    hemisphereSky: hour.shade,
+    hemisphereGround: hour.bounce,
+    fogColor: hour.fog,
+    skyZenith: hour.skyZenith,
+    skyHorizon: hour.skyHorizon,
+  };
+}
+
+const NIGHT: Hour = {
+  ...colours(COLOUR_SCRIPT.night),
   // The "sun" at night is the moon: bright enough to read the town and cast clear shadows.
-  sunColor: 0xb4c6f2,
   sunIntensity: 1.15,
-  hemisphereSky: 0x34466e,
-  hemisphereGround: 0x1c2640,
   hemisphereIntensity: 0.9,
   environmentIntensity: 0.2,
-  fogColor: 0x1b2333,
   fogDensity: 0.0035,
-  turbidity: 2,
-  rayleigh: 0.5,
   exposure: 0.9,
   // Calmer at night: lamplight on grass must not go neon, and moon shade lifts to dark blue rather than black.
   gradeSaturation: 0.88,
@@ -19,57 +31,29 @@ const NIGHT: Omit<DayKeyframe, 'time'> = {
   gradeLift: 0.07,
 };
 
-const DAY: Omit<DayKeyframe, 'time'> = {
-  sunColor: 0xfff2dc,
+const DAY: Hour = {
+  ...colours(COLOUR_SCRIPT.noon),
   sunIntensity: 1.8,
   // Strong blue sky light with a green bounce: shade stays bright and coloured, as in a cel-shaded scene.
-  hemisphereSky: 0xb8d4ff,
-  hemisphereGround: 0x6f8a5c,
   hemisphereIntensity: 1.25,
   environmentIntensity: 0.35,
-  // Sky blue rather than white, so far land and the horizon sink into blue haze.
-  fogColor: 0xa6cff0,
   fogDensity: 0.0022,
-  turbidity: 2.5,
-  rayleigh: 1.3,
   exposure: 0.62,
   gradeSaturation: 1.22,
   gradeContrast: 1.06,
   gradeLift: 0,
 };
 
-/** Night → dawn → morning → noon → evening → dusk → night, sorted by time. */
+const LOW_SUN = { sunIntensity: 1.1, hemisphereIntensity: 0.45, environmentIntensity: 0.4, fogDensity: 0.0042 };
+
+/** Night → dawn → morning → noon → evening → dusk → night, sorted by time. Colours: `COLOUR_SCRIPT`. */
 export const DEFAULT_DAY_KEYFRAMES: readonly DayKeyframe[] = [
   { time: 0, ...NIGHT },
-  { time: 0.2, ...NIGHT, fogColor: 0x2a2f45 },
-  {
-    time: 0.26,
-    ...DAY,
-    sunColor: 0xffa060,
-    sunIntensity: 1.1,
-    hemisphereSky: 0xe0b8a8,
-    hemisphereIntensity: 0.45,
-    environmentIntensity: 0.4,
-    fogColor: 0xe8b890,
-    fogDensity: 0.0042,
-    turbidity: 9,
-    rayleigh: 2.6,
-  },
-  { time: 0.34, ...DAY, sunColor: 0xffe2b8, sunIntensity: 2.3, fogColor: 0xd3e4ee, fogDensity: 0.0026 },
+  { time: 0.2, ...NIGHT, ...colours(COLOUR_SCRIPT.predawn) },
+  { time: 0.26, ...DAY, ...LOW_SUN, ...colours(COLOUR_SCRIPT.dawn) },
+  { time: 0.34, ...DAY, ...colours(COLOUR_SCRIPT.morning), sunIntensity: 2.3, fogDensity: 0.0026 },
   { time: 0.5, ...DAY },
-  { time: 0.66, ...DAY, sunColor: 0xffdcae, sunIntensity: 2.3, fogColor: 0xdcdcd8, fogDensity: 0.0026 },
-  {
-    time: 0.74,
-    ...DAY,
-    sunColor: 0xff7a40,
-    sunIntensity: 1.1,
-    hemisphereSky: 0xd8a0a0,
-    hemisphereIntensity: 0.45,
-    environmentIntensity: 0.4,
-    fogColor: 0xd99a78,
-    fogDensity: 0.0042,
-    turbidity: 10,
-    rayleigh: 3,
-  },
-  { time: 0.8, ...NIGHT, fogColor: 0x2e2a42 },
+  { time: 0.66, ...DAY, ...colours(COLOUR_SCRIPT.afternoon), sunIntensity: 2.3, fogDensity: 0.0026 },
+  { time: 0.74, ...DAY, ...LOW_SUN, ...colours(COLOUR_SCRIPT.dusk) },
+  { time: 0.8, ...NIGHT, ...colours(COLOUR_SCRIPT.nightfall) },
 ];

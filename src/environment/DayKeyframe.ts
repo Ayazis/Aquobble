@@ -9,9 +9,9 @@ export interface DayLighting {
   environmentIntensity: number;
   fogColor: number;
   fogDensity: number;
-  /** Sky shader haze and scattering. */
-  turbidity: number;
-  rayleigh: number;
+  /** Painted sky gradient: colour overhead and at the horizon. */
+  skyZenith: number;
+  skyHorizon: number;
   exposure: number;
   /** Colour grade after tone mapping: saturation and contrast (1 = unchanged). */
   gradeSaturation: number;

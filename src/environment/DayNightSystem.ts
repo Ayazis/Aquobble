@@ -85,7 +85,7 @@ export class DayNightSystem implements System {
     this.fog.density = lighting.fogDensity;
     this.renderer.toneMappingExposure = lighting.exposure;
     this.scene.environmentIntensity = lighting.environmentIntensity;
-    this.sky.setSun(sun, lighting.turbidity, lighting.rayleigh);
+    this.sky.setColours(sun, lighting.skyZenith, lighting.skyHorizon, lighting.sunColor, lighting.exposure);
     this.grade?.setGrade(lighting.gradeSaturation, lighting.gradeContrast, lighting.gradeLift);
     this.sunDisc.update(sun, lighting.sunColor, this.camera.position);
     const darkness = Math.min(1, Math.max(0, -sun.y / 0.15 + 0.15));

@@ -28,3 +28,5 @@ export { CloudShadow } from './CloudShadow';
 export { CLOUD_PATTERN } from './cloudPattern';
 export { cloudPatternDefines } from './cloudPatternDefines';
 export { applyCharacterRim } from './applyCharacterRim';
+export type { ColourScript, HourColours, BiomeColours, BuildingSwatches } from './palette/ColourScript';
+export { COLOUR_SCRIPT } from './palette/islandColourScript';

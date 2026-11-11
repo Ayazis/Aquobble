@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { DEFAULT_SURFACE_DETAILS, type SurfaceDetailSources } from './SurfaceDetailSource';
 import type { SurfaceKind } from './SurfaceKind';
 import type { SurfaceStyler } from './SurfaceStyler';
+import { PALETTE_FRAGMENT_MAIN, PALETTE_FRAGMENT_PARS, PALETTE_KINDS } from './paletteDetailChunks';
 import {
   DETAIL_FRAGMENT_MAIN,
   DETAIL_FRAGMENT_PARS,
@@ -48,6 +49,29 @@ export class SurfaceDetailLibrary implements SurfaceStyler {
     // Two programs at most: kinds with a normal map pay for its texture read, the others do not.
     const key = source.normalPath ? 'aquobble-surface-detail-normal' : 'aquobble-surface-detail';
     material.customProgramCacheKey = () => key;
+    material.needsUpdate = true;
+  }
+
+  /** A palette-textured model: each colour region (roof, door, footing, wall) gets its own kind's grain. */
+  applyPalette(material: THREE.Material): void {
+    const uniforms: Record<string, { value: unknown }> = {};
+    PALETTE_KINDS.forEach((kind, i) => {
+      const source = this.sources[kind];
+      const own = this.uniformsFor(kind, source?.scale ?? 1);
+      uniforms[`uPaletteMap${i}`] = own.uDetailMap;
+      uniforms[`uPaletteStrength${i}`] = own.uDetailStrength;
+      uniforms[`uPaletteScale${i}`] = own.uDetailScale;
+    });
+    material.onBeforeCompile = (shader) => {
+      Object.assign(shader.uniforms, uniforms);
+      shader.vertexShader = shader.vertexShader
+        .replace('#include <common>', `#include <common>\n${DETAIL_VERTEX_PARS}`)
+        .replace('#include <begin_vertex>', `#include <begin_vertex>\n${DETAIL_VERTEX_MAIN}`);
+      shader.fragmentShader = shader.fragmentShader
+        .replace('#include <common>', `#include <common>\nvarying vec3 vDetailPos;\n${PALETTE_FRAGMENT_PARS}`)
+        .replace('#include <color_fragment>', `#include <color_fragment>\n${PALETTE_FRAGMENT_MAIN}`);
+    };
+    material.customProgramCacheKey = () => 'aquobble-surface-palette';
     material.needsUpdate = true;
   }
 
