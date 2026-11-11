@@ -27,3 +27,10 @@ export { ModelPlotSpawner } from './render/ModelPlotSpawner';
 export { townAssetPath } from './render/townAssetPath';
 export { TOWN_CHIMNEYS } from './layout/townChimneys';
 export { TOWN_ASSET_SIZES, type TownAssetId } from './layout/townAssetSizes';
+// lane A2: verges, yards, windmill sails
+export { doorPaths } from './layout/doorPaths';
+export { placeVergeBeds, type VergeBed } from './layout/placeVergeBeds';
+export { VergeBedFactory } from './render/VergeBedFactory';
+export { splitSails, SAILS_NODE } from './render/splitSails';
+export type { WindmillSails } from './WindmillSails';
+export { SailSystem } from './SailSystem';

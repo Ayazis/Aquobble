@@ -27,6 +27,7 @@ import {
   type AnimatedModel,
 } from '@player';
 import { TownsfolkAnimationSystem, TownsfolkMovementSystem } from '@townsfolk';
+import { SailSystem } from '@town'; // lane A2: windmill sails
 import { AmbientAudio, MuteButton } from '@audio';
 import { createScaleOverlay, isDebugMode, isScaleMode } from '@diagnostics';
 import { BirdMeshFactory, BirdRenderSystem, DEFAULT_WILDLIFE, FlockSpawner, FlockSystem } from '@wildlife';
@@ -123,6 +124,7 @@ export async function bootstrap(container: HTMLElement, baseConfig: GameConfig =
       new TransformSyncSystem(world),
       new WaterAnimationSystem(world, 0.6, () => env.dayNight.nightAmount),
       new WindSwaySystem(world),
+      new SailSystem(world, wind.uniforms), // lane A2: windmill sails
       new GrassBendSystem(world, build.bendRadius),
       new GrassWatchdogSystem(world), // lane B: grass
       new PlayerAnimationSystem(world),
