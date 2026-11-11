@@ -164,6 +164,71 @@ lighting budget (four real lights on desktop) is unchanged.
    then 5.3, 5.4, and 5.2 weather last because it touches everything.
 7. Remaining leftovers: 0.2, 0.7, 1.5.
 
+## Parallel work: lanes for subagents
+
+The items above are grouped into **lanes**. Each lane owns a set of slices (folders) and is handed to one
+subagent on its own branch from the same base. Lanes in the same wave do not edit the same files, so they can
+run at the same time and merge without conflicts. The order inside a lane is the order to work in.
+
+### Ground rules for every lane
+
+- Stay inside the slices you own. Need something from another slice? Use its `index.ts`; if it is missing,
+  add a stub to the contract (wave 0) instead of editing that slice.
+- Shared files (`app/bootstrap.ts`, `app/GameConfig.ts`, `slices.config.ts`, `rendering/RenderQuality.ts`):
+  only add your own clearly marked block (`// lane B: grass`), never reorder or reformat others. The
+  integrator resolves these.
+- Each lane ends with `npm run check` green and one `npm run shots` set for its views, and records in this
+  file what was done, what was not, and the cost per frame (same format as the polish plan's Status).
+- Randomness from the injected `Random`; a lane that draws from the shared random adds its own forked stream
+  (`random.fork('grass')`) so other lanes' placements do not move.
+
+### Wave 0: foundations (small, one agent each, about a day; everything else waits for these)
+
+| Lane               | Items                                                                        | Owns                                                                       | Delivers to the others                                                                                       |
+| ------------------ | ---------------------------------------------------------------------------- | -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| W0-a Tools         | 0.1, 6.1                                                                     | `diagnostics`, `scripts/shots`                                             | scale overlay, new shot sets (scale, water, village, night), FPS/draws log per shot                          |
+| W0-b Contracts     | 1.4 (interface + simple impl), 2.2 (`waveHeightAt` interface), `Random.fork` | new `wind` slice, `water/WaveField.ts`, `core/random`                      | `Wind` port (direction, strength, gust at x,z,t) and its GLSL chunk; `WaveField` port; forked random streams |
+| W0-c Scale numbers | 6.2, 6.3 sizes only, 6.4 numbers, 6.5                                        | `town/layout/townAssetSizes.ts`, `player`, `townsfolk`, `GameConfig` sizes | final sizes of characters, lanterns and buildings, so layout and grass can be tuned once                     |
+
+### Wave 1: the big systems (five agents in parallel)
+
+| Lane               | Items                                  | Owns                                                                                                         |
+| ------------------ | -------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| A Village          | 7.1 to 7.6, then 0.3, 0.6              | `town`, `app/populateTown.ts`, `app/spawnStreetLamps.ts`                                                     |
+| B Grass everywhere | 3.1 to 3.5, 0.5, 4.3, 6.6 (grass part) | `grass`                                                                                                      |
+| C Water body       | 2.1, 2.3, 2.4, 2.7, 2.12               | `water`, `physics` (only the `applyImpulseAt` addition), `player` water movement                             |
+| D Light and shadow | 4.1, 4.2, 4.4, 4.5, 4.7, 0.4, 0.8      | `environment/SunLight.ts`, `rendering/installToonLighting*`, `lighting` (except placement)                   |
+| E Look             | 5.1, 5.5, 0.2                          | `rendering/PostProcessing.ts`, `rendering/ColorGrade*`, `environment` sky and keyframes, `rendering/surface` |
+
+A and D both touch `lighting`: A only moves where lamps stand, D only how they light. Agree the `StreetLamp`
+data shape in wave 0 and do not change it in wave 1.
+
+### Wave 2: building on wave 1 (five agents in parallel)
+
+| Lane                     | Items                           | Needs | Owns                                                 |
+| ------------------------ | ------------------------------- | ----- | ---------------------------------------------------- |
+| B2 Grass physics         | 1.1, 1.2, 1.3, 1.5              | B     | `grass`, `effects` (rustle only)                     |
+| C2 Water reactions       | 2.5, 2.8, 2.9, 2.10, 2.11, 2.13 | C     | `water`, `effects` (splash, drips only)              |
+| A2 Verges and windmill   | 7.7, 0.7                        | A, B  | `town`, `terrain` verge paint                        |
+| D2 Night shadows and sky | 4.6, 5.3                        | D, E  | `lighting`, `environment` fog and god rays           |
+| F Living details         | 5.4, 6.6 (nature part)          | B, C  | `wildlife`, `effects` (new files only), `vegetation` |
+
+B2, C2 and F all add to `effects`: each adds its own files and one export line in `effects/index.ts`.
+
+### Wave 3: last, touches everything (one or two agents)
+
+| Lane          | Items                                                                      | Needs                                       |
+| ------------- | -------------------------------------------------------------------------- | ------------------------------------------- |
+| G Weather     | 5.2                                                                        | wind, ripples (C2), wet look (C2), fog (D2) |
+| H Refraction  | 2.6                                                                        | C, E                                        |
+| I Integration | merge order, budget check on a phone, retune with the shots, update Status | all                                         |
+
+### Merge order
+
+Within a wave merge in the order listed (A, B, C, D, E), each rebased on the one before, running
+`npm run check` after each. Shot sets from W0-a are re-run after every wave to catch one lane's change
+spoiling another's view (for example outlines from E over grass from B).
+
 ## Open questions
 
 - Outlines (5.1) change the look the most. Try them behind `?debug` first and decide from the shots.
