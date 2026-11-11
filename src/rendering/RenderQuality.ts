@@ -24,6 +24,12 @@ export interface RenderQuality {
   /** Bake vertex ambient occlusion into models at load (stands in for the depth AO pass on phones). */
   vertexAo: boolean;
   // end lane D
+  // lane B: grass
+  /** Grass tufts per square metre as a share of the desktop count. */
+  grassDensity: number;
+  /** Where thinned grass blades end and far grass cards take over (m). */
+  grassMidDistance: number;
+  // end lane B
 }
 
 export const HIGH_QUALITY: RenderQuality = {
@@ -41,4 +47,6 @@ export const HIGH_QUALITY: RenderQuality = {
   cloudShadows: true,
   vertexAo: false,
   // end lane D
+  grassDensity: 1, // lane B: grass
+  grassMidDistance: 45, // lane B: grass
 };

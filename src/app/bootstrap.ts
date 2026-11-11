@@ -32,7 +32,7 @@ import { createScaleOverlay, isDebugMode, isScaleMode } from '@diagnostics';
 import { BirdMeshFactory, BirdRenderSystem, DEFAULT_WILDLIFE, FlockSpawner, FlockSystem } from '@wildlife';
 import { RockRecycleSystem, RockSpawner } from '@rocks';
 import { WaterAnimationSystem } from '@water';
-import { GrassBendSystem, WindSwaySystem } from '@grass';
+import { GrassBendSystem, GrassWatchdogSystem, WindSwaySystem } from '@grass';
 import type { Object3D } from 'three';
 import { spawnChimneySmoke } from './spawnChimneySmoke';
 import { createDebug } from './createDebug';
@@ -73,7 +73,7 @@ export async function bootstrap(container: HTMLElement, baseConfig: GameConfig =
   ]);
   const surfaces = styleModels(townModels, characterModel, quality.surfaceDetail);
   bakeModelAo(quality, [...townModels.values(), forestPack]); // lane D: light
-  const town = populateWorld(world, physics, random, config, townModels, surfaces, forestPack);
+  const town = populateWorld(world, physics, random, config, townModels, surfaces, forestPack, quality); // lane B: grass quality
   const streetLights = installStreetLighting(world, townModels, env.dayNight, config.streetLights);
   const { birdMeshes, ambience } = spawnWildlife(world, config.seed);
   const rocks = new RockSpawner(world, physics, await rockFactory(loader, random, config));
@@ -110,6 +110,7 @@ export async function bootstrap(container: HTMLElement, baseConfig: GameConfig =
       new WaterAnimationSystem(world, 0.6, () => env.dayNight.nightAmount),
       new WindSwaySystem(world),
       new GrassBendSystem(world, build.bendRadius),
+      new GrassWatchdogSystem(world), // lane B: grass
       new PlayerAnimationSystem(world),
       new LanternSystem(world, keys, lanternButton),
       new TownsfolkAnimationSystem(world),

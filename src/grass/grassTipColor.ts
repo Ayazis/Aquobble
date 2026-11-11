@@ -5,8 +5,8 @@ import { COLOUR_SCRIPT } from '@rendering'; // lane E: palette
  * (warm, yellower). Their average has about the ground's brightness, so a field of grass keeps the colour of
  * the bare ground beyond it; the warm end stays just under the brightest tip the grass had before.
  */
-const COOL_TIP_GAIN = COLOUR_SCRIPT.grassTips.cool; // lane E: palette
-const WARM_TIP_GAIN = COLOUR_SCRIPT.grassTips.warm; // lane E: palette
+export const COOL_TIP_GAIN = COLOUR_SCRIPT.grassTips.cool; // lane E: palette
+export const WARM_TIP_GAIN = COLOUR_SCRIPT.grassTips.warm; // lane E: palette
 
 /** Linear-space blade tip colour for a tuft on ground of the given linear colour; `tint` in [0, 1). */
 export function grassTipColor(ground: readonly number[], tint: number): [number, number, number] {

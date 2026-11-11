@@ -36,7 +36,8 @@ export class TallTuftPlacer {
   seedHeads(options: TallTuftOptions): GrassPlacement[] {
     const meadow = (x: number, z: number, y: number) =>
       y < MEADOW_TOP && patchiness(x, z) > MEADOW_THICKNESS && this.clear(x, z) && !this.onLawn(x, z);
-    return this.clumps(options, this.rules, meadow, 0.85, 1.25);
+    // Seed heads (about 0.9 m of geometry) reach the knee of a 1.6 m character.
+    return this.clumps(options, this.rules, meadow, 0.5, 0.62);
   }
 
   /** Clumps of reeds in a ring around each pond, and on the low ground just above the sea. */
