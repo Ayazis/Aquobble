@@ -23,8 +23,8 @@ import {
 const SEA_SEGMENTS = 200;
 
 /**
- * Stylised water as a square sea or a round pond: a clear tinted surface with rippling highlights, pale
- * shallows, a foam line at the shore and streaks of foam further out. The sea moves in Gerstner waves (the
+ * Water as a square sea or a round pond: a clear surface that mirrors the sky and the island, with pale
+ * shallows you can see the bed through, a foam line at the shore and the odd whitecap further out. The sea moves in Gerstner waves (the
  * same `waves` the CPU `GerstnerWaveField` uses, so floating things ride them) that shoal near the beach; ponds are calm, darker and carry lily pads. It is lit by the scene's own sun and sky (so it follows
  * the day cycle) and has no mirror pass, which would redraw the whole world once per water surface. One
  * extra texture read per pixel (the ground height) on all devices.
@@ -51,7 +51,7 @@ export class WaterMeshFactory {
   ) {}
 
   /** Square sea plane of side `size`. */
-  createSea(size = 1000): WaterMesh {
+  createSea(size = 4000): WaterMesh {
     return this.build(seaGeometry(size, SEA_SEGMENTS), false);
   }
 
@@ -67,9 +67,9 @@ export class WaterMeshFactory {
     const night = { value: 0 };
     const material = new THREE.MeshStandardMaterial({
       color: this.look.waterColor,
-      // Rough enough that the sky's reflection tints the water instead of whitening it.
-      roughness: 0.3,
-      envMapIntensity: 0.45,
+      // Smooth: the sky mirrors in it at a glancing angle and the sun leaves a glitter path on the ripples.
+      roughness: 0.1,
+      envMapIntensity: 1,
       metalness: 0,
       transparent: true,
       opacity: this.look.opacity,

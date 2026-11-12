@@ -23,16 +23,16 @@ export type { SurfaceStyler } from './surface/SurfaceStyler';
 export { DEFAULT_SURFACE_DETAILS, type SurfaceDetailSources } from './surface/SurfaceDetailSource';
 export { SurfaceDetailLibrary } from './surface/SurfaceDetailLibrary';
 export { ModelMaterialStyler } from './surface/ModelMaterialStyler';
-export { installToonLighting } from './installToonLighting';
+export { installSceneLighting } from './installSceneLighting';
 export { CloudShadow } from './CloudShadow';
 export { CLOUD_PATTERN } from './cloudPattern';
 export { cloudPatternDefines } from './cloudPatternDefines';
 export { applyCharacterRim } from './applyCharacterRim';
 export type { ColourScript, HourColours, BiomeColours, BuildingSwatches } from './palette/ColourScript';
 export { COLOUR_SCRIPT } from './palette/islandColourScript';
-export type { ToonLighting } from './installToonLighting';
-export { ToonLightUniforms, MAX_TOON_PROBES, type ToonProbe } from './ToonLightUniforms';
-export { ToonLightSystem } from './ToonLightSystem';
+export type { SceneLighting } from './installSceneLighting';
+export { SceneLightUniforms, MAX_LIGHT_PROBES, type LightProbe } from './SceneLightUniforms';
+export { SceneLightSystem } from './SceneLightSystem';
 export { bakeVertexAo } from './bakeVertexAo';
 export type { LightShafts } from './LightShafts'; // lane D2
 // lane H: refraction

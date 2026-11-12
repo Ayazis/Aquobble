@@ -6,7 +6,8 @@ import { WATER_FOAM_PARS, WATER_FRAGMENT_FOAM } from './waterFoamGlsl';
 /**
  * GLSL injected into MeshStandardMaterial by `WaterMeshFactory`. The water knows the ground under it from
  * the terrain's height texture, so it has a shoreline: pale clear shallows, darker deep water and a foam
- * line that laps at the beach. `uWaterCalm` is 0 for the sea and 1 for a pond.
+ * line that laps at the beach. `uWaterCalm` is 0 for the sea and 1 for a pond. The sun's glitter and the
+ * mirrored sky are the material's own physical highlights on the rippled normal.
  */
 /** Vertex declarations: the shared Gerstner sum reads the ground under the water for shoaling. */
 export function waterVertexPars(waveCount: number): string {
@@ -79,47 +80,42 @@ export const WATER_FRAGMENT_COLOR = /* glsl */ `
   float a = texture2D(uWaterNormals, s * vec2(0.028, 0.085) + uWaterTime * vec2(0.012, 0.004)).r;
   float b = texture2D(uWaterNormals, s * vec2(0.043, 0.12) - uWaterTime * vec2(0.007, 0.006)).g;
   float near = 1.0 - smoothstep(60.0, 220.0, distance(vWaterPos, cameraPosition));
-  float fleck = smoothstep(0.8, 0.84, a * b * 2.0) * near * (1.0 - uWaterCalm) * (1.0 - shallow);
+  float fleck = smoothstep(0.86, 0.94, a * b * 2.0) * near * (1.0 - uWaterCalm) * (1.0 - shallow);
 ${WATER_FRAGMENT_FOAM}
   fleck *= mix(1.0, 0.35, uWaterNight);
-  diffuseColor.rgb = mix(diffuseColor.rgb, vec3(mix(1.0, 0.75, uWaterNight)), max(fleck * 0.6, foam));
+  diffuseColor.rgb = mix(diffuseColor.rgb, vec3(mix(0.9, 0.7, uWaterNight)), max(fleck * 0.45, foam));
   diffuseColor.a = mix(diffuseColor.a, 1.0, max(fleck, foam));
 }
 `;
 
-/** Analytic Gerstner normal (vertex varyings, per pixel) tilted by the scrolling ripple texture, in world space. */
+/**
+ * Analytic Gerstner normal (vertex varyings, per pixel) tilted by three scrolling ripple layers, in world
+ * space. Far water is rougher: the ripples there are smaller than a pixel, and it is their spread that
+ * widens the sun's glitter path towards the horizon. Foam does not shine.
+ */
 export const WATER_FRAGMENT_NORMAL = /* glsl */ `
 {
   vec2 p = vWaterPos.xz;
   vec3 n1 = texture2D(uWaterNormals, p * 0.06 + uWaterTime * vec2(0.02, 0.012)).xyz * 2.0 - 1.0;
   vec3 n2 = texture2D(uWaterNormals, p * 0.021 - uWaterTime * vec2(0.008, 0.014)).xyz * 2.0 - 1.0;
-  vec2 ripple = (n1.xy + n2.xy) * 0.35 * mix(1.0, 0.4, uWaterCalm);
+  vec3 n3 = texture2D(uWaterNormals, p * 0.23 + uWaterTime * vec2(-0.031, 0.027)).xyz * 2.0 - 1.0;
+  float away = distance(vWaterPos, cameraPosition);
+  vec2 ripple = ((n1.xy + n2.xy) * 0.2 + n3.xy * 0.12 * (1.0 - smoothstep(20.0, 90.0, away)))
+    * mix(1.0, 0.4, uWaterCalm);
   vec3 swell = vWaveShoal.y > 0.0 ? gerstnerNormal(vWaveRest, uWaterTime, vWaveShoal) : vec3(0.0, 1.0, 0.0);
   ripple += rippleAt(p).xy;
   vec3 world = normalize(vec3(swell.x + ripple.x, swell.y, swell.z + ripple.y));
   normal = normalize((viewMatrix * vec4(world, 0.0)).xyz);
+  roughnessFactor = mix(roughnessFactor, 0.34, smoothstep(30.0, 500.0, away));
+  roughnessFactor = mix(roughnessFactor, 1.0, waterFoam);
 }
 `;
 
-/** A broken path of glints towards the sun (or moon): ripples that mirror it straight at the viewer flash its colour. */
+/** Ripple crests catch a bright rim, and foam is lifted a little so it still reads by moonlight. */
 export const WATER_FRAGMENT_GLITTER = /* glsl */ `
 {
-  // Ripple crests catch a bright rim, and foam is lifted so it stays white by moonlight (dimmer at night).
   float crest = smoothstep(0.012, 0.05, rippleHeightAt(vWaterPos.xz));
-  totalEmissiveRadiance += vec3(0.85, 0.95, 1.0) * crest * 0.4 * (1.0 - uWaterNight * 0.6);
-  totalEmissiveRadiance += vec3(waterFoam) * mix(0.18, 0.1, uWaterNight);
+  totalEmissiveRadiance += vec3(0.85, 0.95, 1.0) * crest * 0.25 * (1.0 - uWaterNight * 0.6);
+  totalEmissiveRadiance += vec3(waterFoam) * mix(0.04, 0.08, uWaterNight);
 }
-#if NUM_DIR_LIGHTS > 0
-{
-  vec3 halfway = normalize(directionalLights[0].direction + normalize(vViewPosition));
-  float path = smoothstep(0.15, 0.9, pow(max(dot(normal, halfway), 0.0), 140.0));
-  // Only scattered wave tips flash, and they twinkle as two fine ripple layers slide past each other.
-  vec2 g = vWaterPos.xz;
-  float tips = texture2D(uWaterNormals, g * 0.37 + uWaterTime * vec2(0.05, 0.03)).r
-    * texture2D(uWaterNormals, g * 0.53 - uWaterTime * vec2(0.04, 0.06)).g;
-  float glint = path * smoothstep(0.3, 0.36, tips);
-  totalEmissiveRadiance += directionalLights[0].color * glint * 0.3 * (1.0 - uWaterCalm * 0.6)
-    * (1.0 - uWaterNight * 0.5);
-}
-#endif
 `;

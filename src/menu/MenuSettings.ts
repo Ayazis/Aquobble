@@ -9,7 +9,8 @@ export interface MenuSettings {
   /** Day clock held at this time of day (0..1), or null when time runs. */
   frozenTime: number | null;
   weather: WeatherChoice;
-  outlines: boolean;
+  /** Ink outlines round everything: the old cel look, off by default now the island is lit physically. */
+  inkOutlines: boolean;
   shadows: QualityChoice;
   /** Grass density ('auto' follows the device). */
   grass: QualityChoice;
@@ -19,7 +20,7 @@ export const DEFAULT_SETTINGS: MenuSettings = {
   fps: false,
   frozenTime: null,
   weather: 'auto',
-  outlines: true,
+  inkOutlines: false,
   shadows: 'auto',
   grass: 'auto',
 };

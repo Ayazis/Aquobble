@@ -11,6 +11,8 @@ export const REFRACTIVE_LAYER = 7;
 export const SCENE_COLOUR_UNIFORMS = {
   uSceneColour: { value: null as THREE.Texture | null },
   uSceneResolution: { value: new THREE.Vector2(1, 1) },
+  /** The camera's projection matrix, for marching reflected rays across the screen. */
+  uSceneProjection: { value: new THREE.Matrix4() },
   uRefraction: { value: 0 },
 };
 

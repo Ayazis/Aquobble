@@ -29,7 +29,13 @@ export const TERRAIN_FRAGMENT_PARS = /* glsl */ `
 uniform sampler2D uGrassMap;
 uniform sampler2D uRockMap;
 uniform sampler2D uSandMap;
+uniform sampler2D uGrassNormal;
+uniform sampler2D uRockNormal;
+uniform sampler2D uSandNormal;
 uniform float uTerrainDetail;
+uniform float uTerrainRelief;
+// Layer weights from the colour stage, kept for the normal stage: x grass, y sand, z rock, w wet sand.
+vec4 terrainLayers;
 uniform float uTerrainWaterLevel;
 varying vec3 vTerrainPos;
 varying vec3 vTerrainNormal;
@@ -102,5 +108,36 @@ export const TERRAIN_FRAGMENT_MAIN = /* glsl */ `
   // Snow keeps most of its flat colour.
   float strength = uTerrainDetail * mix(1.0, 0.35, snow);
   diffuseColor.rgb *= mix(vec3(1.0), detail, strength);
+  terrainLayers = vec4(grass, sand, rock, wet * sand) * (1.0 - snow);
+}
+`;
+
+/**
+ * Runs once three.js has the view-space `normal`: the layers' normal maps tilt it (top-down for grass and
+ * sand, triplanar for rock), and each layer sets how glossy it is: wet sand shines, turf and rock do not.
+ */
+export const TERRAIN_FRAGMENT_NORMAL = /* glsl */ `
+{
+  vec3 n = normalize(vTerrainNormal);
+  vec2 uv = vTerrainPos.xz * 0.25;
+  // Tangent-space tilts: on the ground u runs along +x and v along +z.
+  vec2 flatTilt = vec2(0.0);
+  if (terrainLayers.x > 0.001) flatTilt += (texture2D(uGrassNormal, uv).xy * 2.0 - 1.0) * terrainLayers.x;
+  if (terrainLayers.y > 0.001) flatTilt += (texture2D(uSandNormal, uv * 1.6).xy * 2.0 - 1.0) * terrainLayers.y * 0.5;
+  vec3 tilt = vec3(flatTilt.x, 0.0, flatTilt.y);
+  if (terrainLayers.z > 0.001) {
+    vec3 p = vTerrainPos * 0.15;
+    vec3 w = pow(abs(n), vec3(4.0));
+    w /= (w.x + w.y + w.z);
+    vec2 tx = texture2D(uRockNormal, p.zy).xy * 2.0 - 1.0;
+    vec2 ty = texture2D(uRockNormal, p.xz).xy * 2.0 - 1.0;
+    vec2 tz = texture2D(uRockNormal, p.xy).xy * 2.0 - 1.0;
+    tilt += (vec3(0.0, tx.y, tx.x) * w.x + vec3(ty.x, 0.0, ty.y) * w.y + vec3(tz.x, tz.y, 0.0) * w.z)
+      * terrainLayers.z * 1.4;
+  }
+  vec3 world = normalize(n + tilt * uTerrainRelief);
+  normal = normalize((viewMatrix * vec4(world, 0.0)).xyz);
+  roughnessFactor = mix(roughnessFactor, 0.78, terrainLayers.z);
+  roughnessFactor = mix(roughnessFactor, 0.22, terrainLayers.w);
 }
 `;

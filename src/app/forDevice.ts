@@ -22,6 +22,7 @@ export const MOBILE_QUALITY: RenderQuality = {
   grassDensity: 0.35, // lane B: grass
   grassMidDistance: 30, // lane B: grass
   grassBendMapSize: 64, // lane B2: grass physics
+  sky: { cloudMapSize: 512, cloudSteps: 10 },
   refraction: false, // lane H
 };
 

@@ -40,6 +40,8 @@ export interface RenderQuality {
   /** Texels per side of the trampling bend map (32 m box round the player). */
   grassBendMapSize: number;
   // end lane B2
+  /** Volumetric cloud map: texels per side, and march steps per ray. */
+  sky: { cloudMapSize: number; cloudSteps: number };
   // lane H: refraction
   /** Water looks through to the copied opaque scene (one full-screen copy); off keeps the opacity blend. */
   refraction: boolean;
@@ -66,5 +68,6 @@ export const HIGH_QUALITY: RenderQuality = {
   grassDensity: 1, // lane B: grass
   grassMidDistance: 45, // lane B: grass
   grassBendMapSize: 128, // lane B2: grass physics
+  sky: { cloudMapSize: 1024, cloudSteps: 18 },
   refraction: true, // lane H
 };

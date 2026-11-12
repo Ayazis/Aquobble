@@ -2,7 +2,9 @@
 // Boots the game in headless Chromium with ?debug and saves the reference views to shots/<label>/ (gitignored),
 // printing how bright each one is. Needs a Chromium for playwright-core (`npx playwright-core install chromium`).
 // Each shot also logs FPS (over ~1 s with the pose held), draw calls and triangles, for docs/device-measurements.md.
-// --software forces software rendering (slow, but works without a GPU).
+// --software forces software rendering (slow, but works without a GPU). --fast skips the FPS measurement
+// (one frame can take seconds without a GPU). --weather clear|overcast|rain|mist holds one weather state;
+// --grass and --shadows off|low|high set the menu's graphics choices (low makes software frames far quicker).
 import fs from 'node:fs';
 import path from 'node:path';
 import { chromium, type Page } from 'playwright-core';
@@ -53,14 +55,15 @@ async function shoot(page: Page, view: ShotView, time: number, file: string) {
     { view, time },
   );
   await page.waitForFunction((f) => window.__aquobble.frame >= f + 3, frame, { timeout: 0 });
-  const perf = await page.evaluate(async () => {
+  const perf = await page.evaluate(async (fast) => {
     const game = window.__aquobble;
+    if (fast) return { fps: 0, ...game.stats() };
     const start = performance.now();
     const first = game.frame;
     while (performance.now() - start < 1000) await new Promise((done) => requestAnimationFrame(done));
     const fps = ((game.frame - first) * 1000) / (performance.now() - start);
     return { fps, ...game.stats() };
-  });
+  }, flags.fast === 'true');
   const png = await page.screenshot({ path: file, timeout: 0 });
   const light = await page.evaluate(async (b64) => {
     const bitmap = await createImageBitmap(await (await fetch(`data:image/png;base64,${b64}`)).blob());
@@ -84,12 +87,12 @@ async function shoot(page: Page, view: ShotView, time: number, file: string) {
     const pixels = data.length / 4;
     const bins = new Array<number>(10).fill(0);
     levels.forEach((n, level) => (bins[Math.min(9, Math.floor(level / 25.6))] += n / pixels));
-    const at = (q: number) => {
+    // An inline callback, not a named helper: the script runner wraps named functions in a call the page lacks.
+    const p = [0.05, 0.5, 0.95].map((q) => {
       let seen = 0;
       for (let level = 0; level < 256; level++) if ((seen += levels[level]) >= q * pixels) return level / 255;
       return 1;
-    };
-    const p = [at(0.05), at(0.5), at(0.95)];
+    });
     return { mean: sum / pixels, white: white / pixels, black: black / pixels, bins, p };
   }, png.toString('base64'));
   return { ...light, perf };
@@ -99,6 +102,12 @@ const pct = (v: number) => `${(v * 100).toFixed(1)}%`.padStart(6);
 for (const [device, options] of pick(DEVICES, flags.devices)) {
   const page = await (await browser.newContext(options)).newPage();
   page.on('pageerror', (error) => console.error(`[${device}] page error: ${error.message}`));
+  page.on('console', (message) => message.type() === 'error' && console.error(`[${device}] ${message.text()}`));
+  const { weather, grass, shadows } = flags;
+  if (weather || grass || shadows) {
+    const settings = JSON.stringify({ weather, grass, shadows });
+    await page.addInitScript((s) => localStorage.setItem('aquobble.settings', s), settings);
+  }
   await page.goto(`http://localhost:5199/?debug${set.query ?? ''}`);
   await page.waitForFunction(() => (window.__aquobble?.frame ?? 0) >= 3, null, { timeout: 0 });
   await page.addStyleTag({ content: 'body > :not(canvas) { display: none !important; }' });

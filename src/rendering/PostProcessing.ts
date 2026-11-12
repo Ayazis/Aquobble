@@ -63,8 +63,8 @@ export class PostProcessing implements ColorGrade, LightShafts {
     }
     // end lane D2
     if (post) {
-      // Threshold 6 keeps bloom to the lamps; the drawn sun stays below it and brings its own glow.
-      this.composer.addPass(new UnrealBloomPass(size, 0.06, 0.3, 6));
+      // Only what is brighter than a white wall in full sun glows: the sun, its glitter on water, lamps.
+      this.composer.addPass(new UnrealBloomPass(size, 0.09, 0.55, 2.6));
     }
     this.composer.addPass(new OutputPass());
     // Phones get the same grade as desktop so the picture only differs in sharpness.
@@ -84,7 +84,7 @@ export class PostProcessing implements ColorGrade, LightShafts {
     uniforms.lift.value = lift;
   }
 
-  setLightShafts(direction: Vec3, color: number, strength: number): void {
+  setLightShafts(direction: Vec3, color: readonly [number, number, number], strength: number): void {
     this.shafts?.setLightShafts(direction, color, strength); // lane D2
   }
 

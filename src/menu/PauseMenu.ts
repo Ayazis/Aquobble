@@ -31,7 +31,7 @@ export class PauseMenu {
       targets.clock.paused = true;
     }
     targets.weather.override = weatherPreset(s.weather);
-    targets.setOutlines(s.outlines);
+    targets.setOutlines(s.inkOutlines);
     this.fps = new FpsMeter(container, targets.stats);
     this.fps.setVisible(s.fps);
 

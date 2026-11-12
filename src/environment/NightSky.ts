@@ -44,7 +44,8 @@ export class NightSky {
     this.halo = sprite(glowTexture(0.02), new THREE.Color(0xa9c0f0), MOON_SIZE * 9, THREE.AdditiveBlending);
     this.moon.renderOrder = 1;
     this.group.add(this.stars, this.halo, this.moon);
-    this.group.renderOrder = -1;
+    // Between the clear sky (-3) and the clouds (-1), so clouds pass in front of the moon and stars.
+    this.group.renderOrder = -2;
   }
 
   /**

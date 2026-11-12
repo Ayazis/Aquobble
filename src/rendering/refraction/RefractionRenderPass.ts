@@ -47,6 +47,7 @@ export class RefractionRenderPass extends Pass {
     uniforms.tDepth.value = read.depthTexture;
     uniforms.cameraNear.value = camera.near;
     uniforms.cameraFar.value = camera.far;
+    SCENE_COLOUR_UNIFORMS.uSceneProjection.value.copy(camera.projectionMatrix);
     renderer.setRenderTarget(this.target);
     this.quad.render(renderer);
 

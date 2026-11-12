@@ -18,9 +18,9 @@ export class GodRayPass extends ShaderPass implements LightShafts {
     super(GodRayShader);
   }
 
-  setLightShafts(direction: Vec3, color: number, strength: number): void {
+  setLightShafts(direction: Vec3, color: readonly [number, number, number], strength: number): void {
     this.sun.set(direction.x, direction.y, direction.z);
-    this.uniforms.color.value.setHex(color);
+    this.uniforms.color.value.fromArray(color);
     this.baseStrength = strength;
   }
 
