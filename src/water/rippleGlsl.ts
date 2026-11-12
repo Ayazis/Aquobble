@@ -6,7 +6,8 @@ export const RIPPLE_FRAGMENT_PARS = /* glsl */ `
 uniform sampler2D uRippleMap;
 uniform vec3 uRippleBox;
 uniform float uRippleTexel;
-#define RIPPLE_NORMAL_GAIN 7.0
+// Height differences are taken a texel apart: a finer map needs more gain for the same slope.
+#define RIPPLE_NORMAL_GAIN (7.0 * 0.00390625 / uRippleTexel)
 vec3 rippleAt(vec2 p) {
   if (uRippleBox.z <= 0.0) return vec3(0.0);
   vec2 uv = (p - uRippleBox.xy) / uRippleBox.z;

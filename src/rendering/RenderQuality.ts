@@ -46,6 +46,11 @@ export interface RenderQuality {
   /** Water looks through to the copied opaque scene (one full-screen copy); off keeps the opacity blend. */
   refraction: boolean;
   // end lane H
+  /**
+   * Water detail: segments per side of the sea mesh, texels per side of the generated ripple and caustic map
+   * and of the ripple simulation round the player, and the finest ripple layer with colour fringes.
+   */
+  water: { seaSegments: number; detailMapSize: number; rippleMapSize: number; fine: boolean };
 }
 
 export const HIGH_QUALITY: RenderQuality = {
@@ -70,4 +75,5 @@ export const HIGH_QUALITY: RenderQuality = {
   grassBendMapSize: 128, // lane B2: grass physics
   sky: { cloudMapSize: 1024, cloudSteps: 22 },
   refraction: true, // lane H
+  water: { seaSegments: 320, detailMapSize: 512, rippleMapSize: 512, fine: true },
 };

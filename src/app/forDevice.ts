@@ -24,6 +24,7 @@ export const MOBILE_QUALITY: RenderQuality = {
   grassBendMapSize: 64, // lane B2: grass physics
   sky: { cloudMapSize: 512, cloudSteps: 10 },
   refraction: false, // lane H
+  water: { seaSegments: 200, detailMapSize: 256, rippleMapSize: 128, fine: false },
 };
 
 /** True on touch-first devices, where the GPU budget is a fraction of a desktop's. */

@@ -30,6 +30,12 @@ For the sky and lighting alone, `lookdev.html` (dev server only) runs the real r
 ground with test spheres: `?t=0.72&yaw=-99&pitch=10&overcast=0` sets the time of day, view and cloud cover.
 `npx tsx scripts/lookdev/shoot.ts <outDir> "t=0.5" "t=0.74&yaw=-106"` saves a screenshot per query.
 
+For the water alone, `lookdev-water.html` draws the island's terrain, sea, ponds, ripples and driftwood without
+the town, forest and grass, so a frame is quick even without a GPU: `?t=0.5&from=38,2,62&at=10,1,40` sets the
+time and the camera (heights above the ground or the sea), `wt` the seconds of water time to run first,
+`swell` and `breeze` the sea state, `drops=1` stamps ripple rings and `mobile=1` uses the phone profile.
+`LOOKDEV_PAGE=lookdev-water.html npx tsx scripts/lookdev/shoot.ts <outDir> "wt=4" "t=0.72&wt=4"` saves them.
+
 ## Assets
 
 Raw downloads go to `assets/library/` (**gitignored**). Only assets that are actually used get optimised
