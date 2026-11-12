@@ -14,6 +14,7 @@ export { createGrassDensityUniforms, type GrassDensityUniforms } from './GrassDe
 export { grassFurHook } from './grassFurHook';
 export type { GrassFieldComponent } from './GrassFieldComponent';
 export { GrassWatchdogSystem } from './GrassWatchdogSystem';
+export { GrassTileSystem } from './GrassTileSystem';
 export { FlowerInstancesFactory } from './FlowerInstancesFactory';
 export { TallTuftInstancesFactory } from './TallTuftInstancesFactory';
 export type { TallTuftOptions } from './TallTuftPlacer';

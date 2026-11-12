@@ -1,56 +1,55 @@
 import type { GrassBand, GrassQuality } from './GrassBand';
 
-/** Full blades out to here (m), crossing over to the thinned band over the last few metres. */
-const NEAR = 24;
-/** Card band ends here; past it the ground shader paints grass fur. */
-const FAR = 130;
-/** Width (m) over which one band shrinks away while the next grows in. */
-const CROSS = 6;
+/** Fine blades out to here (m), crossing over to the middle band over the last few metres. */
+const NEAR = 20;
+/** The far band ends here; past it the ground shader paints grass fur. */
+const FAR = 150;
+/** Width (m) over which one band thins away while the next grows in. */
+const CROSS = 8;
 /**
- * Tufts per square metre of each band at full (desktop) density, before the density map thins them. The old
- * CPU scatter put about 15 tufts per m² on grassy ground; the near band matches it so the ground round the
- * player is covered in blades, not painted fur.
+ * Blades per square metre of each band at full (desktop) density, before the density map thins them. Every
+ * instance is one blade, so the near band is a few hundred to the square metre: the ground round the player is
+ * hidden under blades. Further bands draw fewer, wider blades that cover the same ground.
  */
-const PER_M2 = { near: 50, mid: 22, cards: 3 };
-
-/** Tiles per side so the grid reaches `radius` from the camera wherever it stands in its own tile. */
-function gridFor(radius: number, tile: number): number {
-  return 2 * Math.ceil(radius / tile) + 2;
-}
+const PER_M2 = { near: 300, mid: 60, far: 8 };
 
 function sideFor(perM2: number, tile: number, density: number): number {
   return Math.max(1, Math.round(Math.sqrt(perM2 * density) * tile));
 }
 
-/** The three bands of the grass field for a device: full blades, thinned blades, crossed-quad cards. */
+/**
+ * The three bands of the grass field for a device: fine blades, broader blades, wide far blades. A device that
+ * draws fewer blades draws them wider, so the ground stays covered.
+ */
 export function grassBands({ density, midDistance }: GrassQuality): GrassBand[] {
-  const mid = Math.max(midDistance, NEAR + CROSS * 1.5);
+  const mid = Math.max(midDistance + 20, NEAR + CROSS * 2);
+  const widen = Math.min(1 / Math.sqrt(density), 1.7);
   const near: GrassBand = {
-    shape: { kind: 'blades', blades: 7, halfWidth: 0.03 },
-    tile: 8,
-    grid: gridFor(NEAR + CROSS / 2, 8),
-    side: sideFor(PER_M2.near, 8, density),
+    segments: 5,
+    halfWidth: 0.017 * widen,
+    tile: 4,
+    side: sideFor(PER_M2.near, 4, density),
     fadeIn: [0, 0],
-    fadeOut: [NEAR - CROSS / 2, NEAR + CROSS / 2],
+    fadeOut: [NEAR - CROSS, NEAR],
   };
-  const thinned: GrassBand = {
-    shape: { kind: 'blades', blades: 5, halfWidth: 0.05 },
+  const middle: GrassBand = {
+    segments: 3,
+    halfWidth: 0.042 * widen,
     tile: 8,
-    grid: gridFor(mid, 8),
     side: sideFor(PER_M2.mid, 8, density),
     fadeIn: near.fadeOut,
-    fadeOut: [mid - CROSS, mid],
+    fadeOut: [mid - CROSS * 2, mid],
   };
-  const cards: GrassBand = {
-    shape: { kind: 'cards', halfWidth: 0.45 },
+  const far: GrassBand = {
+    segments: 2,
+    halfWidth: 0.13 * widen,
     tile: 16,
-    grid: gridFor(FAR, 16),
-    side: sideFor(PER_M2.cards, 16, density),
-    fadeIn: thinned.fadeOut,
-    fadeOut: [FAR - CROSS * 2, FAR],
+    side: sideFor(PER_M2.far, 16, density),
+    fadeIn: middle.fadeOut,
+    fadeOut: [FAR - CROSS * 3, FAR],
   };
-  return [near, thinned, cards];
+  return [near, middle, far];
 }
 
-/** Where the card band has faded out: the ground fur takes over from here. */
-export const GRASS_FUR_FROM = FAR - CROSS * 2;
+/** Where the far band has started thinning: the ground fur takes over from here. */
+export const GRASS_FUR_FROM = FAR - CROSS * 3;

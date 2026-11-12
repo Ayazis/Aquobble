@@ -17,7 +17,7 @@ import { createScaleOverlay, isDebugMode, isScaleMode } from '@diagnostics';
 import { BirdRenderSystem, FlockSystem } from '@wildlife';
 import { RockRecycleSystem, RockSpawner } from '@rocks';
 import { SeaStateSystem, TideSystem, WaterAnimationSystem, WaterContactSystem } from '@water'; // lane C: water, tides
-import { GrassWatchdogSystem } from '@grass';
+import { GrassTileSystem, GrassWatchdogSystem } from '@grass';
 import { applyQualitySettings, type LoadingProgress, NO_PROGRESS, SettingsStore } from '@menu';
 import { loadAllModels } from './loadAllModels';
 import { loadingStage } from './loadingStage';
@@ -126,6 +126,7 @@ export async function bootstrap(
       spawnChimneySmoke(world, config.seed),
       new ThirdPersonCameraSystem(world, render.camera, physics, look, zoom),
       ...debug.afterCamera,
+      new GrassTileSystem(world, render.camera, town.nature.ground), // lane B: grass tiles in view
       ...scale, // lane W0-a: tools
       new BirdRenderSystem(world, birdMeshes.clock),
       ...spawnLivingDetails(world, random.fork('living'), config.waterLevel, town.nature, wind, env.dayNight), // lane F

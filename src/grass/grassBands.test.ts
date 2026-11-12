@@ -3,30 +3,31 @@ import { grassBands } from './grassBands';
 
 describe('grassBands', () => {
   const desktop = grassBands({ density: 1, midDistance: 45 });
-  const phone = grassBands({ density: 0.5, midDistance: 30 });
+  const phone = grassBands({ density: 0.35, midDistance: 30 });
 
-  it('hands each band over where the one before it shrinks away', () => {
+  it('hands each band over where the one before it thins away', () => {
     for (let i = 1; i < desktop.length; i++) expect(desktop[i].fadeIn).toEqual(desktop[i - 1].fadeOut);
-    expect(desktop[0].fadeOut[1]).toBeLessThanOrEqual(27);
-    expect(desktop[1].fadeOut[1]).toBe(45);
-    expect(phone[1].fadeOut[1]).toBe(33);
-    expect(desktop[2].fadeOut[1]).toBe(130);
+    expect(desktop[1].fadeOut[1]).toBe(65);
+    expect(phone[1].fadeOut[1]).toBe(50);
+    expect(desktop[2].fadeOut[1]).toBe(150);
   });
 
-  it('covers each band with its grid of tiles', () => {
-    for (const band of desktop) expect(((band.grid - 2) / 2) * band.tile).toBeGreaterThanOrEqual(band.fadeOut[1]);
-  });
-
-  it('fills the ground near the camera with dense tufts, thinning further out', () => {
+  it('hides the ground near the camera under blades, with fewer and wider ones further out', () => {
     const perM2 = (b: { side: number; tile: number }) => (b.side / b.tile) ** 2;
-    expect(perM2(desktop[0])).toBeGreaterThanOrEqual(15);
-    expect(perM2(desktop[1])).toBeLessThan(perM2(desktop[0]));
-    expect(perM2(desktop[1])).toBeGreaterThanOrEqual(3);
-    expect(perM2(desktop[2])).toBeLessThan(perM2(desktop[1]));
+    expect(perM2(desktop[0])).toBeGreaterThanOrEqual(250);
+    for (let i = 1; i < desktop.length; i++) {
+      expect(perM2(desktop[i])).toBeLessThan(perM2(desktop[i - 1]));
+      expect(desktop[i].halfWidth).toBeGreaterThan(desktop[i - 1].halfWidth);
+      expect(desktop[i].segments).toBeLessThan(desktop[i - 1].segments);
+      // Fewer blades, but each covers more: the ground stays covered.
+      expect(perM2(desktop[i]) * desktop[i].halfWidth).toBeGreaterThan(1);
+    }
   });
 
-  it('draws fewer tufts on a weaker device', () => {
-    expect(phone[0].side).toBeLessThan(desktop[0].side);
-    expect(phone[1].grid).toBeLessThan(desktop[1].grid);
+  it('draws fewer but wider blades on a weaker device', () => {
+    for (let i = 0; i < desktop.length; i++) {
+      expect(phone[i].side).toBeLessThan(desktop[i].side);
+      expect(phone[i].halfWidth).toBeGreaterThan(desktop[i].halfWidth);
+    }
   });
 });

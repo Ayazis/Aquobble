@@ -1,18 +1,23 @@
 import * as THREE from 'three';
 import { createGroundShadeUniforms, type GroundShadeUniforms, type HeightMapUniforms } from '@terrain';
-import { applyGroundBlend } from './applyGroundBlend';
+import { applyGrassBladeShader } from './applyGrassBladeShader';
 import type { GrassBand } from './GrassBand';
-import { grassCardGeometry } from './grassCardGeometry';
+import { grassBladeGeometry } from './grassBladeGeometry';
 import type { GrassDensityUniforms } from './GrassDensityUniforms';
-import { GRASS_FIELD_PARS, grassFieldVertex } from './grassFieldGlsl';
-import { grassTuftGeometry } from './grassTuftGeometry';
+import type { GrassTileSet } from './GrassTileSet';
+import { tileSpan } from './visibleGrassTiles';
 import type { WindSway } from './WindSway';
-import { WIND_UNIFORMS } from './windShaderChunk';
+
+/** The grass field's three.js object and, per band, the tiles `GrassTileSystem` fills in each frame. */
+export interface GrassField {
+  object: THREE.Group;
+  tiles: GrassTileSet[];
+}
 
 /**
- * Builds the grass field: one instanced draw per distance band, each a grid of identical tuft patches that the
- * vertex shader places round the camera (see `grassFieldVertex`). There is no per-tuft data on the CPU: the
- * tile grid moves with the camera in the shader, so tiles recycle themselves.
+ * Builds the grass field: one instanced draw per distance band, every instance a single blade that the vertex
+ * shader grows on the tile it belongs to (see `grassBladeVertex`). There is no per-blade data on the CPU, only
+ * a short list of tile corners per band, so the field follows the camera for free.
  */
 export class GrassFieldFactory {
   constructor(
@@ -21,35 +26,39 @@ export class GrassFieldFactory {
     private readonly shade: GroundShadeUniforms = createGroundShadeUniforms(),
   ) {}
 
-  create(bands: readonly GrassBand[], wind: WindSway): THREE.Group {
-    const group = new THREE.Group();
-    bands.forEach((band, i) => group.add(this.band(band, wind, i)));
-    return group;
+  create(bands: readonly GrassBand[], wind: WindSway): GrassField {
+    const object = new THREE.Group();
+    const tiles = bands.map((band) => {
+      const { mesh, set } = this.band(band, wind);
+      object.add(mesh);
+      return set;
+    });
+    return { object, tiles };
   }
 
-  private band(band: GrassBand, wind: WindSway, index: number): THREE.Mesh {
-    const shape = band.shape;
-    const tuft =
-      shape.kind === 'blades' ? grassTuftGeometry(shape.blades, shape.halfWidth) : grassCardGeometry(shape.halfWidth);
-    const geometry = new THREE.InstancedBufferGeometry().copy(tuft as THREE.InstancedBufferGeometry);
-    geometry.instanceCount = band.grid * band.grid * band.side * band.side;
-    tuft.dispose();
-    const material = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.9, side: THREE.DoubleSide });
-    const key = `aquobble-grass-field-${index}-${JSON.stringify(band)}`;
-    material.customProgramCacheKey = () => key;
-    material.onBeforeCompile = (shader) => {
-      Object.assign(shader.uniforms, this.density, this.heightMap, wind.wind, wind.bend);
-      shader.vertexShader = shader.vertexShader
-        .replace('#include <common>', `#include <common>\n${WIND_UNIFORMS}\n${GRASS_FIELD_PARS}`)
-        .replace('#include <begin_vertex>', `#include <begin_vertex>\n${grassFieldVertex(band)}`);
-    };
-    // Adds the ground colour helpers, the two-sided lighting fix and the glow through the blades.
-    applyGroundBlend(material, { tipFadeStart: 1e4, tipFadeEnd: 2e4, shade: this.shade });
+  private band(band: GrassBand, wind: WindSway): { mesh: THREE.Mesh; set: GrassTileSet } {
+    const blade = grassBladeGeometry(band.segments);
+    const geometry = new THREE.InstancedBufferGeometry().copy(blade as THREE.InstancedBufferGeometry);
+    blade.dispose();
+    const origins = new Float32Array(tileSpan(band) ** 2 * 2);
+    const attribute = new THREE.InstancedBufferAttribute(origins, 2, false, band.side * band.side);
+    attribute.setUsage(THREE.DynamicDrawUsage);
+    geometry.setAttribute('aTile', attribute);
+    geometry.instanceCount = 0;
+    const material = new THREE.MeshStandardMaterial({ roughness: 0.6, metalness: 0, side: THREE.DoubleSide });
+    // The wind and bend map are swapped for the shared ones after creation, so read them at compile time.
+    applyGrassBladeShader(material, band, () => ({
+      ...this.density,
+      ...this.heightMap,
+      ...this.shade,
+      ...wind.wind,
+      ...wind.bend,
+    }));
     const mesh = new THREE.Mesh(geometry, material);
-    // Tufts are placed in the shader, so the mesh has no useful bounds of its own.
+    // Blades are placed in the shader, so the mesh has no useful bounds of its own.
     mesh.frustumCulled = false;
     mesh.castShadow = false;
     mesh.receiveShadow = true;
-    return mesh;
+    return { mesh, set: { band, origins, attribute, geometry } };
   }
 }

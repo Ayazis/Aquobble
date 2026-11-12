@@ -31,9 +31,9 @@ export interface RenderQuality {
   godRays: boolean;
   // end lane D2
   // lane B: grass
-  /** Grass tufts per square metre as a share of the desktop count. */
+  /** Grass blades per square metre as a share of the desktop count. */
   grassDensity: number;
-  /** Where thinned grass blades end and far grass cards take over (m). */
+  /** Sets where the middle band of grass blades hands over to the far band of wide blades (20 m past this). */
   grassMidDistance: number;
   // end lane B
   // lane B2: grass physics

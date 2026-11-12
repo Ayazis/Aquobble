@@ -49,6 +49,26 @@ option, off by default.
 - **Foliage**: leaf normals are bent outwards from the crown's centre (`roundNormals`), so a crown is lit as
   one rounded mass.
 
+## Grass
+
+Every blade is its own instance, grown in the vertex shader; nothing per blade lives on the CPU.
+
+- **Bands and tiles** (`grassBands`, `GrassTileSystem`): three distance bands, about 300, 60 and 8 blades per
+  square metre on a desktop, each fewer but wider and with fewer segments. A band is square tiles; every frame
+  the tiles in view that have any grass (`GrassCoverage`) are listed nearest first, and only those are drawn.
+  Past the last band the ground shader paints grass fur (`grassFurHook`).
+- **Placement** (`grassPlaceGlsl`): blades are jittered on a grid of world cells, pulled into tussocks (the
+  nearest of four hashed centres), thinned by the baked density map and by each band's distance fade, one blade
+  at a time. Slow noise plus the tussock's own draw picks a kind: broad lush blades, meadow grass, tall fescue.
+- **Shape and wind** (`grassShapeGlsl`, `grassWindGlsl`): a blade is a quadratic curve of fixed length. Its tip
+  is carried by its own lean, a steady push, the shared gust fronts (`@wind`), waves of noise rolling downwind
+  and a flutter; the middle follows a beat late. The trampling bend map lays blades over where feet and rocks
+  pass, and landings (`grassImpact`) splay a ring of them outwards; a damped spring per texel lifts them back.
+- **Light** (`grassBladeFragment`): blades are rounded across their width, glossy at the tip and dark at the
+  root where the sward is deep. A light behind a blade shines through it (`RE_Direct_Grass`), so a meadow glows
+  against a low sun; shadows and cloud shadows apply to that too. Far blades lean their normals to the slope's.
+- **Flowers** (`flowerGeometry`): five kinds with real petals, instanced per map cell.
+
 ## Water
 
 One `MeshStandardMaterial` patched by `water/shader/patchWaterShader.ts`, so the sea is lit, shadowed and fogged
