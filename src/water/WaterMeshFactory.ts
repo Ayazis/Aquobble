@@ -68,7 +68,7 @@ export class WaterMeshFactory {
     const material = new THREE.MeshStandardMaterial({
       color: this.look.waterColor,
       // Smooth: the sky mirrors in it at a glancing angle and the sun leaves a glitter path on the ripples.
-      roughness: 0.1,
+      roughness: 0.17,
       envMapIntensity: 1,
       metalness: 0,
       transparent: true,

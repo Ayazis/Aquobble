@@ -1,6 +1,7 @@
 # Aquobble
 
-Low-poly Three.js web game. Static build, deployed to GitHub Pages on every push to `main`:
+Three.js web game: an island with a physically based sky, water and lighting (`docs/rendering.md`). Static
+build, deployed to GitHub Pages on every push to `main`:
 https://ayazis.github.io/Aquobble/
 
 ```bash
@@ -21,7 +22,13 @@ npm run shots -- after --views plaza,lane --times noon --devices desktop
 ```
 
 Each line of output gives the view's mean brightness and how much of it is blown-out white or crushed black.
-Add `--software` on a machine without a GPU (slow). Views live in `scripts/shots/views.ts`.
+Add `--software` on a machine without a GPU (slow); there `--fast` skips the FPS measurement and
+`--grass low --shadows low` make each frame several times quicker. `--weather clear|overcast|rain|mist` holds
+one weather state. Views live in `scripts/shots/views.ts`.
+
+For the sky and lighting alone, `lookdev.html` (dev server only) runs the real render pipeline over a bare
+ground with test spheres: `?t=0.72&yaw=-99&pitch=10&overcast=0` sets the time of day, view and cloud cover.
+`npx tsx scripts/lookdev/shoot.ts <outDir> "t=0.5" "t=0.74&yaw=-106"` saves a screenshot per query.
 
 ## Assets
 
@@ -53,6 +60,9 @@ npm run assets:fetch -- url https://example.com/pack.zip --source kenney --licen
 # 3. use: optimise (glTF or OBJ → meshopt + webp) into public/assets/ and add a credit line
 npm run assets:use -- sketchfab/<id> --as apple_tree
 ```
+
+Textures whose source has no normal map can get one derived from their brightness:
+`npm run assets:normals -- grass rock sand` writes `<name>-normal.webp` next to each.
 
 Load optimised models with `GLTFLoader` + `MeshoptDecoder` (`three/addons/libs/meshopt_decoder.module.js`).
 

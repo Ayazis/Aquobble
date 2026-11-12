@@ -66,7 +66,8 @@ export class ForestInstancesFactory {
       const meshes = instancedParts(parts, trees, (p, part, color) => {
         // Leaves drift from a cool deep green to a warmer, lighter one; bark only lightens or darkens.
         if (part.role === 'leaves') color.setRGB(0.82 + p.tint * 0.3, 0.92 + p.tint * 0.12, 0.8 + (1 - p.tint) * 0.1);
-        else color.setScalar(0.85 + p.tint * 0.3);
+        // Bark: the pack's warm red-brown pulled towards a weathered grey-brown.
+        else color.setRGB(0.6, 0.64, 0.66).multiplyScalar(0.85 + p.tint * 0.3);
       });
       group.add(...meshes);
     }

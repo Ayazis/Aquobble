@@ -96,11 +96,13 @@ ${WATER_FRAGMENT_FOAM}
 export const WATER_FRAGMENT_NORMAL = /* glsl */ `
 {
   vec2 p = vWaterPos.xz;
-  vec3 n1 = texture2D(uWaterNormals, p * 0.06 + uWaterTime * vec2(0.02, 0.012)).xyz * 2.0 - 1.0;
-  vec3 n2 = texture2D(uWaterNormals, p * 0.021 - uWaterTime * vec2(0.008, 0.014)).xyz * 2.0 - 1.0;
-  vec3 n3 = texture2D(uWaterNormals, p * 0.23 + uWaterTime * vec2(-0.031, 0.027)).xyz * 2.0 - 1.0;
+  // Three sizes of ripple; the finest carries the most slope up close, so the sun breaks into sparkles
+  // rather than long curls, and fades out where it would only shimmer.
+  vec3 n1 = texture2D(uWaterNormals, p * 0.09 + uWaterTime * vec2(0.02, 0.012)).xyz * 2.0 - 1.0;
+  vec3 n2 = texture2D(uWaterNormals, p * 0.031 - uWaterTime * vec2(0.008, 0.014)).xyz * 2.0 - 1.0;
+  vec3 n3 = texture2D(uWaterNormals, p * 0.41 + uWaterTime * vec2(-0.031, 0.027)).xyz * 2.0 - 1.0;
   float away = distance(vWaterPos, cameraPosition);
-  vec2 ripple = ((n1.xy + n2.xy) * 0.2 + n3.xy * 0.12 * (1.0 - smoothstep(20.0, 90.0, away)))
+  vec2 ripple = ((n1.xy + n2.xy) * 0.14 + n3.xy * 0.2 * (1.0 - smoothstep(15.0, 70.0, away)))
     * mix(1.0, 0.4, uWaterCalm);
   vec3 swell = vWaveShoal.y > 0.0 ? gerstnerNormal(vWaveRest, uWaterTime, vWaveShoal) : vec3(0.0, 1.0, 0.0);
   ripple += rippleAt(p).xy;

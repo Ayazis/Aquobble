@@ -8,6 +8,10 @@ import type { SkyUniforms } from './SkyUniforms';
 const BANDS = 16;
 /** A camera jump further than this (m) between frames redraws the whole map at once. */
 const TELEPORT = 6;
+/** Share of each redraw that goes into the map; the rest is what was there (smooths the march grain). */
+const BLEND = 0.35;
+/** Full redraws are averaged over this many passes, so a fresh map is as smooth as a settled one. */
+const FRESH_PASSES = 4;
 
 /**
  * The volumetric clouds, drawn into a fisheye map of the sky instead of on screen: marching a cloud per
@@ -17,6 +21,9 @@ const TELEPORT = 6;
 export class CloudMap {
   private readonly target: THREE.WebGLRenderTarget;
   private readonly quad: FullScreenQuad;
+  private readonly material: THREE.ShaderMaterial;
+  private readonly jitter: { value: number };
+  private draws = 0;
   private readonly last = new THREE.Vector3(Infinity, 0, 0);
   private band = 0;
   private stale = true;
@@ -30,7 +37,13 @@ export class CloudMap {
       fragmentShader: cloudMapFragment(steps),
       depthTest: false,
       depthWrite: false,
+      // Blends by a constant, not by alpha: the map's alpha is cloud coverage.
+      blending: THREE.CustomBlending,
+      blendSrc: THREE.ConstantAlphaFactor,
+      blendDst: THREE.OneMinusConstantAlphaFactor,
     });
+    this.material = material;
+    this.jitter = sky.uCloudJitter;
     this.quad = new FullScreenQuad(material);
   }
 
@@ -50,13 +63,23 @@ export class CloudMap {
     this.last.set(camera.x, camera.y, camera.z);
     const size = this.target.height;
     const rows = Math.ceil(size / BANDS);
-    if (this.stale) this.target.scissor.set(0, 0, size, size);
+    const fresh = this.stale;
+    if (fresh) this.target.scissor.set(0, 0, size, size);
     else this.target.scissor.set(0, this.band * rows, size, rows);
-    this.band = this.stale ? 0 : (this.band + 1) % BANDS;
+    this.band = fresh ? 0 : (this.band + 1) % BANDS;
     this.stale = false;
     const previous = renderer.getRenderTarget();
+    const autoClear = renderer.autoClear;
+    // No clear: each pass blends into what the map already holds.
+    renderer.autoClear = false;
     renderer.setRenderTarget(this.target);
-    this.quad.render(renderer);
+    for (let pass = 0; pass < (fresh ? FRESH_PASSES : 1); pass++) {
+      // A running average over the fresh passes; afterwards each redraw nudges the map towards itself.
+      this.material.blendAlpha = fresh ? 1 / (pass + 1) : BLEND;
+      this.jitter.value = (this.draws++ * 0.61803) % 1;
+      this.quad.render(renderer);
+    }
     renderer.setRenderTarget(previous);
+    renderer.autoClear = autoClear;
   }
 }

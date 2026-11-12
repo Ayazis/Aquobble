@@ -24,6 +24,7 @@ export function createSkyUniforms() {
     // Clouds (see `cloudVolumeGlsl`).
     uCloudCam: vec(),
     uCloudTime: { value: 0 },
+    uCloudJitter: { value: 0 },
     uCloudCover: { value: 0 },
     uCloudLightDir: { value: new THREE.Vector3(0, 1, 0) },
     uCloudLight: colour(),

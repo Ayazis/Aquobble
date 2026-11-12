@@ -28,7 +28,7 @@ export class SkyDome {
 
   constructor(
     readonly atmosphere = new Atmosphere(),
-    detail: SkyDetail = { cloudMapSize: 1024, cloudSteps: 18 },
+    detail: SkyDetail = { cloudMapSize: 1024, cloudSteps: 22 },
   ) {
     this.cloudMap = new CloudMap(this.uniforms, detail.cloudMapSize, detail.cloudSteps);
     this.uniforms.uCloudMap.value = this.cloudMap.texture;

@@ -27,13 +27,14 @@ float cloudDensity(vec3 p, int octaves) {
   float shape = cloudShape(p.xz, uCloudTime, octaves) + 0.045 * float(4 - octaves);
   // Higher up less of the pattern clears the threshold: domed tops over a flat base.
   float threshold = CLOUD_COVER_LOW - uCloudCover + 0.36 * h * h;
-  float d = (shape - threshold) * 9.0;
   if (octaves > 2) {
-    // Wisps: a skewed noise slice eats into the edges.
-    float wisp = cloudNoise(p.xz * 0.011 + p.y * vec2(0.017, 0.012) + uCloudTime * 0.015) * 0.65
-      + cloudNoise(p.xz * 0.031 - p.y * vec2(0.023, 0.041) - uCloudTime * 0.02) * 0.35;
-    d -= wisp * 1.1 * (1.0 - clamp(d, 0.0, 1.0));
+    // Billows: two ridged noise slices, skewed with height, push the surface in and out in rounded lumps.
+    vec2 q = p.xz + p.y * vec2(0.4, 0.3);
+    float big = 1.0 - abs(2.0 * cloudNoise(q * 0.0105 + uCloudTime * 0.012) - 1.0);
+    float small = 1.0 - abs(2.0 * cloudNoise(q * 0.031 - uCloudTime * 0.02) - 1.0);
+    shape -= (big * 0.65 + small * 0.35 - 0.5) * 0.2;
   }
+  float d = (shape - threshold) * 12.0;
   return clamp(d, 0.0, 1.0) * smoothstep(0.0, 0.07, h);
 }
 

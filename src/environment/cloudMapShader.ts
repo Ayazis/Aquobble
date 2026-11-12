@@ -24,6 +24,7 @@ export function cloudMapFragment(steps: number): string {
   return /* glsl */ `
 varying vec2 vUv;
 uniform vec3 uSkyNight;
+uniform float uCloudJitter;
 ${ATMOSPHERE_PARS}
 ${cloudVolumeGlsl(steps)}
 void main() {
@@ -32,9 +33,10 @@ void main() {
   if (r2 > 1.0) { gl_FragColor = vec4(0.0); return; }
   float y = (1.0 - r2) / (1.0 + r2);
   vec3 rd = vec3(p.x * (1.0 + y), y, p.y * (1.0 + y));
-  // Interleaved gradient noise shifts each ray's first step: slice banding becomes a fine grain that the
-  // cloud dome's four-tap read averages away.
-  float jitter = fract(52.9829189 * fract(dot(gl_FragCoord.xy, vec2(0.06711056, 0.00583715))));
+  // Interleaved gradient noise shifts each ray's first step, differently on every redraw: slice banding
+  // becomes a grain that averages away as redraws blend into the map.
+  float ign = fract(52.9829189 * fract(dot(gl_FragCoord.xy, vec2(0.06711056, 0.00583715))));
+  float jitter = fract(ign + uCloudJitter);
   vec4 cloud = marchClouds(rd, jitter);
   // Aerial perspective: far clouds sink into the sky colour behind them and are gone before the horizon.
   float dist = (CLOUD_ALTITUDE - uCloudCam.y) / max(rd.y, 0.015);

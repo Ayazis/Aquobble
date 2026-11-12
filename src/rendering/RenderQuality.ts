@@ -68,6 +68,6 @@ export const HIGH_QUALITY: RenderQuality = {
   grassDensity: 1, // lane B: grass
   grassMidDistance: 45, // lane B: grass
   grassBendMapSize: 128, // lane B2: grass physics
-  sky: { cloudMapSize: 1024, cloudSteps: 18 },
+  sky: { cloudMapSize: 1024, cloudSteps: 22 },
   refraction: true, // lane H
 };

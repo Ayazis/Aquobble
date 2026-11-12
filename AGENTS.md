@@ -1,6 +1,7 @@
 # Aquobble: conventions
 
-Low-poly Three.js web game, static build on GitHub Pages. TypeScript, Vite, ECS (miniplex), Rapier physics.
+Three.js web game with physically based rendering (see `docs/rendering.md`), static build on GitHub Pages.
+TypeScript, Vite, ECS (miniplex), Rapier physics.
 
 ## Commands
 
