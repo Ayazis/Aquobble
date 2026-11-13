@@ -1,17 +1,16 @@
-/** Lighting and atmosphere at one moment of the day. Colours are 0xRRGGBB. */
+/**
+ * The art-directed side of the lighting at one moment of the day. Colours are not in here: by day they come
+ * out of the atmosphere model (`skyLighting`), at night from the colour script.
+ */
 export interface DayLighting {
-  sunColor: number;
+  /** Scales the key light (sun or moon). */
   sunIntensity: number;
-  hemisphereSky: number;
-  hemisphereGround: number;
+  /** Scales the hemisphere fill: the ground's bounce light by day, plus the blue lift at night. */
   hemisphereIntensity: number;
   /** How much the sky lights the scene (image-based lighting). */
   environmentIntensity: number;
-  fogColor: number;
   fogDensity: number;
-  /** Painted sky gradient: colour overhead and at the horizon. */
-  skyZenith: number;
-  skyHorizon: number;
+  /** Camera exposure before the eye-like adaptation to how bright the sky is. */
   exposure: number;
   /** Colour grade after tone mapping: saturation and contrast (1 = unchanged). */
   gradeSaturation: number;

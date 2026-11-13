@@ -2,7 +2,7 @@ import type { GameWorld, System, Vec3 } from '@core';
 import { bakeStreetProbes, type StreetLamp } from '@lighting';
 import type { PhysicsEngine } from '@physics';
 import type {} from '@player';
-import { bakeVertexAo, MAX_TOON_PROBES, ToonLightSystem, type RenderQuality } from '@rendering';
+import { bakeVertexAo, MAX_LIGHT_PROBES, SceneLightSystem, type RenderQuality } from '@rendering';
 import { colorForHeight } from '@terrain';
 import type { BufferGeometry, Object3D } from 'three';
 import type { InstalledEnvironment } from './installEnvironment';
@@ -24,13 +24,13 @@ interface Area {
 export function installLight(world: GameWorld, physics: PhysicsEngine, env: InstalledEnvironment, town: Area): System {
   const lamps: StreetLamp[] = [...world.with('streetLamp')].map((entity) => entity.streetLamp);
   const castRay = (origin: Vec3, direction: Vec3, max: number) => physics.castRay(origin, direction, max);
-  env.lighting.light.setProbes(bakeStreetProbes(lamps, castRay, MAX_TOON_PROBES));
+  env.lighting.light.setProbes(bakeStreetProbes(lamps, castRay, MAX_LIGHT_PROBES));
 
   const players = world.with('player', 'transform');
   const inTown = (p: Vec3) => p.x > town.minX && p.x < town.maxX && p.z > town.minZ && p.z < town.maxZ;
   const groundAt = (p: Vec3) => (inTown(p) ? TOWN_GROUND : colorForHeight(p.y));
   const night = () => env.dayNight.nightAmount;
-  return new ToonLightSystem(env.lighting.light, env.fill, night, () => players.first?.transform.position, groundAt);
+  return new SceneLightSystem(env.lighting.light, env.fill, night, () => players.first?.transform.position, groundAt);
 }
 
 /** Phones: bake vertex AO into the template models before they are placed (clones share the geometry). */

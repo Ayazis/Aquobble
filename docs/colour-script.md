@@ -22,7 +22,7 @@ exposure and the grade stay in the keyframes.
 
 ## Biomes
 
-Sand `#ead9a0`, meadow `#7fc24a`, forest `#4f9a3c`, rock `#9a8f80`, snow `#f2f2f2`, earth `#7a6450`. The
+Sand `#ead9a0`, meadow `#73ad48`, forest `#4c8a3c`, rock `#9a8f80`, snow `#f2f2f2`, earth `#7a6450`. The
 terrain bands (`terrain/TerrainPalette.ts`) and the bare-earth colour of the terrain shader read these, and the
 grass roots follow the ground, so grass and land share one green. Grass tips are a per-channel gain over the
 ground colour (`grassTips.cool` and `grassTips.warm`).

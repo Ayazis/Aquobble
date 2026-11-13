@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { roundNormals } from './roundNormals';
 
 /** Centre and radius of each leaf clump, relative to the tree base (metres), and its own tint. */
 const CLUMPS: readonly [x: number, y: number, z: number, radius: number, detail: number, tint: number][] = [
@@ -17,7 +18,7 @@ const SIDE = new THREE.Color(0.8, 0.86, 0.74);
 const TOP = new THREE.Color(1.1, 1.12, 0.94);
 
 /**
- * A rounded canopy of overlapping faceted clumps, as one geometry. Vertex colours are painted per facet:
+ * A rounded canopy of overlapping clumps, as one smoothly lit geometry. Vertex colours are painted per facet:
  * dark, cool undersides and inner faces, bright warm tops, and a slightly different green per clump, so the
  * crown has depth from any angle (also from below). The instance colour tints the whole tree.
  */
@@ -30,6 +31,8 @@ export function treeCrownGeometry(): THREE.BufferGeometry {
   });
   const crown = mergeGeometries(clumps);
   for (const clump of clumps) clump.dispose();
+  // Lit as one rounded mass, like the leaf models these stand in for.
+  roundNormals(crown, CORE, 0.85);
   return crown;
 }
 

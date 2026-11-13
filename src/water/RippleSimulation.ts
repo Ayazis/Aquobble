@@ -41,7 +41,7 @@ export class RippleSimulation implements RippleStamper {
         uPrev: { value: null },
         uTexel: { value: new THREE.Vector2(1 / resolution, 1 / resolution) },
         uShift: { value: new THREE.Vector2() },
-        uStiffness: { value: Math.min(0.2, STIFFNESS_256 * scale * scale) },
+        uStiffness: { value: Math.min(0.25, STIFFNESS_256 * scale * scale) },
         uDrops: { value: Array.from({ length: MAX_DROPS }, () => new THREE.Vector4()) },
         uDropFoam: { value: new Array<number>(MAX_DROPS).fill(0) },
         uDropCount: { value: 0 },

@@ -26,7 +26,7 @@ export interface WaterReactions {
   frameSystems: System[];
 }
 
-/** Ripple simulation (256 texels over 40 m, 128 on phones), splashes, wakes, footsteps, drips and the wet look. */
+/** Ripple simulation (`rippleMapSize` texels over 40 m), splashes, wakes, footsteps, drips and the wet look. */
 export function installWaterReactions(
   world: GameWorld,
   render: RenderContext,
@@ -34,7 +34,7 @@ export function installWaterReactions(
   random: Random,
   mobile: boolean,
 ): WaterReactions {
-  const ripples = new RippleSimulation(render.renderer, ripple, mobile ? 128 : 256, 40);
+  const ripples = new RippleSimulation(render.renderer, ripple, render.quality.water.rippleMapSize, 40);
   const events = new WaterEventBus();
   const droplets = new DropletPool(mobile ? 160 : 400, ripples);
   render.scene.add(droplets.mesh);

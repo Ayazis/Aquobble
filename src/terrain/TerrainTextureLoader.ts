@@ -15,8 +15,8 @@ export const DEFAULT_TERRAIN_TEXTURES: TerrainTexturePaths = {
 };
 
 /**
- * Loads the detail textures in the background and switches them on once all are in.
- * On failure the terrain keeps its plain palette colours; the game never waits on this.
+ * Loads the detail textures and their normal maps (`<name>-normal.webp`) in the background and switches each
+ * set on once it is in. On failure the terrain keeps its plain palette colours; the game never waits on this.
  */
 export class TerrainTextureLoader {
   private readonly loader = new THREE.TextureLoader();
@@ -30,21 +30,26 @@ export class TerrainTextureLoader {
   }
 
   private async loadAll(uniforms: TerrainTextureUniforms): Promise<void> {
-    const [grass, rock, sand] = await Promise.all(
-      [this.paths.grass, this.paths.rock, this.paths.sand].map((path) => this.loadOne(path)),
-    );
+    const paths = [this.paths.grass, this.paths.rock, this.paths.sand];
+    const [grass, rock, sand] = await Promise.all(paths.map((path) => this.loadOne(path, true)));
     uniforms.uGrassMap.value = grass;
     uniforms.uRockMap.value = rock;
     uniforms.uSandMap.value = sand;
-    // Half strength: the palette colour stays dominant, the texture only adds a painted grain.
-    uniforms.uTerrainDetail.value = 0.5;
+    // The palette colour sets the hue; the texture carries most of the light and dark.
+    uniforms.uTerrainDetail.value = 0.8;
+    const normals = paths.map((path) => this.loadOne(path.replace('.webp', '-normal.webp'), false));
+    const [grassN, rockN, sandN] = await Promise.all(normals);
+    uniforms.uGrassNormal.value = grassN;
+    uniforms.uRockNormal.value = rockN;
+    uniforms.uSandNormal.value = sandN;
+    uniforms.uTerrainRelief.value = 1;
   }
 
-  private async loadOne(path: string): Promise<THREE.Texture> {
+  private async loadOne(path: string, colour: boolean): Promise<THREE.Texture> {
     const texture = await this.loader.loadAsync(import.meta.env.BASE_URL + path);
     texture.wrapS = THREE.RepeatWrapping;
     texture.wrapT = THREE.RepeatWrapping;
-    texture.colorSpace = THREE.SRGBColorSpace;
+    if (colour) texture.colorSpace = THREE.SRGBColorSpace;
     texture.anisotropy = 8;
     texture.needsUpdate = true;
     return texture;

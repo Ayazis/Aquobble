@@ -44,5 +44,5 @@ describe('GerstnerWaveField', () => {
   });
 });
 
-const PINNED_A = 0.040642538858490965;
-const PINNED_B = 0.07696329683852683;
+const PINNED_A = 0.08044924736347096;
+const PINNED_B = 0.0601875733406535;

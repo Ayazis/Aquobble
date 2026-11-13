@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { ModelPart } from './ModelPart';
+import { crownCentre, roundNormals } from './roundNormals';
 
 /** Pack colours for the untextured logs and stump, pulled towards the textured bark and the forest moss. */
 const RETINT: Readonly<Record<string, number>> = {
@@ -33,6 +34,8 @@ export function modelParts(node: THREE.Object3D): ModelPart[] {
         material.alphaTest = 0.5;
         material.depthWrite = true;
         material.side = THREE.DoubleSide;
+        // One rounded mass to the light, not a heap of cards each lit its own way.
+        roundNormals(geometry, crownCentre(geometry));
       }
       textured.push({ geometry, material, role: leaves ? 'leaves' : 'wood' });
       return;

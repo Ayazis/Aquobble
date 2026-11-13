@@ -20,7 +20,7 @@ vec3 paletteDetail${i}(vec3 pos, vec3 w) {
 }
 `;
 
-export const PALETTE_FRAGMENT_PARS = PALETTE_KINDS.map((_, i) => slot(i)).join('');
+export const PALETTE_FRAGMENT_PARS = `\nfloat detailHeight = 1.0;\n${PALETTE_KINDS.map((_, i) => slot(i)).join('')}`;
 
 /**
  * Per pixel: classify the palette colour (roof, door, footing or wall) and apply that kind's grain, so one
@@ -46,5 +46,6 @@ export const PALETTE_FRAGMENT_MAIN = /* glsl */ `
     detail = paletteDetail0(vDetailPos, w);
   }
   diffuseColor.rgb *= detail;
+  detailHeight = dot(detail, vec3(0.3333));
 }
 `;

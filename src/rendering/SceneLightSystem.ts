@@ -1,9 +1,12 @@
 import * as THREE from 'three';
 import type { System, Vec3 } from '@core';
-import type { ToonLightUniforms } from './ToonLightUniforms';
+import type { SceneLightUniforms } from './SceneLightUniforms';
 
-/** Shadow tint by day (cool blue) and at night (deep blue), as a linear share of the sun/moon light. */
-const DAY_TINT = [0.3, 0.34, 0.46] as const;
+/**
+ * Share of the sun/moon light that still reaches shadowed ground. By day almost none: shade is lit by the sky
+ * and the ground's bounce. Moon shadows keep a blue lift, or the night would have holes in it.
+ */
+const DAY_TINT = [0.015, 0.02, 0.03] as const;
 const NIGHT_TINT = [0.1, 0.13, 0.26] as const;
 /** How much of the sky fill's ground colour takes the hue of the ground under the player. */
 const BOUNCE = 0.65;
@@ -11,18 +14,18 @@ const BOUNCE = 0.65;
 const FOLLOW = 2;
 
 /**
- * Frame system for the palette lighting: tints shadows towards the day or night palette colour, and turns
+ * Frame system for the shared light values: sets how much key light leaks into shadow (day or night), and turns
  * the hemisphere fill's ground colour into a bounce light from the ground under the player (green on the
  * meadow, warm on sand and roads), so roof undersides and tree crowns pick up its colour. Run after the
  * day/night system has set the fill for this hour.
  */
-export class ToonLightSystem implements System {
+export class SceneLightSystem implements System {
   private readonly bounce = new THREE.Color(1, 1, 1);
   private readonly target = new THREE.Color();
   private readonly tinted = new THREE.Color();
 
   constructor(
-    private readonly light: ToonLightUniforms,
+    private readonly light: SceneLightUniforms,
     private readonly fill: THREE.HemisphereLight,
     private readonly night: () => number,
     private readonly focus: () => Vec3 | undefined,

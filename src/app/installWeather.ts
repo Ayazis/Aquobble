@@ -35,12 +35,8 @@ export interface WeatherSites {
 /** Frame systems for the weather: run after the day cycle (overrides its sun, grade, fog and cloud shadow). */
 export function installWeather(clock: WeatherClock, s: WeatherSites): System[] {
   const { env } = s;
-  const shadow = env.lighting.cloudShadow;
   const control = new WeatherSystem(clock.weather, clock.schedule, () => env.dayNight.timeOfDay * 24, {
-    setOvercast: (o) => {
-      env.dayNight.overcast = o;
-      shadow.params[1] *= 1 + 1.5 * o; // rewritten by the clouds every frame, so this never compounds
-    },
+    setOvercast: (o) => (env.dayNight.overcast = o),
     setMist: (m) => (env.dayNight.heightFog.mist = m),
     setWetness: (w) => {
       env.lighting.wetness[0] = w;

@@ -26,7 +26,7 @@ import type { GameConfig } from './GameConfig';
 import { populateForest } from './populateForest';
 import { populateRocks } from './populateRocks';
 import { populateTown, type TownGround } from './populateTown';
-import { populateWater } from './populateWater';
+import { populateWater, type SeaControls } from './populateWater';
 import { mergeGroundHooks } from './mergeGroundHooks';
 import { pondCircle } from './pondCircle';
 import type { NatureAnchors } from './NatureAnchors'; // lane F: living details
@@ -46,7 +46,7 @@ export function populateWorld(
   forestPack: Object3D | null = null,
   quality?: RenderQuality,
   wind: WindDirection = { x: 1, z: 0 }, // lane C: water
-): TownGround & { water: WaterLevel; ripple: RippleUniforms; tide: Tide; nature: NatureAnchors } /* lanes C2, F */ {
+): TownGround & { water: WaterLevel; ripple: RippleUniforms; tide: Tide; sea: SeaControls; nature: NatureAnchors } {
   const noise = new FractalNoise(new ValueNoise(random));
   const terrain = new TerrainGenerator(noise, config.terrain).generate();
   // Filled in as the town, trees and rocks are placed; the ground, roads and grass read it once drawing starts.
@@ -64,7 +64,8 @@ export function populateWorld(
     water,
     ripple,
     tide,
-  } = populateWater(world, terrain, random, config, [townArea], physics, wind);
+    sea,
+  } = populateWater(world, terrain, random, config, [townArea], physics, wind, quality);
   // lane B: grass. Baked once the rocks are placed; the ground paints grass fur from it past the last band.
   const grassDensity = createGrassDensityUniforms();
   const hook = mergeGroundHooks(grassFurHook(grassDensity), wetSandHook(tide)); // tides: wet sand
@@ -105,5 +106,5 @@ export function populateWorld(
     },
   );
   // end lane B
-  return { ...town, water, ripple, tide, nature: { ponds, trees, ground: terrain } }; // lanes C2, F
+  return { ...town, water, ripple, tide, sea, nature: { ponds, trees, ground: terrain } }; // lanes C2, F
 }

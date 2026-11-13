@@ -40,8 +40,8 @@ export function settingsSections(
     },
   );
   const outlines = button('Outlines', () => {
-    store.update({ outlines: !s.outlines });
-    t.setOutlines(s.outlines);
+    store.update({ inkOutlines: !s.inkOutlines });
+    t.setOutlines(s.inkOutlines);
     refresh();
   });
   const fps = button('FPS overlay', () => {
@@ -76,7 +76,7 @@ export function settingsSections(
   const pending = el('div', { display: 'none', alignItems: 'center', gap: '8px', flexWrap: 'wrap' });
   pending.append(reload, note);
   const refresh = () => {
-    markActive(outlines, s.outlines);
+    markActive(outlines, s.inkOutlines);
     markActive(fps, s.fps);
     markActive(mute, !t.audio.isMuted);
     weather.refresh();

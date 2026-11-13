@@ -21,7 +21,7 @@ export interface SunShadowOptions {
 
 /**
  * Directional sun (or moon) with cascaded shadows in boxes that follow the view, plus sky/ground fill light.
- * The far cascade is a second, unlit directional light that only casts: `installToonLighting` reads its
+ * The far cascade is a second, unlit directional light that only casts: `installSceneLighting` reads its
  * shadow map for light 0 wherever the near box ends, so far trees and the town keep their shadows.
  */
 export class SunLight {
