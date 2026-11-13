@@ -19,6 +19,8 @@ uniform float uDetailScale;
 uniform sampler2D uDetailNormalMap;
 uniform float uDetailNormalStrength;
 varying vec3 vDetailPos;
+// Brightness of the detail texture at this pixel, read as height by the relief chunk.
+float detailHeight = 1.0;
 
 // Texture colour divided by its own average, so the material colour stays the overall tint.
 vec3 surfaceDetail(vec2 uv) {
@@ -36,16 +38,39 @@ if (uDetailStrength > 0.0) {
   vec3 p = vDetailPos * uDetailScale;
   vec3 detail = surfaceDetail(p.zy) * w.x + surfaceDetail(p.xz) * w.y + surfaceDetail(p.xy) * w.z;
   diffuseColor.rgb *= mix(vec3(1.0), detail, uDetailStrength);
+  detailHeight = dot(detail, vec3(0.3333)) * uDetailStrength;
 }
 `;
 
-/** How much the steepest carved slopes darken (0 = none). Keeps relief readable while the sun is inside one toon band. */
-export const DETAIL_CREVICE_DARKEN = 0.55;
+/** Depth (m) of the relief between the darkest and the average tone of a detail texture. */
+export const DETAIL_RELIEF_DEPTH = 0.022;
+
+/**
+ * Relief without a normal map, placed after three.js has set the view-space `normal`: the detail texture's
+ * brightness is read as height (mortar lines and plank gaps are dark, so they sink) and its screen-space
+ * slope tilts the normal, as in bump mapping. No extra texture reads.
+ */
+export const DETAIL_RELIEF_MAIN = /* glsl */ `
+{
+  vec2 dH = vec2(dFdx(detailHeight), dFdy(detailHeight)) * ${DETAIL_RELIEF_DEPTH.toFixed(3)};
+  vec3 sx = dFdx(vViewPosition);
+  vec3 sy = dFdy(vViewPosition);
+  vec3 r1 = cross(sy, normal);
+  vec3 r2 = cross(normal, sx);
+  float det = dot(sx, r1) * faceDirection;
+  // vViewPosition points at the camera (the surface position negated), which flips the gradient's sign.
+  vec3 grad = sign(det) * (dH.x * r1 + dH.y * r2);
+  normal = normalize(abs(det) * normal + grad);
+}
+`;
+
+/** How much the steepest carved slopes darken (0 = none): the joints between stones hold dirt and shade. */
+export const DETAIL_CREVICE_DARKEN = 0.35;
 
 /**
  * Carved detail on upward faces, placed after three.js has set the view-space `normal`: the ground-plane
- * normal map tilts it, so the banded sun term breaks along stone edges. Slopes are also darkened a little,
- * because a tilt that stays inside one light band would otherwise be invisible.
+ * normal map tilts it, so sun and sky catch the stone edges. Slopes are also darkened a little, as the
+ * joints between stones are in real paving.
  */
 export const DETAIL_NORMAL_MAIN = /* glsl */ `
 if (uDetailNormalStrength > 0.0) {

@@ -33,11 +33,7 @@ export class TreeInstancesFactory {
   private readonly trunkGeometry = treeTrunkGeometry();
   private readonly crownGeometry = treeCrownGeometry();
   private readonly trunkMaterial = new THREE.MeshStandardMaterial({ color: 0x7a5236, flatShading: true, roughness: 1 });
-  private readonly crownMaterial = new THREE.MeshStandardMaterial({
-    vertexColors: true,
-    flatShading: true,
-    roughness: 1,
-  });
+  private readonly crownMaterial = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.9 });
 
   constructor(surfaces?: SurfaceStyler, sway?: CrownSwayClock) {
     surfaces?.apply(this.trunkMaterial, 'bark');

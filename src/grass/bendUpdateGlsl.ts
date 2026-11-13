@@ -14,7 +14,7 @@ void main() {
 /**
  * One step of the bend map: scroll the previous map with the box, run each texel's damped spring
  * (push and its velocity), then press every stamp's soft disc in, pushing radially and along the mover's
- * velocity so grass parts in front and closes behind.
+ * velocity so grass parts in front and closes behind. Impact stamps (`burst`) splay blades outwards at once.
  */
 export function bendUpdateFragment(): string {
   const { k, c } = springTerms();
@@ -49,8 +49,11 @@ void main() {
     // Feet press blades over in the walking direction, parting a little sideways; no outward blast.
     float moving = smoothstep(0.2, 1.5, speed);
     vec2 dir = along * moving + radial * mix(0.3, 0.45, moving);
+    // An impact splays blades straight out from where it hit, all at once.
+    float burst = uMotion[i].z;
+    dir = mix(dir, radial, burst);
     vec2 target = dir * disc.w * reach;
-    float k = clamp(reach * ${f(BEND_SPRING.press)} * uDt, 0.0, 1.0);
+    float k = clamp(reach * max(${f(BEND_SPRING.press)} * uDt, burst), 0.0, 1.0);
     // Only push further: a blade already leaning more than this disc asks keeps its lean.
     if (dot(target, target) >= dot(d, d) * 0.9) {
       v = mix(v, (target - d) / max(uDt, 0.001) * 0.2, k);

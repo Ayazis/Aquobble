@@ -7,6 +7,11 @@ export interface BendStamp {
   strength: number;
   vx: number;
   vz: number;
+  /**
+   * 0 for a footprint pressed in over a few frames along the mover's path. Above 0 (up to 1) for an impact:
+   * the disc is pressed in at once and splays blades outwards from its centre (a landing, a dropped rock).
+   */
+  burst?: number;
 }
 
 /** Most stamps one frame takes (size of the update shader's uniform arrays). */
@@ -22,7 +27,7 @@ export function stampStrength(speed: number): number {
 
 /**
  * Packs up to MAX_BEND_STAMPS stamps into the shader arrays (`discs` as x, z, radius, strength; `motion`
- * as vx, vz, 0, 0) and clears the rest. Returns how many were written.
+ * as vx, vz, burst, 0) and clears the rest. Returns how many were written.
  */
 export function packStamps(stamps: readonly BendStamp[], discs: Float32Array, motion: Float32Array): number {
   const n = Math.min(stamps.length, MAX_BEND_STAMPS);
@@ -31,7 +36,7 @@ export function packStamps(stamps: readonly BendStamp[], discs: Float32Array, mo
   for (let i = 0; i < n; i++) {
     const s = stamps[i];
     discs.set([s.x, s.z, s.radius, s.strength], i * 4);
-    motion.set([s.vx, s.vz], i * 4);
+    motion.set([s.vx, s.vz, s.burst ?? 0], i * 4);
   }
   return n;
 }

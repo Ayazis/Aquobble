@@ -4,35 +4,29 @@ import { DEFAULT_DAY_KEYFRAMES } from './dayKeyframes';
 import { lerpColor, sampleDayCycle } from './sampleDayCycle';
 import { sunDirectionAt } from './sunDirectionAt';
 
-const base: Omit<DayKeyframe, 'time' | 'sunIntensity' | 'sunColor'> = {
-  hemisphereSky: 0,
-  hemisphereGround: 0,
+const base: Omit<DayKeyframe, 'time' | 'sunIntensity' | 'exposure'> = {
   hemisphereIntensity: 0,
   environmentIntensity: 0,
-  fogColor: 0,
   fogDensity: 0,
-  skyZenith: 0,
-  skyHorizon: 0,
-  exposure: 1,
   gradeSaturation: 1,
   gradeContrast: 1,
   gradeLift: 0,
 };
 const frames: DayKeyframe[] = [
-  { time: 0.25, ...base, sunColor: 0x000000, sunIntensity: 0 },
-  { time: 0.75, ...base, sunColor: 0xff0080, sunIntensity: 2 },
+  { time: 0.25, ...base, exposure: 1, sunIntensity: 0 },
+  { time: 0.75, ...base, exposure: 3, sunIntensity: 2 },
 ];
 
 describe('sampleDayCycle', () => {
   it('returns a keyframe exactly at its time', () => {
     expect(sampleDayCycle(frames, 0.75).sunIntensity).toBe(2);
-    expect(sampleDayCycle(frames, 0.25).sunColor).toBe(0x000000);
+    expect(sampleDayCycle(frames, 0.25).exposure).toBe(1);
   });
 
   it('interpolates between neighbours', () => {
     const mid = sampleDayCycle(frames, 0.5);
     expect(mid.sunIntensity).toBeCloseTo(1);
-    expect(mid.sunColor).toBe(0x800040);
+    expect(mid.exposure).toBeCloseTo(2);
   });
 
   it('wraps across midnight', () => {
@@ -41,10 +35,10 @@ describe('sampleDayCycle', () => {
     expect(sampleDayCycle(frames, -0.5).sunIntensity).toBeCloseTo(1);
   });
 
-  it('makes noon brighter than midnight with the default keyframes', () => {
+  it('thickens the haze at night with the default keyframes', () => {
     const noon = sampleDayCycle(DEFAULT_DAY_KEYFRAMES, 0.5);
     const night = sampleDayCycle(DEFAULT_DAY_KEYFRAMES, 0);
-    expect(noon.sunIntensity).toBeGreaterThan(night.sunIntensity);
+    expect(night.fogDensity).toBeGreaterThan(noon.fogDensity);
   });
 });
 

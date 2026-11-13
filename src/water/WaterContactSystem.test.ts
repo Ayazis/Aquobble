@@ -48,11 +48,12 @@ describe('WaterContactSystem', () => {
 });
 
 describe('waveShoaling', () => {
-  it('shortens and raises waves in shallow water, flattens them at the shore and far out', () => {
+  it('shortens and calms waves in shallow water, flattens them at the shore and far out', () => {
     expect(waveShoaling(10, 0)).toEqual({ kScale: 1, ampScale: 1 });
     const shallow = waveShoaling(1.5, 0);
     expect(shallow.kScale).toBeGreaterThan(1);
-    expect(shallow.ampScale).toBeGreaterThan(1);
+    expect(shallow.ampScale).toBeLessThan(1);
+    expect(shallow.ampScale).toBeGreaterThan(0.5);
     expect(waveShoaling(0, 0).ampScale).toBe(0);
     expect(waveShoaling(10, 200).ampScale).toBe(0);
   });

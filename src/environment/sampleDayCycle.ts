@@ -1,5 +1,16 @@
 import type { DayKeyframe, DayLighting } from './DayKeyframe';
 
+const FIELDS: readonly (keyof DayLighting)[] = [
+  'sunIntensity',
+  'hemisphereIntensity',
+  'environmentIntensity',
+  'fogDensity',
+  'exposure',
+  'gradeSaturation',
+  'gradeContrast',
+  'gradeLift',
+];
+
 /** Lighting at `time` (wrapped into [0, 1)), interpolated between the surrounding keyframes (sorted by time). */
 export function sampleDayCycle(keyframes: readonly DayKeyframe[], time: number): DayLighting {
   if (keyframes.length === 0) throw new Error('sampleDayCycle needs at least one keyframe');
@@ -11,22 +22,9 @@ export function sampleDayCycle(keyframes: readonly DayKeyframe[], time: number):
   const b = keyframes[next];
   const span = wrap(b.time - a.time) || 1;
   const f = wrap(t - a.time) / span;
-  return {
-    sunColor: lerpColor(a.sunColor, b.sunColor, f),
-    sunIntensity: lerp(a.sunIntensity, b.sunIntensity, f),
-    hemisphereSky: lerpColor(a.hemisphereSky, b.hemisphereSky, f),
-    hemisphereGround: lerpColor(a.hemisphereGround, b.hemisphereGround, f),
-    hemisphereIntensity: lerp(a.hemisphereIntensity, b.hemisphereIntensity, f),
-    environmentIntensity: lerp(a.environmentIntensity, b.environmentIntensity, f),
-    fogColor: lerpColor(a.fogColor, b.fogColor, f),
-    fogDensity: lerp(a.fogDensity, b.fogDensity, f),
-    skyZenith: lerpColor(a.skyZenith, b.skyZenith, f),
-    skyHorizon: lerpColor(a.skyHorizon, b.skyHorizon, f),
-    exposure: lerp(a.exposure, b.exposure, f),
-    gradeSaturation: lerp(a.gradeSaturation, b.gradeSaturation, f),
-    gradeContrast: lerp(a.gradeContrast, b.gradeContrast, f),
-    gradeLift: lerp(a.gradeLift, b.gradeLift, f),
-  };
+  const out = {} as DayLighting;
+  for (const key of FIELDS) out[key] = a[key] + (b[key] - a[key]) * f;
+  return out;
 }
 
 /** Per-channel linear blend of two 0xRRGGBB colours. */

@@ -9,6 +9,7 @@ import type { FlowerInstancesFactory } from './FlowerInstancesFactory';
 import type { GrassQuality } from './GrassBand';
 import { grassBands } from './grassBands';
 import type { GrassBlocker } from './GrassBlocker';
+import { GrassCoverage } from './GrassCoverage';
 import type { GrassFieldComponent } from './GrassFieldComponent';
 import type { GrassDensityUniforms } from './GrassDensityUniforms';
 import { setGrassDensity } from './GrassDensityUniforms';
@@ -43,7 +44,7 @@ export type GrassGround = Pick<GroundRules, 'blockers' | 'feather' | 'lawns' | '
 };
 
 /**
- * Bakes the density map, adds the grass field (tufts placed on the GPU round the camera) and places the
+ * Bakes the density map, adds the grass field (blades grown on the GPU round the camera) and places the
  * flowers and tall tufts; each is a swaying render entity. Placements draw from `random.fork('grass')`.
  */
 export class GrassSpawner {
@@ -72,10 +73,13 @@ export class GrassSpawner {
       maxSlope: options.maxSlope,
       exclude,
     };
-    setGrassDensity(this.density, bakeGrassDensity(this.ground, rules, options.density), options.density);
+    const density = bakeGrassDensity(this.ground, rules, options.density);
+    setGrassDensity(this.density, density, options.density);
     // The grass and the ground fur share one clock.
     const windSway: WindSway = { ...createWindSway(), time: this.density.uGrassTime };
-    this.add(this.field.create(grassBands(quality), windSway), windSway, { keep: this.density.uGrassKeep });
+    const field = this.field.create(grassBands(quality), windSway);
+    const coverage = new GrassCoverage(density, options.density);
+    this.add(field.object, windSway, { keep: this.density.uGrassKeep, tiles: field.tiles, coverage });
 
     const random = this.random.fork('grass');
     const placer = new GrassPlacer(this.ground, random, rules);

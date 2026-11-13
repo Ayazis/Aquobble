@@ -48,13 +48,13 @@ export const COLOUR_SCRIPT: ColourScript = {
   nightfall: { ...NIGHT, skyHorizon: 0x40345a, fog: 0x2e2a42 },
   biomes: {
     sand: 0xead9a0,
-    meadow: 0x7fc24a,
-    forest: 0x4f9a3c,
+    meadow: 0x73ad48,
+    forest: 0x4c8a3c,
     rock: 0x9a8f80,
     snow: 0xf2f2f2,
     earth: 0x7a6450,
   },
-  grassTips: { cool: [0.7, 0.93, 0.95], warm: [1.45, 0.99, 0.55] },
+  grassTips: { cool: [0.72, 0.93, 0.92], warm: [1.3, 0.99, 0.6] },
   buildings: {
     plaster: [0xb3a07e, 0xb9a07a, 0xb5a88b, 0xbdb7ab],
     timber: 0x7a5a3a,

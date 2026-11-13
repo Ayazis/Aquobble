@@ -7,7 +7,7 @@ import { TerrainTextureLoader } from './TerrainTextureLoader';
 import { createTerrainTextureUniforms } from './TerrainTextureUniforms';
 
 /**
- * Builds the flat-shaded terrain mesh from a height field. Colours are blended per pixel in the shader and tinted with detail textures (blended by height and slope) once those load in the background.
+ * Builds the smooth-shaded terrain mesh from a height field. Colours are blended per pixel in the shader and tinted with detail textures (blended by height and slope) once those load in the background.
  */
 export class TerrainMeshFactory {
   constructor(
@@ -23,12 +23,10 @@ export class TerrainMeshFactory {
   create(field: HeightField): THREE.Mesh {
     const segments = field.samples - 1;
     // PlaneGeometry vertices are row-major from -z to +z after rotation, matching HeightField.
-    const indexed = new THREE.PlaneGeometry(field.size, field.size, segments, segments).rotateX(-Math.PI / 2);
-    const positions = indexed.attributes.position;
+    const geometry = new THREE.PlaneGeometry(field.size, field.size, segments, segments).rotateX(-Math.PI / 2);
+    const positions = geometry.attributes.position;
     for (let i = 0; i < positions.count; i++) positions.setY(i, field.heights[i]);
-
-    const geometry = indexed.toNonIndexed();
-    indexed.dispose();
+    // Shared vertices: the normals average across faces, so the hills are lit as smooth ground.
     geometry.computeVertexNormals();
 
     const uniforms = createTerrainTextureUniforms(this.waterLevel);

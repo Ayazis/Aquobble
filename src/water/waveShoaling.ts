@@ -3,14 +3,14 @@ export const SHOAL = {
   /** Water deeper than this (m) carries the waves unchanged. */
   depth: 6,
   /** Wavelength factor in the shallows: waves bunch up as the water gets shallow. */
-  shortest: 0.55,
-  /** Amplitude factor in the shallows: waves rise before they break. */
-  tallest: 1.4,
+  shortest: 0.8,
+  /** Amplitude factor in the shallows: the bed drags on the swell, so bays lie calmer than open water (the surf takes over). */
+  shallows: 0.6,
   /** Over the last `shore` metres of depth the waves die into the foam line. */
   shore: 0.5,
   /** The swell fades out between these distances (m) from the world centre, before the sea mesh gets coarse. */
-  fadeStart: 110,
-  fadeEnd: 150,
+  fadeStart: 105,
+  fadeEnd: 133,
 } as const;
 
 /** Wavenumber and amplitude multipliers at one spot. */
@@ -32,6 +32,6 @@ export function waveShoaling(depth: number, distance: number): WaveScale {
   const fade = 1 - smoothstep(SHOAL.fadeStart, SHOAL.fadeEnd, distance);
   return {
     kScale: 1 / mix(SHOAL.shortest, 1, s),
-    ampScale: mix(SHOAL.tallest, 1, s) * smoothstep(0, SHOAL.shore, depth) * fade,
+    ampScale: mix(SHOAL.shallows, 1, s) * smoothstep(0, SHOAL.shore, depth) * fade,
   };
 }

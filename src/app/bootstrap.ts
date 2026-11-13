@@ -16,8 +16,8 @@ import { MuteButton } from '@audio';
 import { createScaleOverlay, isDebugMode, isScaleMode } from '@diagnostics';
 import { BirdRenderSystem, FlockSystem } from '@wildlife';
 import { RockRecycleSystem, RockSpawner } from '@rocks';
-import { TideSystem, WaterAnimationSystem, WaterContactSystem } from '@water'; // lane C: water, tides
-import { GrassWatchdogSystem } from '@grass';
+import { SeaStateSystem, TideSystem, WaterAnimationSystem, WaterContactSystem } from '@water'; // lane C: water, tides
+import { GrassTileSystem, GrassWatchdogSystem } from '@grass';
 import { applyQualitySettings, type LoadingProgress, NO_PROGRESS, SettingsStore } from '@menu';
 import { loadAllModels } from './loadAllModels';
 import { loadingStage } from './loadingStage';
@@ -115,6 +115,7 @@ export async function bootstrap(
       new TransformSyncSystem(world),
       new WaterAnimationSystem(world, 0.6, () => env.dayNight.nightAmount),
       new TideSystem(town.tide, () => env.dayNight.timeOfDay), // tides
+      new SeaStateSystem(wind.wind, () => wind.system.elapsed, town.sea.swell, town.sea.wind),
       ...grassPhysics, // lane B2: grass physics (wind sway clock, bend map, rustle)
       new SailSystem(world, wind.uniforms), // lane A2: windmill sails
       new GrassWatchdogSystem(world), // lane B: grass
@@ -125,6 +126,7 @@ export async function bootstrap(
       spawnChimneySmoke(world, config.seed),
       new ThirdPersonCameraSystem(world, render.camera, physics, look, zoom),
       ...debug.afterCamera,
+      new GrassTileSystem(world, render.camera, town.nature.ground), // lane B: grass tiles in view
       ...scale, // lane W0-a: tools
       new BirdRenderSystem(world, birdMeshes.clock),
       ...spawnLivingDetails(world, random.fork('living'), config.waterLevel, town.nature, wind, env.dayNight), // lane F

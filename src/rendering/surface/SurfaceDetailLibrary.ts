@@ -7,6 +7,7 @@ import {
   DETAIL_FRAGMENT_MAIN,
   DETAIL_FRAGMENT_PARS,
   DETAIL_NORMAL_MAIN,
+  DETAIL_RELIEF_MAIN,
   DETAIL_VERTEX_MAIN,
   DETAIL_VERTEX_PARS,
 } from './surfaceDetailChunks';
@@ -40,10 +41,10 @@ export class SurfaceDetailLibrary implements SurfaceStyler {
       shader.fragmentShader = shader.fragmentShader
         .replace('#include <common>', `#include <common>\n${DETAIL_FRAGMENT_PARS}`)
         .replace('#include <color_fragment>', `#include <color_fragment>\n${DETAIL_FRAGMENT_MAIN}`);
-      if (!source.normalPath) return;
+      // Kinds with a real normal map use it (on the ground); the rest get relief from the detail's own tones.
       shader.fragmentShader = shader.fragmentShader.replace(
         '#include <normal_fragment_maps>',
-        `#include <normal_fragment_maps>\n${DETAIL_NORMAL_MAIN}`,
+        `#include <normal_fragment_maps>\n${source.normalPath ? DETAIL_NORMAL_MAIN : DETAIL_RELIEF_MAIN}`,
       );
     };
     // Two programs at most: kinds with a normal map pay for its texture read, the others do not.
@@ -69,7 +70,8 @@ export class SurfaceDetailLibrary implements SurfaceStyler {
         .replace('#include <begin_vertex>', `#include <begin_vertex>\n${DETAIL_VERTEX_MAIN}`);
       shader.fragmentShader = shader.fragmentShader
         .replace('#include <common>', `#include <common>\nvarying vec3 vDetailPos;\n${PALETTE_FRAGMENT_PARS}`)
-        .replace('#include <color_fragment>', `#include <color_fragment>\n${PALETTE_FRAGMENT_MAIN}`);
+        .replace('#include <color_fragment>', `#include <color_fragment>\n${PALETTE_FRAGMENT_MAIN}`)
+        .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>\n${DETAIL_RELIEF_MAIN}`);
     };
     material.customProgramCacheKey = () => 'aquobble-surface-palette';
     material.needsUpdate = true;

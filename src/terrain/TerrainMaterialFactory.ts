@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import {
   TERRAIN_FRAGMENT_MAIN,
+  TERRAIN_FRAGMENT_NORMAL,
   TERRAIN_FRAGMENT_PARS,
   TERRAIN_VERTEX_MAIN,
   TERRAIN_VERTEX_PARS,
@@ -10,12 +11,13 @@ import type { TerrainGroundHook } from './TerrainGroundHook';
 import type { TerrainTextureUniforms } from './TerrainTextureUniforms';
 
 /**
- * Terrain material: flat-shaded (facet normals) palette colours blended per pixel by height/slope, with grass/sand/rock detail textures
- * blended by height and slope in world space (triplanar for rock) via a standard-material shader patch.
+ * Terrain material: smooth-shaded palette colours blended per pixel by height and slope, with grass, sand and
+ * rock textures and their normal maps laid over in world space (triplanar for rock) via a standard-material
+ * shader patch.
  */
 export class TerrainMaterialFactory {
   create(uniforms: TerrainTextureUniforms & GroundShadeUniforms, hook?: TerrainGroundHook): THREE.MeshStandardMaterial {
-    const material = new THREE.MeshStandardMaterial({ flatShading: true, roughness: 0.95 });
+    const material = new THREE.MeshStandardMaterial({ roughness: 0.92 });
     material.onBeforeCompile = (shader) => {
       Object.assign(shader.uniforms, uniforms);
       // lane B: grass
@@ -28,7 +30,8 @@ export class TerrainMaterialFactory {
         .replace('#include <begin_vertex>', `#include <begin_vertex>\n${TERRAIN_VERTEX_MAIN}`);
       shader.fragmentShader = shader.fragmentShader
         .replace('#include <common>', `#include <common>\n${pars}`)
-        .replace('#include <color_fragment>', `#include <color_fragment>\n${main}`);
+        .replace('#include <color_fragment>', `#include <color_fragment>\n${main}`)
+        .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>\n${TERRAIN_FRAGMENT_NORMAL}`);
     };
     material.customProgramCacheKey = () => (hook ? 'aquobble-terrain-hooked' : 'aquobble-terrain');
     return material;

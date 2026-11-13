@@ -19,7 +19,7 @@ export function cloudShadowChunk(): string {
     // Follow the ray towards the sun up to the cloud sheet.
     vec2 xz = world.xz + sunWorld.xz * ((CLOUD_ALTITUDE - world.y) / sunWorld.y);
     float shape = cloudShape(xz, cloudShadowParams.x, 2) + 0.09;
-    float cover = smoothstep(CLOUD_COVER_LOW - 0.03, CLOUD_COVER_HIGH + 0.03, shape);
+    float cover = smoothstep(CLOUD_COVER_LOW - 0.03, CLOUD_COVER_HIGH + 0.05, shape + cloudShadowParams.z);
     return 1.0 - cloudShadowParams.y * cover;
   }
 `;
